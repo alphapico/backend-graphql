@@ -7,6 +7,7 @@
     "dev:db:up": "docker compose -f docker-compose.dev.yml --env-file .serve.env up -d",
     "dev:db:down": "docker compose -f docker-compose.dev.yml --env-file .serve.env down",
     "dev:migrate": "dotenv -e .serve.env -- npx prisma migrate dev",
+    "dev:db:deploy": "dotenv -e .serve.env -- npx prisma migrate deploy",
     "dev:studio": "dotenv -e .serve.env -- npx prisma studio",
     "e2e:db:build": "docker compose -f docker-compose.e2e.yml --env-file .e2e.env up --build",
     "e2e:db:up": "docker compose -f docker-compose.e2e.yml --env-file .e2e.env up -d --remove-orphans",

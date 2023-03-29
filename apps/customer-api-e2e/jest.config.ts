@@ -25,6 +25,9 @@ const config: Config.InitialOptions = {
       {
         pageTitle: 'E2E Test Report',
         outputPath: '<rootDir>/../../coverage/customer-api-e2e/e2e-report.html',
+        includeFailureMsg: true,
+        includeSuiteFailure: true,
+        includeConsoleLog: true,
       },
     ],
   ],
