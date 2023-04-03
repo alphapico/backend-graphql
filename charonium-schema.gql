@@ -1,0 +1,36 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Customer {
+  customerId: ID!
+  customerStatus: CustomerStatus!
+  email: String!
+  name: String!
+  referralCode: String
+  referralCustomerId: ID
+  referree: Customer
+  referrer: Customer
+}
+
+enum CustomerStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+  SUSPENDED
+}
+
+type Mutation {
+  register(input: RegisterInput!): Customer!
+}
+
+type Query {
+  hello: String!
+}
+
+input RegisterInput {
+  email: String!
+  name: String!
+  password: String!
+  referralCode: String
+}
