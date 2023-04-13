@@ -1,4 +1,4 @@
-import { Controller, Get, HttpCode } from '@nestjs/common';
+import { Controller, Get, HttpCode, Header } from '@nestjs/common';
 
 import { AppService } from './app.service';
 
@@ -8,6 +8,7 @@ export class AppController {
 
   @Get()
   @HttpCode(200)
+  @Header('Cache-Control', 'no-store, no-cache, must-revalidate')
   getData() {
     return this.appService.checkHealth();
   }
