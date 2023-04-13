@@ -3,7 +3,7 @@
  * This is only a minimal backend to get started.
  */
 
-// import { Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { BadRequestException, ValidationPipe } from '@nestjs/common';
 
@@ -44,6 +44,17 @@ async function bootstrap() {
   // Logger.log(
   //   `🚀 Application is running on: http://localhost:${port}/${globalPrefix}`
   // );
+
+  // Handle shutdown signals
+  process.on('SIGTERM', async () => {
+    Logger.log('SIGTERM signal received. Gracefully shutting down...');
+    await app.close();
+  });
+
+  process.on('SIGINT', async () => {
+    Logger.log('SIGINT signal received. Gracefully shutting down...');
+    await app.close();
+  });
 }
 
 bootstrap();

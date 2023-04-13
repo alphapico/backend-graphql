@@ -125,7 +125,7 @@ Conflicts may arise when multiple developers are working on the same files or se
 
 1. Update your local `dev` branch with the latest changes from the remote repository.
    ```bash
-   git checkout dev
+   git switch dev
    git pull
    ```
 2. Switch to your `short-lived branch` and merge the updated `dev` branch into it.
