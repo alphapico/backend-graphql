@@ -79,7 +79,7 @@
    Press `Ctrl + C` to quit
 2. To start, test, and stop the end-to-end test automatically, simply run the following command:
    ```bash
-   nx e2e customer-api
+   nx e2e customer-api-e2e
    ```
    The test results will be displayed in the terminal, and the test report will be saved at `<root>/coverage/customer-api-e2e/e2e-report.html`
 
@@ -92,12 +92,12 @@ The code is modular, testable and easily extendable. It's following concept like
 1. Create your schema at `<root>/prisma/schema.prisma`
 2. After making changes, run command:
    ```bash
-   npm run migrate:dev
+   npm run dev:db:migrate
    ```
    Give suitable name for migration file, e:g `add_table_customer`. The command will create migration file and deploy migration file to the database.
 3. Peek at the database content with this command
    ```bash
-   npm run studio:dev
+   npm run dev:db:studio
    ```
 4. For professional PostgreSQL client, install `PgAdmin`
 
@@ -175,7 +175,7 @@ When writing end-to-end tests, create one test suite per module. Each module sho
 To run end-to-end tests, execute the following command:
 
 ```bash
-nx e2e customer-api
+nx e2e customer-api-e2e
 ```
 
 Make sure to cover edge cases in your test cases as well.
