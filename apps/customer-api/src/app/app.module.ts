@@ -5,7 +5,7 @@ import { CustomerModule } from '../customer/customer.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
-
+import { ReferralModule } from '../referral/referral.module';
 @Module({
   imports: [
     GraphQLModule.forRoot<ApolloDriverConfig>({
@@ -16,9 +16,9 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
       playground: true, // disabled this in production
       introspection: true, // disabled this in production
     }),
-    CustomerModule,
+    CustomerModule, ReferralModule
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
 })
-export class AppModule {}
+export class AppModule { }
