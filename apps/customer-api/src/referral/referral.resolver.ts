@@ -3,7 +3,7 @@ import { ReferralService } from './referral.service';
 import { Referrer, ReferralMap, Referree } from './dto/referral.dto';
 import { PrismaService } from '../prisma/prisma.service';
 
-@Resolver(() => [ReferralMap])
+@Resolver()
 export class ReferralResolver {
     constructor(
         private referralService: ReferralService,
@@ -17,10 +17,14 @@ export class ReferralResolver {
             where: { configId: 1 },
             select: { value: true }
         });
+        const customerName = await this.prisma.customer.findFirst({
+            where: { customerId: customerId },
+            select: { name: true }
+        });
         const numTier = config.value;
         let referrerArr = [];
         referrer.customerId = customerId;
-        referrer.customerName = "Me";
+        referrer.customerName = customerName.name;
         referrerArr.push(referrer);
         for (let i = 0; i <= numTier; i++) {
             const tmpReferralMap = await this.referralService.getTierMap(referrerArr);
