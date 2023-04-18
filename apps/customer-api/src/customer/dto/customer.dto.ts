@@ -1,4 +1,4 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
+import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { CustomerStatus } from '@charonium/common/enums/customer-status.enum';
 import {
   Customer as PrismaCustomer,
@@ -17,7 +17,7 @@ type CustomerPartial = Partial<
 
 @ObjectType()
 export class Customer implements CustomerPartial {
-  @Field(() => ID)
+  @Field(() => Int)
   customerId: number;
 
   @Field()
@@ -32,7 +32,7 @@ export class Customer implements CustomerPartial {
   @Field({ nullable: true })
   referralCode?: string;
 
-  @Field(() => ID, { nullable: true })
+  @Field(() => Int, { nullable: true })
   referralCustomerId?: number;
 
   @Field(() => Customer, { nullable: true })

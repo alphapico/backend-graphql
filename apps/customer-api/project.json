@@ -38,6 +38,18 @@
         }
       }
     },
+    "e2e": {
+      "executor": "@nrwl/js:node",
+      "defaultConfiguration": "development",
+      "options": {
+        "buildTarget": "customer-api:build"
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "customer-api:build:development"
+        }
+      }
+    },
     "lint": {
       "executor": "@nrwl/linter:eslint",
       "outputs": ["{options.outputFile}"],

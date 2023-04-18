@@ -1,6 +1,7 @@
 export const ERROR_MESSAGES = {
   INVALID_REFERRAL_CODE: 'Invalid referral code.',
   EMAIL_ALREADY_EXISTS: 'Email already exists.',
+  SEND_EMAIL_VERIFICATION_FAILED: 'Failed to send email verification.',
   VAL: {
     IS_STRING: '$property must be a string',
     IS_EMAIL: '$property must be an email',
