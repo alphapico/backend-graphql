@@ -10,27 +10,31 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum CustomerStatus{
+enum CustomerStatus {
   PENDING
   ACTIVE
   INACTIVE
   SUSPENDED
 }
 
-model Customer{
-  customerId Int @id @default(autoincrement())
-  name String
-  email String @unique
-  password String
-  emailVerified Boolean @default(false)
-  customerStatus CustomerStatus @default(PENDING)
-  referralCode String? @unique
-  referralCustomerId Int? @unique
-  referrer Customer? @relation("CustomerReferral", fields: [referralCustomerId], references: [customerId])
-  referree Customer? @relation("CustomerReferral")
-  tokenVersion Int @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime? @updatedAt
+model Customer {
+  customerId         Int            @id @default(autoincrement())
+  name               String
+  email              String         @unique
+  password           String
+  emailVerified      Boolean        @default(false)
+  customerStatus     CustomerStatus @default(PENDING)
+  referralCode       String?        @unique
+  referralCustomerId Int?
+  tokenVersion       Int            @default(0)
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime?      @updatedAt
 }
 
-
+model Config {
+  configId   Int       @id @default(autoincrement())
+  configDesc String    @default("Null")
+  value      Float     @default(0)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime? @updatedAt
+}

@@ -25,7 +25,23 @@ type Mutation {
 }
 
 type Query {
+  getReferralMap(customerId: Int!): [ReferralMap!]!
   hello: String!
+}
+
+type ReferralMap {
+  tier: Int!
+  tierMaps: [TierMap!]!
+}
+
+type Referree {
+  customerId: Int!
+  customerName: String!
+}
+
+type Referrer {
+  customerId: Int!
+  customerName: String!
 }
 
 input RegisterInput {
@@ -33,4 +49,9 @@ input RegisterInput {
   name: String!
   password: String!
   referralCode: String
+}
+
+type TierMap {
+  referrees: [Referree!]!
+  referrer: Referrer!
 }
