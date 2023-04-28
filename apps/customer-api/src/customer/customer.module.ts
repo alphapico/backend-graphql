@@ -1,22 +1,14 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { CustomerService } from './customer.service';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaModule } from '@charonium/prisma';
 import { CustomerResolver } from './customer.resolver';
-import { ReferralCodeUtil } from '@charonium/common/utils/referralCode.util';
-import { JwtModule } from '@nestjs/jwt';
+import { ReferralCodeUtil } from '@charonium/common';
+import { EmailModule } from '../email/email.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [
-    JwtModule.register({
-      secret: process.env.JWT_SECRET,
-      signOptions: { expiresIn: '1d' },
-    }),
-  ],
-  providers: [
-    CustomerResolver,
-    CustomerService,
-    PrismaService,
-    ReferralCodeUtil,
-  ],
+  imports: [EmailModule, forwardRef(() => AuthModule), PrismaModule],
+  providers: [CustomerResolver, CustomerService, ReferralCodeUtil],
+  exports: [CustomerService],
 })
 export class CustomerModule {}

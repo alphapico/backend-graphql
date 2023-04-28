@@ -14,9 +14,9 @@ describe('AppService', () => {
   });
 
   describe('getData', () => {
-    it('should return "Welcome to customer-api!"', () => {
-      expect(service.getData()).toEqual({
-        message: 'Welcome to customer-api!',
+    it('should return "Server is ready"', () => {
+      expect(service.checkHealth()).toEqual({
+        message: 'Server is ready',
       });
     });
   });

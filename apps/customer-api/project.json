@@ -14,7 +14,10 @@
         "outputPath": "dist/apps/customer-api",
         "main": "apps/customer-api/src/main.ts",
         "tsConfig": "apps/customer-api/tsconfig.app.json",
-        "assets": ["apps/customer-api/src/assets"],
+        "assets": [
+          "apps/customer-api/src/assets",
+          "apps/customer-api/src/email-templates"
+        ],
         "isolatedConfig": true,
         "webpackConfig": "apps/customer-api/webpack.config.js"
       },

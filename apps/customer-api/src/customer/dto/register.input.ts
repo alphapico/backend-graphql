@@ -7,9 +7,9 @@ import {
   IsString,
   IsOptional,
 } from 'class-validator';
-import { Trim } from '@charonium/common/decorators/trim.decorator';
-import { INPUT } from '@charonium/common/constants/input.constant';
-import { ERROR_MESSAGES } from '@charonium/common/constants/error-messages.constant';
+import { Trim } from '@charonium/common';
+import { INPUT } from '@charonium/common';
+import { ERROR_MESSAGES } from '@charonium/common';
 
 @InputType()
 export class RegisterInput {

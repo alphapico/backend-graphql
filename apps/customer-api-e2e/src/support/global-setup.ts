@@ -3,6 +3,7 @@ import {
   execAndWait,
   waitForHealthyDBService,
   waitForAPIReady,
+  clearDebugsFolder,
 } from './test-utils';
 
 /* eslint-disable */
@@ -12,6 +13,9 @@ module.exports = async function () {
   // Start services that that the app needs to run (e.g. database, docker-compose, etc.).
   console.log('\nSetting up...\n');
   try {
+    // Clear debugs folder
+    await clearDebugsFolder();
+
     // Start the test database using Docker Compose.
     await execAndWait('npm run e2e:db:up');
 

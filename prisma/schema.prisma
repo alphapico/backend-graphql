@@ -17,15 +17,30 @@ enum CustomerStatus {
   SUSPENDED
 }
 
+enum EmailStatus {
+  UNVERIFIED
+  VERIFIED
+}
+
+enum LogStatus {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+  FATAL
+}
+
 model Customer {
   customerId         Int            @id @default(autoincrement())
   name               String
   email              String         @unique
   password           String
-  emailVerified      Boolean        @default(false)
+  emailStatus        EmailStatus    @default(UNVERIFIED)
   customerStatus     CustomerStatus @default(PENDING)
   referralCode       String?        @unique
   referralCustomerId Int?
+  referrer Customer? @relation("CustomerReferral", fields: [referralCustomerId], references: [customerId])
+  referrees Customer[] @relation("CustomerReferral")
   tokenVersion       Int            @default(0)
   createdAt          DateTime       @default(now())
   updatedAt          DateTime?      @updatedAt
@@ -37,4 +52,19 @@ model Config {
   value      Float     @default(0)
   createdAt  DateTime  @default(now())
   updatedAt  DateTime? @updatedAt
+}
+
+model Log {
+  logId Int @id @default(autoincrement())
+  level LogStatus
+  code String?
+  statusCode Int?
+  message String 
+  details Json?
+  serviceName String?
+  methodName String?
+  requestId Int?
+  customerId Int?
+  customerEmail String?
+  createdAt DateTime @default(now())
 }

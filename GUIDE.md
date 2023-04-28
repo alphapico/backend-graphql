@@ -28,14 +28,28 @@
    ```bash
    HOST=localhost
    PORT=<any port from 3000 and above, this is the API port>
-   WS_PORT=<any port from 3000 and above, this is the WebSocket port, but we are not using it yet>
 
    POSTGRES_USER=<username>
    POSTGRES_PASSWORD=<password>
    POSTGRES_DB=charonium
    POSTGRES_PORT=<any port from 3000 and above>
 
+   # when using local development, you can use the following
    DATABASE_URL="postgresql://<POSTGRES_USER>:<POSTGRES_PASSWORD>@localhost:<POSTGRES_PORT>/charonium?schema=public"
+
+   # when using docker-compose for both app and db, you can use the following
+   # DATABASE_URL="postgresql://<POSTGRES_USER>:<POSTGRES_PASSWORD>@dev_db:5432/charonium?schema=public"
+
+   AWS_ACCESS_KEY_ID=<get access Id from your created IAM User>
+   AWS_SECRET_ACCESS_KEY=<get secret key from your created IAM User>
+   AWS_REGION=eu-central-1
+   JWT_SECRET=<some-supersafe-secret>
+
+   FRONTEND_DOMAIN=<cloudfront url or local frontend url>
+
+   # this is the sender email
+   EMAIL_NAME=<e:g Styx>
+   EMAIL_FROM=<e:g devsyth6@gmail.com>
    ```
 
 2. Create a `.serve.env` file with the same contents as above. Just ensure the ports are different. This is for the `development` environment.
@@ -69,6 +83,13 @@
    The GraphQL schema will be generated at `<root>/charonium-schema.gql`. Press `Ctrl + C` to quit
 
 <br />
+
+### Unit Test environment
+
+1. Simply run this command to do unit test. The command will run any files ended with `*.spec.ts`
+   ```bash
+   npm test customer-api
+   ```
 
 ### E2E environment
 
@@ -138,7 +159,26 @@ To create GraphQL endpoint, you would need to create `module`, `service` and `re
 
 ### Managing common library
 
-All reusable code for modules is located inside the `<root>/libs/common/src/lib` folder. This library folder comprises `constants`, `decorators`, `enums`, `exceptions`, and `utils` folders. These are useful for both development and end-to-end testing. You can create any relevant files inside these folders accordingly. They will be reflected with the path `@charonium/common/...` if you want to import the code into the module.
+All reusable code for modules is located inside the `<root>/libs/common/src/lib` folder. This library folder comprises `constants`, `decorators`, `enums`, `exceptions`, `interfaces`, `types`, and `utils` folders. These are useful for both development and end-to-end testing. You can create any relevant files inside these folders accordingly. They will be reflected with the path `@charonium/common` if you want to import the code into the module.
+
+Example of usage:
+
+```tsx
+import { ERROR_MESSAGES, IJwtPayload } from '@charonium/common';
+```
+
+If you create file in folder `constants`, for example `constants/test.constant.ts`, do not forget to export the file in `constants/index.ts`:
+
+```tsx
+// libs/common/src/lib/constants/index.ts
+export * from './test.constant';
+
+export * from './error-messages.constant';
+export * from './success-messages.constant';
+export * from './input.constant';
+export * from './prisma-error-messages.constant';
+export * from './jsonwebtoken-error-messages.constant';
+```
 
 #### Error message
 
@@ -146,16 +186,29 @@ Any relevant error messages can be placed inside the `<constants>/error-messages
 
 ```tsx
 export const ERROR_MESSAGES = {
-  INVALID_REFERRAL_CODE: 'Invalid referral code.',
-  EMAIL_ALREADY_EXISTS: 'Email already exists.',
+  INVALID_REFERRAL_CODE: 'Invalid referral code',
+  EMAIL_ALREADY_EXISTS: 'Email already exists',
+  INVALID_INPUT_EMAIL: 'Customer associated with this email does not exist',
+  INVALID_INPUT_PASSWORD: 'Incorrect password',
+  INVALID_REFRESH_TOKEN: 'Invalid refresh token',
+  INVALID_ACCESS_TOKEN: 'Invalid access token',
+  CUSTOMER_NOT_FOUND: 'Customer not found',
+  CUSTOMER_NOT_VERIFIED: 'Customer not verified',
+  CUSTOMER_SUSPENDED: 'Customer is suspended',
   VAL: {
     IS_STRING: '$property must be a string',
     IS_EMAIL: '$property must be an email',
     IS_NOT_EMPTY: '$property should not be empty',
-    MIN_LENGTH:
-      '$property must be longer than or equal to $constraint1 characters',
-    MAX_LENGTH:
-      '$property must be shorter than or equal to $constraint1 characters',
+    MIN_LENGTH: '$property must be longer than or equal to $constraint1 characters',
+    MAX_LENGTH: '$property must be shorter than or equal to $constraint1 characters',
+  },
+
+  EMAIL_ERROR: {
+    TOKEN_EXPIRED: 'Verification token has expired',
+    TOKEN_INVALID: 'Verification token is invalid',
+    CUSTOMER_NOT_FOUND: 'Customer associated with the token was not found',
+    FAILED_TO_SEND_VERIFICATION: 'Failed to send email verification',
+    FAILED_TO_SEND_PASSWORD_RESET: 'Failed to send email password reset',
   },
 };
 ```
@@ -170,7 +223,7 @@ For additional exception methods, check the `ERROR.md` file for more information
 
 ### Writing end-to-end test code
 
-When writing end-to-end tests, create one test suite per module. Each module should have one file containing all the GraphQL endpoint test cases `it(...)` within the test suite module `describe(...)`. You can refer to `customer.spec.ts` inside the `<root>/customer-api-e2e/src/customer-api` folder for an example.
+When writing end-to-end tests, create one test suite per module. Each module should have one file containing all the GraphQL endpoint test cases `it(...)` within the test suite module `describe(...)`. You can refer to `customer.spec.ts` and `auth.spec.ts` inside the `<root>/customer-api-e2e/src/customer-api` folder for an example.
 
 To run end-to-end tests, execute the following command:
 

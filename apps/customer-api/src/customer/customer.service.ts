@@ -1,34 +1,46 @@
 import {
   BadRequestException,
   ConflictException,
+  Inject,
   Injectable,
+  NotFoundException,
+  forwardRef,
 } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from '@charonium/prisma';
 import { RegisterInput } from './dto/register.input';
-import { JwtService } from '@nestjs/jwt';
+
 import * as argon2 from 'argon2';
 import { Customer } from './dto/customer.dto';
-import { ReferralCodeUtil } from '@charonium/common/utils/referralCode.util';
+import { Customer as PrismaCustomer } from '@prisma/client';
+import {
+  ERROR_MESSAGES,
+  PRISMA_ERROR_MESSAGES,
+  ReferralCodeUtil,
+} from '@charonium/common';
 // import { validate } from 'class-validator';
-// import { ClassValidationException } from '@charonium/common/exceptions/class-validation.exception';
-import { ERROR_MESSAGES } from '@charonium/common/constants/error-messages.constant';
-import { PRISMA_ERROR_MESSAGES } from '@charonium/common/constants/prisma-error-messages.constant';
-import { SES } from 'aws-sdk';
-import * as Handlebars from 'handlebars';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as backoff from 'backoff';
+// import { ClassValidationException } from '@charonium/common';
+
+import { EmailStatus, CustomerStatus } from '@prisma/client';
+import { ResetPasswordInput } from './dto/reset-password.input';
+import { AuthService } from '../auth/auth.service';
+import { EmailService } from '../email/email.service';
 @Injectable()
 export class CustomerService {
-  private ses: SES;
   constructor(
     private prisma: PrismaService,
-    private jwtService: JwtService,
+    @Inject(forwardRef(() => AuthService))
+    private authService: AuthService,
+    private emailService: EmailService,
     private referralCodeUtil: ReferralCodeUtil
-  ) {
-    this.ses = new SES({
-      apiVersion: '2010-12-01',
-      region: process.env.AWS_REGION,
+  ) {}
+
+  async findByEmail(email: string): Promise<PrismaCustomer | null> {
+    return this.prisma.customer.findUnique({ where: { email } });
+  }
+
+  async findByCustomerId(customerId: number): Promise<Customer | null> {
+    return this.prisma.customer.findUnique({
+      where: { customerId },
     });
   }
 
@@ -61,12 +73,10 @@ export class CustomerService {
           password: hashedPassword,
           referralCustomerId,
           referralCode,
-          emailVerified: false,
         },
       });
 
-      // send email verification using auth service. (not implemented yet)
-      // email verfication using Amazon SES. (not implemented yet)
+      await this.emailService.sendEmailVerification(customer);
 
       return customer;
     } catch (error) {
@@ -79,95 +89,58 @@ export class CustomerService {
     }
   }
 
-  async sendEmailVerification(customer: Customer): Promise<void> {
-    const payload = { email: customer.email, sub: customer.customerId };
-    const token = this.jwtService.sign(payload);
-    const verificationLink = `${process.env.BACKEND_DOMAIN}/verify-email?token=${token}`;
+  async resetPassword(input: ResetPasswordInput): Promise<boolean> {
+    const payload = await this.authService.verifyEmailToken(input.token);
 
-    const template = Handlebars.compile(
-      fs.readFileSync(
-        path.join(__dirname, '../email-templates/verification.html'),
-        'utf-8'
-      )
-    );
+    const customer = await this.prisma.customer.findUnique({
+      where: { customerId: payload.sub },
+    });
 
-    const params: SES.SendEmailRequest = {
-      Source: process.env.EMAIL_FROM,
-      Destination: {
-        ToAddresses: [customer.email],
-      },
-      Message: {
-        Subject: {
-          Data: 'Email Verification',
-        },
-        Body: {
-          Html: {
-            Data: template({ verificationLink }),
-          },
-        },
-      },
-    };
-
-    try {
-      await this.sendEmailWithRetry(params);
-    } catch (error) {
-      // await this.prisma.customer.update({
-      //   where: { customerId: customer.customerId },
-      //   data: { emailVerified: false },
-      // });
-      throw new BadRequestException(
-        ERROR_MESSAGES.SEND_EMAIL_VERIFICATION_FAILED
-      );
+    if (!customer) {
+      throw new BadRequestException(ERROR_MESSAGES.CUSTOMER_NOT_FOUND);
     }
+
+    const hashedPassword = await argon2.hash(input.newPassword);
+
+    if (customer.customerStatus !== CustomerStatus.SUSPENDED) {
+      await this.prisma.customer.update({
+        where: { customerId: payload.sub },
+        data: {
+          password: hashedPassword,
+          emailStatus: EmailStatus.VERIFIED,
+          customerStatus: CustomerStatus.ACTIVE,
+        },
+      });
+
+      return true;
+    }
+
+    return false;
   }
 
-  async sendEmailWithRetry(params: SES.SendEmailRequest): Promise<void> {
-    // Wrap the sendEmail function in a backoff.call instance
-    const sendEmailCall = backoff.call(
-      (params: SES.SendEmailRequest, callback: (error?: Error) => void) => {
-        this.ses
-          .sendEmail(params)
-          .promise()
-          .then(() => callback())
-          .catch((error) => callback(error));
-      },
-      params,
-      (error: Error | null) => {
-        if (error) {
-          console.error('Failed to send email after retries:', error);
+  async forgetPassword(email: string): Promise<boolean> {
+    const customer = await this.findByEmail(email);
 
-          throw new BadRequestException(
-            ERROR_MESSAGES.SEND_EMAIL_VERIFICATION_FAILED
-          );
-        } else {
-          console.log('Email sent successfully');
-        }
-      }
-    );
+    if (!customer) {
+      throw new NotFoundException(ERROR_MESSAGES.INVALID_INPUT_EMAIL);
+    }
+    // Send the password reset email
+    await this.emailService.sendPasswordResetEmail(customer);
 
-    // Set the backoff strategy to Fibonacci
-    const fibonacciBackoff = backoff.fibonacci({
-      randomisationFactor: 0.5,
-      initialDelay: 500,
-      maxDelay: 60000, // Maximum delay of 60 seconds
-    });
+    return true;
+  }
 
-    sendEmailCall.strategy = fibonacciBackoff;
+  // auth.service.ts
+  async resendEmailVerification(email: string): Promise<boolean> {
+    const customer = await this.findByEmail(email);
 
-    // Set the maximum number of retries
-    sendEmailCall.failAfter(3);
+    if (!customer) {
+      throw new NotFoundException(ERROR_MESSAGES.INVALID_INPUT_EMAIL);
+    }
 
-    // Handle retry events
-    sendEmailCall.on('backoff', (number, delay) => {
-      console.log(`Email send attempt failed. Retrying in ${delay} ms...`);
-    });
+    // Resend the email verification
+    await this.emailService.sendEmailVerification(customer);
 
-    // Handle failed retries
-    sendEmailCall.on('fail', () => {
-      console.error('Failed to send email after all retries');
-    });
-
-    // Start the backoff process
-    sendEmailCall.start();
+    return true;
   }
 }
