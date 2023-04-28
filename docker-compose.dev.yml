@@ -24,6 +24,13 @@ services:
       - db_network
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@dev_db:5432/${POSTGRES_DB}?schema=public
+      - JWT_SECRET=${JWT_SECRET}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - FRONTEND_DOMAIN=${FRONTEND_DOMAIN}
+      - EMAIL_NAME=${EMAIL_NAME}
+      - EMAIL_FROM=${EMAIL_FROM}
     depends_on:
       - dev_db
     # command:

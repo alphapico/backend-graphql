@@ -1,13 +1,15 @@
-import { Field, ID, ObjectType } from '@nestjs/graphql';
-import { CustomerStatus } from '@charonium/common/enums/customer-status.enum';
+import { Field, Int, ObjectType } from '@nestjs/graphql';
+import { CustomerStatus } from '@charonium/common';
+import { EmailStatus } from '@charonium/common';
 import {
   Customer as PrismaCustomer,
   CustomerStatus as PrismaCustomerStatus,
+  EmailStatus as PrismaEmailStatus,
 } from '@prisma/client';
 
 type CustomerOmitted = Omit<
   PrismaCustomer,
-  'emailVerified' | 'password' | 'tokenVersion' | 'createdAt' | 'updatedAt'
+  'emailStatus' | 'password' | 'tokenVersion' | 'createdAt' | 'updatedAt'
 >;
 
 type CustomerPartial = Partial<
@@ -17,7 +19,7 @@ type CustomerPartial = Partial<
 
 @ObjectType()
 export class Customer implements CustomerPartial {
-  @Field(() => ID)
+  @Field(() => Int)
   customerId: number;
 
   @Field()
@@ -26,18 +28,21 @@ export class Customer implements CustomerPartial {
   @Field()
   email: string;
 
+  @Field(() => EmailStatus)
+  emailStatus: (typeof PrismaEmailStatus)[keyof typeof PrismaEmailStatus];
+
   @Field(() => CustomerStatus)
   customerStatus: (typeof PrismaCustomerStatus)[keyof typeof PrismaCustomerStatus];
 
   @Field({ nullable: true })
   referralCode?: string;
 
-  @Field(() => ID, { nullable: true })
+  @Field(() => Int, { nullable: true })
   referralCustomerId?: number;
 
   @Field(() => Customer, { nullable: true })
   referrer?: Customer;
 
-  @Field(() => Customer, { nullable: true })
-  referree?: Customer;
+  @Field(() => [Customer], { nullable: true })
+  referrees?: Customer[];
 }

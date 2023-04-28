@@ -16,6 +16,7 @@ const config: Config.InitialOptions = {
   transform: {
     '^.+\\.[tj]s$': 'ts-jest',
   },
+  maxWorkers: 1,
   moduleFileExtensions: ['ts', 'js', 'html'],
   coverageDirectory: '<rootDir>/../../coverage/customer-api-e2e',
   reporters: [

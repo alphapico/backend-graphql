@@ -40,3 +40,6 @@ Thumbs.db
 
 # Environment variables
 *.env
+
+# Debugs folder
+apps/customer-api-e2e/debugs

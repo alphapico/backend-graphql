@@ -27,7 +27,7 @@
 
 <br />
 
-## Customer Module
+## Error Handling
 
 From GraphQL Output, notice that `message` key can has value `string`, `array` or totally not exist
 
@@ -63,9 +63,238 @@ From GraphQL Output, notice that `message` key can has value `string`, `array` o
             }
 ```
 
-| Exception           | Code           | Status Code | Message                                                                                                                                                                                                                      | Use When          |
-| ------------------- | -------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| BadRequestException | BAD_REQUEST    | 400         | [ "name must be longer than or equal to 2 characters", "name must be shorter than or equal to 50 characters" "name should not be empty", "email must be an email", "password must be longer than or equal to 8 characters" ] | Mutation register |
-|                     | BAD_USER_INPUT |             |                                                                                                                                                                                                                              | Mutation register |
-| BadRequestException | BAD_REQUEST    | 400         | Invalid referral code.                                                                                                                                                                                                       | Mutation register |
-| BadRequestException | BAD_REQUEST    |             | Email already exists.                                                                                                                                                                                                        | Mutation register |
+### List of error messages
+
+```tsx
+// libs/common/src/lib/constants/error-messages.constant.ts
+export const ERROR_MESSAGES = {
+  INVALID_REFERRAL_CODE: 'Invalid referral code',
+  EMAIL_ALREADY_EXISTS: 'Email already exists',
+  INVALID_INPUT_EMAIL: 'Customer associated with this email does not exist',
+  INVALID_INPUT_PASSWORD: 'Incorrect password',
+  INVALID_REFRESH_TOKEN: 'Invalid refresh token',
+  INVALID_ACCESS_TOKEN: 'Invalid access token',
+  CUSTOMER_NOT_FOUND: 'Customer not found',
+  CUSTOMER_NOT_VERIFIED: 'Customer not verified',
+  CUSTOMER_SUSPENDED: 'Customer is suspended',
+  VAL: {
+    IS_STRING: '$property must be a string',
+    IS_EMAIL: '$property must be an email',
+    IS_NOT_EMPTY: '$property should not be empty',
+    MIN_LENGTH: '$property must be longer than or equal to $constraint1 characters',
+    MAX_LENGTH: '$property must be shorter than or equal to $constraint1 characters',
+  },
+
+  EMAIL_ERROR: {
+    TOKEN_EXPIRED: 'Verification token has expired',
+    TOKEN_INVALID: 'Verification token is invalid',
+    CUSTOMER_NOT_FOUND: 'Customer associated with the token was not found',
+    FAILED_TO_SEND_VERIFICATION: 'Failed to send email verification',
+    FAILED_TO_SEND_PASSWORD_RESET: 'Failed to send email password reset',
+  },
+};
+```
+
+```tsx
+export const INPUT = {
+  MIN_NAME_LENGTH: 2,
+  MAX_NAME_LENGTH: 50,
+  MIN_PASSWORD_LENGTH: 8,
+  MAX_PASSWORD_LENGTH: 100,
+};
+```
+
+The `VAL` error message is a bit special. For example if we use `VAL.MAX_LENGTH` and apply on field `password` with constraint `MAX_PASSWORD_LENGTH = 100`, we will get the final string as `'password must be shorter than or equal to 100 characters'`. `$property` is replaced by `password`, and `$constraint1` is replaced by `100`
+
+### List of success messages
+
+```tsx
+export const SUCCESS_MESSAGES = {
+  LOGIN_SUCCESS: 'Login successful',
+  LOGOUT_SUCCESS: 'Logout successful',
+  REFRESH_TOKEN_SUCCESS: 'Refresh token successful',
+  EMAIL_VERIFICATION_SENT: 'Email verification sent',
+  EMAIL_PASSWORD_RESET_SENT: 'Email password reset sent',
+  CUSTOMER_IS_VERIFIED: 'Customer is successfully verified',
+};
+```
+
+<br />
+
+### Register
+
+```tsx
+mutation Register($input: RegisterInput!) {
+  register(input: $input){
+    customerId
+    customerStatus
+    email
+    emailStatus
+    referralCustomerId
+  }
+}
+
+// example of RegisterInput
+{
+  "input": {
+    "email": "johndoe@gmail.com",
+    "name": "John Doe",
+    "password": "secured-password"
+  }
+}
+
+// Response with Customer JSON
+```
+
+| Exception           | Code                  | Status Code | Message                                                                                                                                                                                                                                                                                                           |
+| ------------------- | --------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| BadRequestException | BAD_REQUEST           | 400         | [ "name must be longer than or equal to 2 characters", "name must be shorter than or equal to 50 characters" "name should not be empty", "name must be a string", "email must be an email", "password must be longer than or equal to 8 characters", "password must be shorter than or equal to 100 characters" ] |
+|                     | BAD_USER_INPUT        |             |                                                                                                                                                                                                                                                                                                                   |
+| BadRequestException | BAD_REQUEST           | 400         | Invalid referral code                                                                                                                                                                                                                                                                                             |
+| ConflictException   | INTERNAL_SERVER_ERROR | 409         | Email already exists                                                                                                                                                                                                                                                                                              |
+
+<br />
+
+### Verify Email
+
+```tsx
+mutation VerifyEmail($token: String!){
+	verifyEmail(token: $token){
+		success
+		message
+	}
+}
+
+// Example input
+{"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpX..." }
+```
+
+| Sucess | Message                           |
+| ------ | --------------------------------- |
+| true   | Customer is successfully verified |
+| false  | Customer is suspended             |
+| false  | Verification token is invalid     |
+
+<br />
+
+### Login
+
+```tsx
+mutation Login($input: LoginInput!) {
+      login(input: $input)
+    }
+
+// example input
+{"input": {
+      "email": "john.doer@gmail.com",
+      "password": "password12345",
+    }
+}
+
+// Response wtih String 'Login successful'
+```
+
+| Exception           | Code                  | Status Code | Message                                                                                                                                           |
+| ------------------- | --------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| NotFoundException   | INTERNAL_SERVER_ERROR | 404         | Customer associated with this email does not exist                                                                                                |
+| BadRequestException | BAD_REQUEST           | 400         | Incorrect password                                                                                                                                |
+| BadRequestException | BAD_REQUEST           | 400         | Customer not verified                                                                                                                             |
+| BadRequestException | BAD_REQUEST           | 400         | Customer is suspended                                                                                                                             |
+|                     | BAD_USER_INPUT        |             |                                                                                                                                                   |
+| BadRequestException | BAD_REQUEST           | 400         | [ "email must be an email", "password must be longer than or equal to 8 characters", "password must be shorter than or equal to 100 characters" ] |
+
+<br />
+
+### Logout
+
+```tsx
+mutation Logout {
+      logout
+    }
+
+// Response with String 'Logout successful'
+```
+
+<br />
+
+### Refresh Token
+
+```tsx
+mutation RefreshTokens {
+      refreshTokens
+    }
+
+// Response with String 'Refresh token successful'
+```
+
+| Exception             | Code            | Status Code | Message               |
+| --------------------- | --------------- | ----------- | --------------------- |
+| UnauthorizedException | UNAUTHENTICATED | 401         | Invalid refresh token |
+| UnauthorizedException | UNAUTHENTICATED | 401         | Customer not found    |
+| UnauthorizedException | UNAUTHENTICATED | 401         | Customer is suspended |
+| UnauthorizedException | UNAUTHENTICATED | 401         | Invalid refresh token |
+
+<br />
+
+### Forget Password
+
+```tsx
+mutation ForgetPassword($input: EmailInput!) {
+      forgetPassword(input: $input)
+    }
+
+{"input": {
+      "email": "john.doer@gmail.com"
+    }
+}
+
+// Response with Boolean true
+```
+
+| Exception           | Code                  | Status Code | Message                                            |
+| ------------------- | --------------------- | ----------- | -------------------------------------------------- |
+| NotFoundException   | INTERNAL_SERVER_ERROR | 404         | Customer associated with this email does not exist |
+| BadRequestException | BAD_REQUEST           | 400         | [ "email must be an email" ]                       |
+|                     | BAD_USER_INPUT        |             |                                                    |
+
+<br />
+
+### Reset Password
+
+```tsx
+mutation ResetPassword($input: ResetPasswordInput!) {
+      resetPassword(input: $input)
+    }
+
+{ "input": {
+    "token" : "some-long-token-string",
+    "newPassword" : "newpassword12345"
+  }
+}
+
+// Response with Boolean true
+```
+
+| Exception           | Code                  | Status Code | Message                                                                                                                                                                        |
+| ------------------- | --------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| NotFoundException   | INTERNAL_SERVER_ERROR | 404         | Customer associated with this email does not exist                                                                                                                             |
+| BadRequestException | BAD_REQUEST           | 400         | [ "token must be a string", "token should not be empty", "password must be longer than or equal to 8 characters", "password must be shorter than or equal to 100 characters" ] |
+| BadRequestException | BAD_REQUEST           | 400         | Customer not found                                                                                                                                                             |
+|                     | BAD_USER_INPUT        |             |                                                                                                                                                                                |
+
+<br />
+
+### Testing Protected Method
+
+You need to login to access this protected method
+
+```tsx
+query ProtectedMethod {
+      protectedMethod
+    }
+// Response with Boolean true
+```
+
+| Exception             | Code            | Status Code | Message      |
+| --------------------- | --------------- | ----------- | ------------ |
+| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized |

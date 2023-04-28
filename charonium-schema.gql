@@ -3,13 +3,14 @@
 # ------------------------------------------------------
 
 type Customer {
-  customerId: ID!
+  customerId: Int!
   customerStatus: CustomerStatus!
   email: String!
+  emailStatus: EmailStatus!
   name: String!
   referralCode: String
-  referralCustomerId: ID
-  referree: Customer
+  referralCustomerId: Int
+  referrees: [Customer!]
   referrer: Customer
 }
 
@@ -20,13 +21,35 @@ enum CustomerStatus {
   SUSPENDED
 }
 
+input EmailInput {
+  email: String!
+}
+
+enum EmailStatus {
+  UNVERIFIED
+  VERIFIED
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
 type Mutation {
+  forgetPassword(input: EmailInput!): Boolean!
+  login(input: LoginInput!): String!
+  logout: String!
+  refreshTokens: String!
   register(input: RegisterInput!): Customer!
+  resendEmailVerification(input: EmailInput!): Boolean!
+  resetPassword(input: ResetPasswordInput!): Boolean!
+  verifyEmail(token: String!): VerifyEmailResult!
 }
 
 type Query {
   getReferralMap(customerId: Int!): [ReferralMap!]!
   hello: String!
+  protectedMethod: Boolean!
 }
 
 type ReferralMap {
@@ -51,7 +74,17 @@ input RegisterInput {
   referralCode: String
 }
 
+input ResetPasswordInput {
+  newPassword: String!
+  token: String!
+}
+
 type TierMap {
   referrees: [Referree!]!
   referrer: Referrer!
+}
+
+type VerifyEmailResult {
+  message: String
+  success: Boolean
 }

@@ -5,8 +5,8 @@ import {
   connectToDatabase,
   disconnectFromDatabase,
 } from '../support/test-utils';
-import { ERROR_MESSAGES } from '@charonium/common/constants/error-messages.constant';
-import { INPUT } from '@charonium/common/constants/input.constant';
+import { ERROR_MESSAGES } from '@charonium/common';
+import { INPUT } from '@charonium/common';
 
 describe('Customer', () => {
   console.log('Running Customer tests');

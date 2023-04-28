@@ -1,14 +1,9 @@
-/**
- * This is not a production server yet!
- * This is only a minimal backend to get started.
- */
-
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { BadRequestException, ValidationPipe } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 
 import { AppModule } from './app/app.module';
-import { PrismaService } from './prisma/prisma.service';
+import { PrismaService } from '@charonium/prisma';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -20,19 +15,6 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
-
-      // exceptionFactory: (errors) => {
-      //   const messages = errors.map(
-      //     (error) =>
-      //       `${
-      //         error.property
-      //       } has failed the following constraints: ${Object.values(
-      //         error.constraints
-      //       ).join(', ')}`
-      //   );
-
-      //   return new BadRequestException(messages);
-      // },
     })
   );
 
