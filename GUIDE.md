@@ -48,8 +48,19 @@
    FRONTEND_DOMAIN=<cloudfront url or local frontend url>
 
    # this is the sender email
-   EMAIL_NAME=<e:g Styx>
-   EMAIL_FROM=<e:g devsyth6@gmail.com>
+   EMAIL_NAME=<e.g Styx>
+   EMAIL_FROM=<sender-email@example.com>
+   EMAIL_FOOTER=""
+
+   ADMIN_EMAIL=<admin-email@example.com>
+   ADMIN_INITIAL_PASSWORD=<some-password>
+
+   ACCESS_TOKEN_EXPIRATION=15m
+   REFRESH_TOKEN_EXPIRATION=1d
+   EMAIL_TOKEN_EXPIRATION=1h
+
+   EMAIL_RESEND_MAX_ATTEMPTS=3
+   EMAIL_RESEND_TTL=3600
    ```
 
 2. Create a `.serve.env` file with the same contents as above. Just ensure the ports are different. This is for the `development` environment.
@@ -74,6 +85,7 @@
    ```
 4. Ensure the `dev` database is running by checking with the command:
    ```bash
+   # if you are running k8s, but do not want to display them: docker ps | grep -v 'k8s_'
    docker ps
    ```
 5. Serve app API by running:
@@ -88,7 +100,7 @@
 
 1. Simply run this command to do unit test. The command will run any files ended with `*.spec.ts`
    ```bash
-   npm test customer-api
+   nx test customer-api
    ```
 
 ### E2E environment
@@ -195,6 +207,7 @@ export const ERROR_MESSAGES = {
   CUSTOMER_NOT_FOUND: 'Customer not found',
   CUSTOMER_NOT_VERIFIED: 'Customer not verified',
   CUSTOMER_SUSPENDED: 'Customer is suspended',
+  TOO_MANY_ATTEMPTS: 'Too many attempts',
   VAL: {
     IS_STRING: '$property must be a string',
     IS_EMAIL: '$property must be an email',
@@ -209,6 +222,7 @@ export const ERROR_MESSAGES = {
     CUSTOMER_NOT_FOUND: 'Customer associated with the token was not found',
     FAILED_TO_SEND_VERIFICATION: 'Failed to send email verification',
     FAILED_TO_SEND_PASSWORD_RESET: 'Failed to send email password reset',
+    FAILED_TO_SEND_ADMIN_REGISTRATION: 'Failed to send email admin registration',
   },
 };
 ```

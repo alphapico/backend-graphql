@@ -13,12 +13,15 @@ import {
 import { JwtService, JwtModule } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 import * as jwt from 'jsonwebtoken';
-import { Customer } from '@prisma/client';
+import { Customer, CustomerRole } from '@prisma/client';
+import { PrismaModule, PrismaService } from '@charonium/prisma';
+import { createAndVerifyCustomer } from './utils/auth-test.utils';
 
 describe('Auth', () => {
   console.log('Running Auth tests');
 
   let jwtService: JwtService;
+  let prismaService: PrismaService;
 
   beforeAll(async () => {
     await connectToDatabase();
@@ -29,10 +32,12 @@ describe('Auth', () => {
           secret: process.env.JWT_SECRET,
           signOptions: { expiresIn: '15m' },
         }),
+        PrismaModule,
       ],
     }).compile();
 
     jwtService = moduleRef.get<JwtService>(JwtService);
+    prismaService = moduleRef.get<PrismaService>(PrismaService);
   });
 
   beforeEach(async () => {
@@ -92,6 +97,24 @@ describe('Auth', () => {
     }
   `;
 
+  const registerAdminMutation = gql`
+    mutation RegisterAdmin($input: RegisterAdminInput!) {
+      registerAdmin(input: $input)
+    }
+  `;
+
+  const resendAdminRegistrationEmailMutation = gql`
+    mutation {
+      resendAdminRegistrationEmail
+    }
+  `;
+
+  const protectedAdminMethodQuery = gql`
+    query ProtectedAdminMethod {
+      protectedAdminMethod
+    }
+  `;
+
   it('should login successfully', async () => {
     // First, register a user for testing
     const registerInput = {
@@ -100,9 +123,15 @@ describe('Auth', () => {
       password: 'password12345',
     };
 
-    await graphQLClient.request(registerMutation, {
-      input: registerInput,
-    });
+    const { verifiedEmailResponse } = await createAndVerifyCustomer(
+      graphQLClient,
+      registerInput
+    );
+
+    expect(verifiedEmailResponse.verifyEmail.success).toBe(true);
+    expect(verifiedEmailResponse.verifyEmail.message).toBe(
+      SUCCESS_MESSAGES.CUSTOMER_IS_VERIFIED
+    );
 
     // Now, attempt to log in with the registered user's credentials
     const loginInput = {
@@ -128,9 +157,15 @@ describe('Auth', () => {
       password: 'password12345',
     };
 
-    await graphQLClient.request(registerMutation, {
-      input: registerInput,
-    });
+    const { verifiedEmailResponse } = await createAndVerifyCustomer(
+      graphQLClient,
+      registerInput
+    );
+
+    expect(verifiedEmailResponse.verifyEmail.success).toBe(true);
+    expect(verifiedEmailResponse.verifyEmail.message).toBe(
+      SUCCESS_MESSAGES.CUSTOMER_IS_VERIFIED
+    );
 
     const loginInput = {
       email: 'john.doey@gmail.com',
@@ -161,6 +196,22 @@ describe('Auth', () => {
   });
 
   it('should not login with an incorrect email', async () => {
+    const registerInput = {
+      name: 'John Doet',
+      email: 'john.doet@gmail.com',
+      password: 'password12345',
+    };
+
+    const { verifiedEmailResponse } = await createAndVerifyCustomer(
+      graphQLClient,
+      registerInput
+    );
+
+    expect(verifiedEmailResponse.verifyEmail.success).toBe(true);
+    expect(verifiedEmailResponse.verifyEmail.message).toBe(
+      SUCCESS_MESSAGES.CUSTOMER_IS_VERIFIED
+    );
+
     const loginInput = {
       email: 'incorrect.email@gmail.com',
       password: 'password12345',
@@ -184,9 +235,15 @@ describe('Auth', () => {
       password: 'password12345',
     };
 
-    await graphQLClient.request(registerMutation, {
-      input: registerInput,
-    });
+    const { verifiedEmailResponse } = await createAndVerifyCustomer(
+      graphQLClient,
+      registerInput
+    );
+
+    expect(verifiedEmailResponse.verifyEmail.success).toBe(true);
+    expect(verifiedEmailResponse.verifyEmail.message).toBe(
+      SUCCESS_MESSAGES.CUSTOMER_IS_VERIFIED
+    );
 
     const loginInput = {
       email: 'john.doet@gmail.com',
@@ -211,9 +268,15 @@ describe('Auth', () => {
       password: 'password12345',
     };
 
-    await graphQLClient.request(registerMutation, {
-      input: registerInput,
-    });
+    const { verifiedEmailResponse } = await createAndVerifyCustomer(
+      graphQLClient,
+      registerInput
+    );
+
+    expect(verifiedEmailResponse.verifyEmail.success).toBe(true);
+    expect(verifiedEmailResponse.verifyEmail.message).toBe(
+      SUCCESS_MESSAGES.CUSTOMER_IS_VERIFIED
+    );
 
     const loginInput = {
       email: 'john.doek@gmail.com',
@@ -281,9 +344,15 @@ describe('Auth', () => {
       password: 'password12345',
     };
 
-    await graphQLClient.request(registerMutation, {
-      input: registerInput,
-    });
+    const { verifiedEmailResponse } = await createAndVerifyCustomer(
+      graphQLClient,
+      registerInput
+    );
+
+    expect(verifiedEmailResponse.verifyEmail.success).toBe(true);
+    expect(verifiedEmailResponse.verifyEmail.message).toBe(
+      SUCCESS_MESSAGES.CUSTOMER_IS_VERIFIED
+    );
 
     const loginInput = {
       email: 'john.does@gmail.com',
@@ -402,9 +471,15 @@ describe('Auth', () => {
       password: 'password12345',
     };
 
-    await graphQLClient.request(registerMutation, {
-      input: registerInput,
-    });
+    const { verifiedEmailResponse } = await createAndVerifyCustomer(
+      graphQLClient,
+      registerInput
+    );
+
+    expect(verifiedEmailResponse.verifyEmail.success).toBe(true);
+    expect(verifiedEmailResponse.verifyEmail.message).toBe(
+      SUCCESS_MESSAGES.CUSTOMER_IS_VERIFIED
+    );
 
     const loginInput = {
       email: 'john.doe@gmail.com',
@@ -500,9 +575,13 @@ describe('Auth', () => {
 
     // Mock the email sending process and obtain the reset token
     const resetToken = jwt.sign(
-      { sub: registeredCustomer.customerId, email: registeredCustomer.email },
+      {
+        sub: registeredCustomer.customerId,
+        email: registeredCustomer.email,
+        role: CustomerRole.USER,
+      },
       process.env.JWT_SECRET,
-      { expiresIn: '1h' }
+      { expiresIn: process.env.EMAIL_TOKEN_EXPIRATION }
     );
 
     // Call the resetPassword mutation
@@ -534,4 +613,290 @@ describe('Auth', () => {
 
     expect(loginResponse.login).toBeTruthy();
   });
+
+  it('should access protected-admin method as an admin', async () => {
+    const admin: Customer = await prismaService.customer.findUnique({
+      where: { email: process.env.ADMIN_EMAIL },
+    });
+
+    const adminPayload: IJwtPayload = {
+      sub: admin.customerId,
+      email: admin.email,
+      role: admin.customerRole,
+    };
+
+    const adminRegistrationToken = jwtService.sign(adminPayload);
+
+    const registerAdminInput = {
+      token: adminRegistrationToken,
+      newName: 'Admin User',
+      newPassword: 'admin_password12345',
+    };
+
+    await graphQLClient.request(registerAdminMutation, {
+      input: registerAdminInput,
+    });
+
+    const adminLoginInput = {
+      email: process.env.ADMIN_EMAIL,
+      password: 'admin_password12345',
+    };
+
+    const loginResponse = await graphQLClient.rawRequest(loginMutation, {
+      input: adminLoginInput,
+    });
+
+    // Get the 'set-cookie' response header containing the access token
+    const cookiesString = loginResponse.headers.get('set-cookie');
+    const cookies = cookiesString.split(', ');
+    const accessTokenHeader = cookies.find((cookie: string) =>
+      cookie.startsWith('access_token=')
+    );
+
+    if (!accessTokenHeader) {
+      throw new Error('Access token not found in the response headers');
+    }
+
+    const accessToken = accessTokenHeader
+      .replace('access_token=', '')
+      .split(';')[0];
+
+    const graphQLClinetWithAdminAccessToken = new GraphQLClient(httpUrl, {
+      credentials: 'include',
+      headers: {
+        cookie: `access_token=${accessToken}`,
+      },
+    });
+
+    const protectedAdminMethodResponse: { protectedAdminMethod: boolean } =
+      await graphQLClinetWithAdminAccessToken.request(
+        protectedAdminMethodQuery
+      );
+
+    expect(protectedAdminMethodResponse.protectedAdminMethod).toBe(true);
+  });
+
+  it('should not allow non-admin user to access protected-admin method', async () => {
+    // Register a new non-admin user
+    const registerInput = {
+      name: 'Non-admin User',
+      email: 'nonadmin@example.com',
+      password: 'nonadmin_password12345',
+    };
+
+    const { verifiedEmailResponse } = await createAndVerifyCustomer(
+      graphQLClient,
+      registerInput
+    );
+
+    expect(verifiedEmailResponse.verifyEmail.success).toBe(true);
+    expect(verifiedEmailResponse.verifyEmail.message).toBe(
+      SUCCESS_MESSAGES.CUSTOMER_IS_VERIFIED
+    );
+
+    // Log in with the non-admin user
+    const loginInput = {
+      email: 'nonadmin@example.com',
+      password: 'nonadmin_password12345',
+    };
+
+    const loginResponse = await graphQLClient.rawRequest(loginMutation, {
+      input: loginInput,
+    });
+
+    // Get the 'set-cookie' response header containing the access token
+    const cookiesString = loginResponse.headers.get('set-cookie');
+    const cookies = cookiesString.split(', ');
+    const accessTokenHeader = cookies.find((cookie: string) =>
+      cookie.startsWith('access_token=')
+    );
+
+    if (!accessTokenHeader) {
+      throw new Error('Access token not found in the response headers');
+    }
+
+    const accessToken = accessTokenHeader
+      .replace('access_token=', '')
+      .split(';')[0];
+
+    // Attempt to access the protectedAdminMethod with the non-admin user's access token
+    const graphQLClientWithNonAdminAccessToken = new GraphQLClient(httpUrl, {
+      credentials: 'include',
+      headers: {
+        cookie: `access_token=${accessToken}`,
+      },
+    });
+
+    try {
+      await graphQLClientWithNonAdminAccessToken.request(
+        protectedAdminMethodQuery
+      );
+    } catch (error) {
+      // Check if the response returns an error or an expected message that indicates access is denied
+      expect(error.response.errors[0].message).toBe('Forbidden resource');
+    }
+  });
+
+  it('should allow admin user to reset their password and still able to access protected-admin method', async () => {
+    // Retrieve the existing admin user from the database
+    const admin: Customer = await prismaService.customer.findUnique({
+      where: { email: process.env.ADMIN_EMAIL },
+    });
+
+    // Call the resendAdminRegistrationEmail mutation
+    const resendAdminRegistrationEmailResponse: {
+      resendAdminRegistrationEmail: boolean;
+    } = await graphQLClient.request(resendAdminRegistrationEmailMutation);
+
+    expect(
+      resendAdminRegistrationEmailResponse.resendAdminRegistrationEmail
+    ).toBe(true);
+
+    // Mock the email sending process and obtain the registration token
+    const registrationToken = jwt.sign(
+      {
+        sub: admin.customerId,
+        email: admin.email,
+        role: admin.customerRole,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.EMAIL_TOKEN_EXPIRATION }
+    );
+
+    // Call the registerAdmin mutation with the registration token and the new password
+    const newName = 'New Admin Name';
+    const newPassword = 'newadminpassword12345';
+    const registerAdminInput = {
+      token: registrationToken,
+      newName: newName,
+      newPassword: newPassword,
+    };
+
+    const registerAdminResponse: { registerAdmin: boolean } =
+      await graphQLClient.request(registerAdminMutation, {
+        input: registerAdminInput,
+      });
+
+    expect(registerAdminResponse.registerAdmin).toBe(true);
+
+    // Verify that the admin user can log in with the new password
+    const loginInput = {
+      email: admin.email,
+      password: newPassword,
+    };
+
+    const loginResponse = await graphQLClient.rawRequest(loginMutation, {
+      input: loginInput,
+    });
+
+    // Get the 'set-cookie' response header containing the access token
+    const cookiesString = loginResponse.headers.get('set-cookie');
+    const cookies = cookiesString.split(', ');
+    const accessTokenHeader = cookies.find((cookie: string) =>
+      cookie.startsWith('access_token=')
+    );
+
+    if (!accessTokenHeader) {
+      throw new Error('Access token not found in the response headers');
+    }
+
+    const accessToken = accessTokenHeader
+      .replace('access_token=', '')
+      .split(';')[0];
+
+    const graphQLClinetWithAdminAccessToken = new GraphQLClient(httpUrl, {
+      credentials: 'include',
+      headers: {
+        cookie: `access_token=${accessToken}`,
+      },
+    });
+
+    const protectedAdminMethodResponse: { protectedAdminMethod: boolean } =
+      await graphQLClinetWithAdminAccessToken.request(
+        protectedAdminMethodQuery
+      );
+
+    expect(protectedAdminMethodResponse.protectedAdminMethod).toBe(true);
+  });
+
+  // it('should allow admin user to reset their password and still able to access protected-admin method', async () => {
+  //   // Need to REDO the test with resendAdminRegistrationEmail and registerAdmin
+
+  //   // Retrieve the existing admin user from the database
+  //   const admin: Customer = await prismaService.customer.findUnique({
+  //     where: { email: process.env.ADMIN_EMAIL },
+  //   });
+
+  //   // Call the forgetPassword mutation with the admin user's email
+  //   const forgetPasswordResponse: { forgetPassword: boolean } =
+  //     await graphQLClient.request(forgetPasswordMutation, {
+  //       input: { email: admin.email },
+  //     });
+
+  //   expect(forgetPasswordResponse.forgetPassword).toBe(true);
+
+  //   // Mock the email sending process and obtain the reset token
+  //   const resetToken = jwt.sign(
+  //     {
+  //       sub: admin.customerId,
+  //       email: admin.email,
+  //       role: admin.customerRole,
+  //     },
+  //     process.env.JWT_SECRET,
+  //     { expiresIn: process.env.EMAIL_TOKEN_EXPIRATION }
+  //   );
+
+  //   // Call the resetPassword mutation with the reset token and the new password
+  //   const newPassword = 'newadminpassword12345';
+  //   const resetPasswordInput = {
+  //     token: resetToken,
+  //     newPassword: newPassword,
+  //   };
+
+  //   const resetPasswordResponse: { resetPassword: boolean } =
+  //     await graphQLClient.request(resetPasswordMutation, {
+  //       input: resetPasswordInput,
+  //     });
+
+  //   expect(resetPasswordResponse.resetPassword).toBe(true);
+
+  //   // Verify that the admin user can log in with the new password
+  //   const loginInput = {
+  //     email: admin.email,
+  //     password: newPassword,
+  //   };
+
+  //   const loginResponse = await graphQLClient.rawRequest(loginMutation, {
+  //     input: loginInput,
+  //   });
+
+  //   // Get the 'set-cookie' response header containing the access token
+  //   const cookiesString = loginResponse.headers.get('set-cookie');
+  //   const cookies = cookiesString.split(', ');
+  //   const accessTokenHeader = cookies.find((cookie: string) =>
+  //     cookie.startsWith('access_token=')
+  //   );
+
+  //   if (!accessTokenHeader) {
+  //     throw new Error('Access token not found in the response headers');
+  //   }
+
+  //   const accessToken = accessTokenHeader
+  //     .replace('access_token=', '')
+  //     .split(';')[0];
+
+  //   const graphQLClinetWithAdminAccessToken = new GraphQLClient(httpUrl, {
+  //     credentials: 'include',
+  //     headers: {
+  //       cookie: `access_token=${accessToken}`,
+  //     },
+  //   });
+
+  //   const protectedAdminMethodResponse: { protectedAdminMethod: boolean } =
+  //     await graphQLClinetWithAdminAccessToken.request(
+  //       protectedAdminMethodQuery
+  //     );
+
+  //   expect(protectedAdminMethodResponse.protectedAdminMethod).toBe(true);
+  // });
 });

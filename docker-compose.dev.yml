@@ -1,3 +1,4 @@
+version: '3.8'
 services:
   dev_db:
     platform: linux/x86_64
@@ -8,7 +9,7 @@ services:
       - '${POSTGRES_PORT}:5432'
     networks:
       - db_network
-    hostname: dev_db
+    # hostname: dev_db
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -31,8 +32,19 @@ services:
       - FRONTEND_DOMAIN=${FRONTEND_DOMAIN}
       - EMAIL_NAME=${EMAIL_NAME}
       - EMAIL_FROM=${EMAIL_FROM}
+      - EMAIL_FOOTER=${EMAIL_FOOTER}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ADMIN_INITIAL_PASSWORD=${ADMIN_INITIAL_PASSWORD}
+      - ACCESS_TOKEN_EXPIRATION=${ACCESS_TOKEN_EXPIRATION}
+      - REFRESH_TOKEN_EXPIRATION=${REFRESH_TOKEN_EXPIRATION}
+      - EMAIL_TOKEN_EXPIRATION=${EMAIL_TOKEN_EXPIRATION}
+      - EMAIL_RESEND_MAX_ATTEMPTS=${EMAIL_RESEND_MAX_ATTEMPTS}
+      - EMAIL_RESEND_TTL=${EMAIL_RESEND_TTL}
     depends_on:
       - dev_db
+    links:
+      - dev_db
+    restart: always
     # command:
     #   - sh
     #   - -c
@@ -44,7 +56,6 @@ services:
 
 volumes:
   dev_db_vol:
-
 networks:
   db_network:
     driver: bridge

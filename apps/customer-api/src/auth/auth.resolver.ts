@@ -5,6 +5,7 @@ import { Request, Response } from 'express';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@charonium/common';
 import { UnauthorizedException, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { AdminGuard } from './admin.guard';
 
 @Resolver()
 export class AuthResolver {
@@ -58,6 +59,12 @@ export class AuthResolver {
   @Query(() => Boolean)
   @UseGuards(JwtAuthGuard)
   async protectedMethod(): Promise<boolean> {
+    return true;
+  }
+
+  @Query(() => Boolean)
+  @UseGuards(AdminGuard)
+  async protectedAdminMethod(): Promise<boolean> {
     return true;
   }
 }

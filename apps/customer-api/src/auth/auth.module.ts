@@ -16,7 +16,7 @@ import { JwtStrategy } from './jwt.strategy';
       useFactory: () => {
         return new JwtService({
           secret: process.env.JWT_SECRET,
-          signOptions: { expiresIn: '15m' },
+          signOptions: { expiresIn: process.env.ACCESS_TOKEN_EXPIRATION },
         });
       },
     },
@@ -25,7 +25,7 @@ import { JwtStrategy } from './jwt.strategy';
       useFactory: () => {
         return new JwtService({
           secret: process.env.JWT_SECRET,
-          signOptions: { expiresIn: '1d' },
+          signOptions: { expiresIn: process.env.REFRESH_TOKEN_EXPIRATION },
         });
       },
     },
@@ -34,7 +34,7 @@ import { JwtStrategy } from './jwt.strategy';
       useFactory: () => {
         return new JwtService({
           secret: process.env.JWT_SECRET,
-          signOptions: { expiresIn: '1h' },
+          signOptions: { expiresIn: process.env.EMAIL_TOKEN_EXPIRATION },
         });
       },
     },

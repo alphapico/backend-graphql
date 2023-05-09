@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { CustomerRole, PrismaClient } from '@prisma/client';
 import axios from 'axios';
 import { execSync } from 'child_process';
 import { healthUrl } from './test-setup';
@@ -24,6 +24,12 @@ export async function clearDatabase() {
     if (prisma[tableName]) {
       const deleteMany = prisma[tableName].deleteMany;
       if (typeof deleteMany === 'function') {
+        // Only delete non-admin customers
+        if (tableName === 'customer') {
+          return deleteMany.call(prisma[tableName], {
+            where: { customerRole: { not: CustomerRole.ADMIN } },
+          });
+        }
         return deleteMany.call(prisma[tableName]);
       }
     }

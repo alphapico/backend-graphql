@@ -9,7 +9,12 @@ import {
 
 type CustomerOmitted = Omit<
   PrismaCustomer,
-  'emailStatus' | 'password' | 'tokenVersion' | 'createdAt' | 'updatedAt'
+  | 'emailStatus'
+  | 'customerRole'
+  | 'password'
+  | 'tokenVersion'
+  | 'createdAt'
+  | 'updatedAt'
 >;
 
 type CustomerPartial = Partial<

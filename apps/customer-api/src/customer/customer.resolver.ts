@@ -4,6 +4,7 @@ import { RegisterInput } from './dto/register.input';
 import { CustomerService } from './customer.service';
 import { ResetPasswordInput } from './dto/reset-password.input';
 import { EmailInput } from './dto/email.input.dto';
+import { RegisterAdminInput } from './dto/register-admin.input';
 
 @Resolver(() => Customer)
 export class CustomerResolver {
@@ -12,6 +13,13 @@ export class CustomerResolver {
   @Mutation(() => Customer)
   async register(@Args('input') input: RegisterInput): Promise<Customer> {
     return this.customerService.register(input);
+  }
+
+  @Mutation(() => Boolean)
+  async registerAdmin(
+    @Args('input') input: RegisterAdminInput
+  ): Promise<boolean> {
+    return this.customerService.registerAdmin(input);
   }
 
   @Mutation(() => Boolean)
@@ -31,6 +39,11 @@ export class CustomerResolver {
     @Args('input') input: EmailInput
   ): Promise<boolean> {
     return this.customerService.resendEmailVerification(input.email);
+  }
+
+  @Mutation(() => Boolean)
+  async resendAdminRegistrationEmail(): Promise<boolean> {
+    return this.customerService.resendAdminRegistrationEmail();
   }
 
   @Query(() => String)

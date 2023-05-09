@@ -17,10 +17,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: IJwtPayload) {
-    if (!payload || !payload.sub || !payload.email) {
+    if (!payload || !payload.sub || !payload.email || !payload.role) {
       throw new UnauthorizedException(ERROR_MESSAGES.INVALID_ACCESS_TOKEN);
     }
 
-    return { id: payload.sub, email: payload.email };
+    return { id: payload.sub, email: payload.email, role: payload.role };
   }
 }
