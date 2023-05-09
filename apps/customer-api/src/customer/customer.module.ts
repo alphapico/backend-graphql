@@ -5,9 +5,10 @@ import { CustomerResolver } from './customer.resolver';
 import { ReferralCodeUtil } from '@charonium/common';
 import { EmailModule } from '../email/email.module';
 import { AuthModule } from '../auth/auth.module';
+import { LogModule } from '../log/log.module';
 
 @Module({
-  imports: [EmailModule, forwardRef(() => AuthModule), PrismaModule],
+  imports: [EmailModule, forwardRef(() => AuthModule), PrismaModule, LogModule],
   providers: [CustomerResolver, CustomerService, ReferralCodeUtil],
   exports: [CustomerService],
 })

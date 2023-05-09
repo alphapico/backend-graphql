@@ -4,5 +4,6 @@ export const SUCCESS_MESSAGES = {
   REFRESH_TOKEN_SUCCESS: 'Refresh token successful',
   EMAIL_VERIFICATION_SENT: 'Email verification sent',
   EMAIL_PASSWORD_RESET_SENT: 'Email password reset sent',
+  EMAIL_ADMIN_REGISTRATION_SENT: 'Email admin registration sent',
   CUSTOMER_IS_VERIFIED: 'Customer is successfully verified',
 };

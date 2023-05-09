@@ -4,10 +4,12 @@ import { ValidationPipe } from '@nestjs/common';
 
 import { AppModule } from './app/app.module';
 import { PrismaService } from '@charonium/prisma';
+import { CustomerService } from './customer/customer.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const prismaService = app.get(PrismaService);
+  const customerService = app.get(CustomerService);
   await prismaService.enableShutdownHooks(app);
 
   app.useGlobalPipes(
@@ -17,6 +19,11 @@ async function bootstrap() {
       transform: true,
     })
   );
+
+  const adminEmail = process.env.ADMIN_EMAIL;
+  if (adminEmail) {
+    await customerService.createAdmin(adminEmail);
+  }
 
   // const globalPrefix = 'api';
   // app.setGlobalPrefix(globalPrefix);

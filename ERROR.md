@@ -77,6 +77,7 @@ export const ERROR_MESSAGES = {
   CUSTOMER_NOT_FOUND: 'Customer not found',
   CUSTOMER_NOT_VERIFIED: 'Customer not verified',
   CUSTOMER_SUSPENDED: 'Customer is suspended',
+  TOO_MANY_ATTEMPTS: 'Too many attempts',
   VAL: {
     IS_STRING: '$property must be a string',
     IS_EMAIL: '$property must be an email',
@@ -91,6 +92,7 @@ export const ERROR_MESSAGES = {
     CUSTOMER_NOT_FOUND: 'Customer associated with the token was not found',
     FAILED_TO_SEND_VERIFICATION: 'Failed to send email verification',
     FAILED_TO_SEND_PASSWORD_RESET: 'Failed to send email password reset',
+    FAILED_TO_SEND_ADMIN_REGISTRATION: 'Failed to send email admin registration',
   },
 };
 ```
@@ -115,11 +117,14 @@ export const SUCCESS_MESSAGES = {
   REFRESH_TOKEN_SUCCESS: 'Refresh token successful',
   EMAIL_VERIFICATION_SENT: 'Email verification sent',
   EMAIL_PASSWORD_RESET_SENT: 'Email password reset sent',
+  EMAIL_ADMIN_REGISTRATION_SENT: 'Email admin registration sent',
   CUSTOMER_IS_VERIFIED: 'Customer is successfully verified',
 };
 ```
 
 <br />
+
+## 1. Normal User Authentication
 
 ### Register
 
@@ -256,6 +261,7 @@ mutation ForgetPassword($input: EmailInput!) {
 | NotFoundException   | INTERNAL_SERVER_ERROR | 404         | Customer associated with this email does not exist |
 | BadRequestException | BAD_REQUEST           | 400         | [ "email must be an email" ]                       |
 |                     | BAD_USER_INPUT        |             |                                                    |
+| BadRequestException | BAD_REQUEST           | 400         | Too many attempts                                  |
 
 <br />
 
@@ -282,8 +288,6 @@ mutation ResetPassword($input: ResetPasswordInput!) {
 | BadRequestException | BAD_REQUEST           | 400         | Customer not found                                                                                                                                                             |
 |                     | BAD_USER_INPUT        |             |                                                                                                                                                                                |
 
-<br />
-
 ### Testing Protected Method
 
 You need to login to access this protected method
@@ -298,3 +302,94 @@ query ProtectedMethod {
 | Exception             | Code            | Status Code | Message      |
 | --------------------- | --------------- | ----------- | ------------ |
 | UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized |
+
+<br />
+
+### Resend Email Verification
+
+This method can be used with `mutation verifyEmail` if verification token is invalid (like link expired)
+
+```tsx
+mutation ResendEmailVerification($input: EmailInput!) {
+      resendEmailVerification(input: $input)
+    }
+
+{ "input": {
+    "email" : "customer-email@example.com"
+  }
+}
+
+// response with Boolean true if success
+```
+
+| Exception           | Code                  | Status Code | Message                                      |
+| ------------------- | --------------------- | ----------- | -------------------------------------------- |
+| NotFoundException   | INTERNAL_SERVER_ERROR | 404         | Customer associated with this email does not |
+| BadRequestException | BAD_REQUEST           | 400         | Too many attempts                            |
+|                     | BAD_USER_INPUT        |             |                                              |
+
+<br />
+
+## 2. Admin Authorization
+
+### Register Admin
+
+```tsx
+mutation RegisterAdmin($input: RegisterAdminInput!) {
+      registerAdmin(input: $input)
+    }
+
+{
+  "input" : {
+      "token": "some-admin-registration-token",
+      "newName": "Admin Styx",
+      "newPassword": "admin_password12345",
+    }
+}
+
+// response with Boolean true if success
+```
+
+| Exception           | Code                  | Status Code | Message                        |
+| ------------------- | --------------------- | ----------- | ------------------------------ |
+| BadRequestException | BAD_REQUEST           | 400         | Verification token has expired |
+| BadRequestException | BAD_REQUEST           | 400         | Verification token is invalid  |
+|                     | BAD_USER_INPUT        |             |                                |
+| NotFoundException   | INTERNAL_SERVER_ERROR | 404         | Customer not found             |
+
+<br />
+
+### Resend Admin Registration Email
+
+This method can be used together with `registerAdmin mutation` if token expired/invalid or admin forget password
+
+```tsx
+mutation ResendAdminRegistrationEmail {
+      resendAdminRegistrationEmail
+    }
+
+// response with Boolean true if success
+```
+
+| Exception           | Code                  | Status Code | Message                                            |
+| ------------------- | --------------------- | ----------- | -------------------------------------------------- |
+| BadRequestException | BAD_REQUEST           | 400         | Too many attempts                                  |
+| NotFoundException   | INTERNAL_SERVER_ERROR | 404         | Customer associated with this email does not exist |
+
+<br />
+
+### Testing Protected Admin method
+
+```tsx
+query ProtectedAdminMethod {
+  protectedAdminMethod
+}
+
+//response with Boolean true if success
+
+```
+
+| Exception             | Code            | Status Code | Message            |
+| --------------------- | --------------- | ----------- | ------------------ |
+| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |
+| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |

@@ -41,6 +41,8 @@ type Mutation {
   logout: String!
   refreshTokens: String!
   register(input: RegisterInput!): Customer!
+  registerAdmin(input: RegisterAdminInput!): Boolean!
+  resendAdminRegistrationEmail: Boolean!
   resendEmailVerification(input: EmailInput!): Boolean!
   resetPassword(input: ResetPasswordInput!): Boolean!
   verifyEmail(token: String!): VerifyEmailResult!
@@ -49,6 +51,7 @@ type Mutation {
 type Query {
   getReferralMap(customerId: Int!): [ReferralMap!]!
   hello: String!
+  protectedAdminMethod: Boolean!
   protectedMethod: Boolean!
 }
 
@@ -65,6 +68,12 @@ type Referree {
 type Referrer {
   customerId: Int!
   customerName: String!
+}
+
+input RegisterAdminInput {
+  newName: String!
+  newPassword: String!
+  token: String!
 }
 
 input RegisterInput {

@@ -30,6 +30,12 @@ enum LogStatus {
   FATAL
 }
 
+enum CustomerRole {
+  ADMIN
+  MODERATOR
+  USER
+}
+
 model Customer {
   customerId         Int            @id @default(autoincrement())
   name               String
@@ -37,6 +43,7 @@ model Customer {
   password           String
   emailStatus        EmailStatus    @default(UNVERIFIED)
   customerStatus     CustomerStatus @default(PENDING)
+  customerRole       CustomerRole   @default(USER)
   referralCode       String?        @unique
   referralCustomerId Int?
   referrer Customer? @relation("CustomerReferral", fields: [referralCustomerId], references: [customerId])

@@ -6,7 +6,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { PrismaService } from '@charonium/prisma';
 import { ERROR_MESSAGES, EmailType, SUCCESS_MESSAGES } from '@charonium/common';
-import { EmailStatus, CustomerStatus, LogStatus } from '@prisma/client';
+import {
+  EmailStatus,
+  CustomerStatus,
+  LogStatus,
+  CustomerRole,
+} from '@prisma/client';
 import { AuthService } from '../auth/auth.service';
 import * as backoff from 'backoff';
 import { LogService } from '../log/log.service';
@@ -25,10 +30,19 @@ export class EmailService {
     });
   }
 
-  async createVerificationLink(customer: Customer): Promise<string> {
-    const payload = { email: customer.email, sub: customer.customerId };
+  async createVerificationLink(
+    customer: Customer,
+    isAdmin = false
+  ): Promise<string> {
+    const payload = {
+      email: customer.email,
+      sub: customer.customerId,
+      role: isAdmin ? CustomerRole.ADMIN : CustomerRole.USER,
+    };
     const token = await this.authService.createEmailToken(payload);
-    const verificationLink = `${process.env.FRONTEND_DOMAIN}/verify-email?token=${token}`;
+    const verificationLink = `${process.env.FRONTEND_DOMAIN}/${
+      isAdmin ? 'register-admin' : 'verify-email'
+    }?token=${token}`;
 
     return verificationLink;
   }
@@ -66,7 +80,11 @@ export class EmailService {
   }
 
   async createResetPasswordLink(customer: Customer): Promise<string> {
-    const payload = { email: customer.email, sub: customer.customerId };
+    const payload = {
+      email: customer.email,
+      sub: customer.customerId,
+      role: CustomerRole.USER,
+    };
     const token = await this.authService.createEmailToken(payload);
     const resetLink = `${process.env.FRONTEND_DOMAIN}/reset-password?token=${token}`;
 
@@ -106,6 +124,38 @@ export class EmailService {
     await this.sendEmailWithRetry(EmailType.PASSWORD_RESET, params, customer);
   }
 
+  async sendAdminRegistrationEmail(admin: Customer): Promise<void> {
+    if (process.env.NODE_ENV === 'test') return;
+
+    const verificationLink = await this.createVerificationLink(admin, true);
+
+    const template = Handlebars.compile(
+      fs.readFileSync(
+        path.join(__dirname, './email-templates/admin-registration.html'),
+        'utf-8'
+      )
+    );
+
+    const params: SendEmailCommandInput = {
+      Source: `${process.env.EMAIL_NAME} <${process.env.EMAIL_FROM}>`,
+      Destination: {
+        ToAddresses: [admin.email],
+      },
+      Message: {
+        Subject: {
+          Data: 'Admin Registration',
+        },
+        Body: {
+          Html: {
+            Data: template({ verificationLink }),
+          },
+        },
+      },
+    };
+
+    await this.sendEmailWithRetry(EmailType.ADMIN_REGISTRATION, params, admin);
+  }
+
   async sendEmailWithRetry(
     emailType: EmailType,
     params: SendEmailCommandInput,
@@ -142,6 +192,23 @@ export class EmailService {
                   updateError
                 );
               });
+          } else if (emailType == EmailType.ADMIN_REGISTRATION) {
+            this.logService
+              .createLogEntry({
+                level: LogStatus.ERROR,
+                message:
+                  ERROR_MESSAGES.EMAIL_ERROR.FAILED_TO_SEND_ADMIN_REGISTRATION,
+                serviceName: this.constructor.name,
+                methodName: 'sendEmailWithRetry',
+                customerId: customer.customerId,
+                customerEmail: customer.email,
+              })
+              .catch((updateError) => {
+                console.error(
+                  `Failed to create log entry for Email:${EmailType.ADMIN_REGISTRATION}`,
+                  updateError
+                );
+              });
           } else {
             this.logService
               .createLogEntry({
@@ -175,6 +242,22 @@ export class EmailService {
               .catch((updateError) => {
                 console.error(
                   `Failed to create log entry for Email:${EmailType.PASSWORD_RESET}`,
+                  updateError
+                );
+              });
+          } else if (emailType == EmailType.ADMIN_REGISTRATION) {
+            this.logService
+              .createLogEntry({
+                level: LogStatus.INFO,
+                message: SUCCESS_MESSAGES.EMAIL_ADMIN_REGISTRATION_SENT,
+                serviceName: this.constructor.name,
+                methodName: 'sendEmailWithRetry',
+                customerId: customer.customerId,
+                customerEmail: customer.email,
+              })
+              .catch((updateError) => {
+                console.error(
+                  `Failed to create log entry for Email:${EmailType.ADMIN_REGISTRATION}`,
                   updateError
                 );
               });

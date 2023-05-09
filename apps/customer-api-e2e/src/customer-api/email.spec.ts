@@ -1,32 +1,18 @@
-import { clearCookies, graphQLClient, httpUrl } from '../support/test-setup';
-import { gql, GraphQLClient } from 'graphql-request';
+import { clearCookies, graphQLClient } from '../support/test-setup';
+import { gql } from 'graphql-request';
 import {
   clearDatabase,
   connectToDatabase,
   disconnectFromDatabase,
 } from '../support/test-utils';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@charonium/common';
-import { JwtService, JwtModule } from '@nestjs/jwt';
-import { Test } from '@nestjs/testing';
+import { createAndVerifyCustomer } from './utils/auth-test.utils';
 
 describe('Email Verification', () => {
   console.log('Running Email Verification tests');
 
-  let jwtService: JwtService;
-
   beforeAll(async () => {
     await connectToDatabase();
-
-    const moduleRef = await Test.createTestingModule({
-      imports: [
-        JwtModule.register({
-          secret: process.env.JWT_SECRET,
-          signOptions: { expiresIn: '15m' },
-        }),
-      ],
-    }).compile();
-
-    jwtService = moduleRef.get<JwtService>(JwtService);
   });
 
   beforeEach(async () => {
@@ -38,32 +24,12 @@ describe('Email Verification', () => {
     await disconnectFromDatabase();
   });
 
-  interface IRegisterResponse {
-    register: {
-      customerId: string;
-      email: string;
-      name: string;
-      referralCode: string;
-    };
-  }
-
   interface IVerifyEmailResponse {
     verifyEmail: {
       success: boolean;
       message: string;
     };
   }
-
-  const registerMutation = gql`
-    mutation Register($input: RegisterInput!) {
-      register(input: $input) {
-        customerId
-        email
-        name
-        referralCode
-      }
-    }
-  `;
 
   const verifyEmailMutation = gql`
     mutation VerifyEmail($token: String!) {
@@ -82,28 +48,13 @@ describe('Email Verification', () => {
       password: 'password12345',
     };
 
-    const newUser: IRegisterResponse = await graphQLClient.request(
-      registerMutation,
-      {
-        input: registerInput,
-      }
+    const { verifiedEmailResponse } = await createAndVerifyCustomer(
+      graphQLClient,
+      registerInput
     );
 
-    // Generate a valid token using JwtService
-    const token = jwtService.sign({
-      sub: newUser.register.customerId,
-      email: newUser.register.email,
-    });
-
-    const response: IVerifyEmailResponse = await graphQLClient.request(
-      verifyEmailMutation,
-      {
-        token,
-      }
-    );
-
-    expect(response.verifyEmail.success).toBe(true);
-    expect(response.verifyEmail.message).toBe(
+    expect(verifiedEmailResponse.verifyEmail.success).toBe(true);
+    expect(verifiedEmailResponse.verifyEmail.message).toBe(
       SUCCESS_MESSAGES.CUSTOMER_IS_VERIFIED
     );
   });

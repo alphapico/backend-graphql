@@ -45,19 +45,18 @@ export class AuthService {
       throw new BadRequestException(ERROR_MESSAGES.INVALID_INPUT_PASSWORD);
     }
 
-    if (process.env.NODE_ENV !== 'test') {
-      if (customer.emailStatus !== EmailStatus.VERIFIED) {
-        throw new BadRequestException(ERROR_MESSAGES.CUSTOMER_NOT_VERIFIED);
-      }
+    if (customer.emailStatus !== EmailStatus.VERIFIED) {
+      throw new BadRequestException(ERROR_MESSAGES.CUSTOMER_NOT_VERIFIED);
+    }
 
-      if (customer.customerStatus === CustomerStatus.SUSPENDED) {
-        throw new BadRequestException(ERROR_MESSAGES.CUSTOMER_SUSPENDED);
-      }
+    if (customer.customerStatus === CustomerStatus.SUSPENDED) {
+      throw new BadRequestException(ERROR_MESSAGES.CUSTOMER_SUSPENDED);
     }
 
     const payload = {
       sub: customer.customerId,
       email: customer.email,
+      role: customer.customerRole,
     };
     const accessToken = this.accessTokenJwtService.sign(payload);
     const refreshToken = this.refreshTokenJwtService.sign(payload);

@@ -8,6 +8,7 @@ export const ERROR_MESSAGES = {
   CUSTOMER_NOT_FOUND: 'Customer not found',
   CUSTOMER_NOT_VERIFIED: 'Customer not verified',
   CUSTOMER_SUSPENDED: 'Customer is suspended',
+  TOO_MANY_ATTEMPTS: 'Too many attempts',
   VAL: {
     IS_STRING: '$property must be a string',
     IS_EMAIL: '$property must be an email',
@@ -24,5 +25,7 @@ export const ERROR_MESSAGES = {
     CUSTOMER_NOT_FOUND: 'Customer associated with the token was not found',
     FAILED_TO_SEND_VERIFICATION: 'Failed to send email verification',
     FAILED_TO_SEND_PASSWORD_RESET: 'Failed to send email password reset',
+    FAILED_TO_SEND_ADMIN_REGISTRATION:
+      'Failed to send email admin registration',
   },
 };
