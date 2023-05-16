@@ -14,12 +14,23 @@ type Customer {
   referrer: Customer
 }
 
+enum CustomerRole {
+  ADMIN
+  MODERATOR
+  USER
+}
+
 enum CustomerStatus {
   ACTIVE
   INACTIVE
   PENDING
   SUSPENDED
 }
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
 
 input EmailInput {
   email: String!
@@ -30,6 +41,26 @@ enum EmailStatus {
   VERIFIED
 }
 
+type FieldRecord {
+  key: String!
+  value: String!
+}
+
+type Image {
+  createdAt: DateTime!
+  imageId: Int!
+  path: String!
+}
+
+type JwtPayload {
+  email: String!
+  exp: Float
+  firstName: String
+  iat: Float
+  role: CustomerRole!
+  sub: Float!
+}
+
 input LoginInput {
   email: String!
   password: String!
@@ -37,6 +68,9 @@ input LoginInput {
 
 type Mutation {
   forgetPassword(input: EmailInput!): Boolean!
+  generatePresignedPost(uploadInput: UploadInput!): PresignedPost!
+  generatePresignedUrl(uploadInput: UploadInput!): PresignedUrl!
+  generatePresignedUrls(uploadInputs: [UploadInput!]!): [PresignedUrl!]!
   login(input: LoginInput!): String!
   logout: String!
   refreshTokens: String!
@@ -45,14 +79,25 @@ type Mutation {
   resendAdminRegistrationEmail: Boolean!
   resendEmailVerification(input: EmailInput!): Boolean!
   resetPassword(input: ResetPasswordInput!): Boolean!
+  saveUploadedImage(saveImageInput: SaveImageInput!): Image!
   verifyEmail(token: String!): VerifyEmailResult!
+}
+
+type PresignedPost {
+  fields: [FieldRecord!]!
+  url: String!
+}
+
+type PresignedUrl {
+  key: String!
+  presignedUrl: String!
 }
 
 type Query {
   getReferralMap(customerId: Int!): [ReferralMap!]!
   hello: String!
-  protectedAdminMethod: Boolean!
-  protectedMethod: Boolean!
+  protectedAdminMethod: JwtPayload!
+  protectedMethod: JwtPayload!
 }
 
 type ReferralMap {
@@ -88,9 +133,18 @@ input ResetPasswordInput {
   token: String!
 }
 
+input SaveImageInput {
+  path: String!
+}
+
 type TierMap {
   referrees: [Referree!]!
   referrer: Referrer!
+}
+
+input UploadInput {
+  category: String!
+  fileExtension: String!
 }
 
 type VerifyEmailResult {

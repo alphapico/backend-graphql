@@ -70,6 +70,12 @@ Our team follows a simple and effective branching strategy consisting of two mai
 - Limit the `first line` of the commit message to `50 characters or fewer`.
 - If needed, provide a more detailed description `after a blank line`.
 
+Add all untracked files to staging:
+
+```bash
+git add .
+```
+
 Example of a good commit message:
 
 ```bash

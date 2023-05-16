@@ -9,6 +9,8 @@ export const ERROR_MESSAGES = {
   CUSTOMER_NOT_VERIFIED: 'Customer not verified',
   CUSTOMER_SUSPENDED: 'Customer is suspended',
   TOO_MANY_ATTEMPTS: 'Too many attempts',
+  INVALID_FILE_EXTENSION: 'Invalid file extension',
+  FAILED_GENERATE_PRESIGNED_URL: 'Failed to generate pre-signed URL',
   VAL: {
     IS_STRING: '$property must be a string',
     IS_EMAIL: '$property must be an email',

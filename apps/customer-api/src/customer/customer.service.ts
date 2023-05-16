@@ -18,6 +18,7 @@ import {
   Customer as PrismaCustomer,
 } from '@prisma/client';
 import {
+  CONFIG,
   ERROR_MESSAGES,
   PRISMA_ERROR_MESSAGES,
   ReferralCodeUtil,
@@ -139,8 +140,7 @@ export class CustomerService {
     const cacheKey = `forgetPassword:${customer.customerId}`;
     const forgetPasswordCount = (this.cache.get(cacheKey) as number) || 0;
 
-    const maxAllowedAttempts =
-      parseInt(process.env.EMAIL_RESEND_MAX_ATTEMPTS) || 3;
+    const maxAllowedAttempts = CONFIG.EMAIL_RESEND_MAX_ATTEMPTS || 3;
     if (forgetPasswordCount >= maxAllowedAttempts) {
       this.logService.createLogEntry({
         level: LogStatus.ERROR,
@@ -158,7 +158,7 @@ export class CustomerService {
     await this.emailService.sendPasswordResetEmail(customer);
 
     // Set a 1-hour TTL for the cache key
-    const emailResendTTL = parseInt(process.env.EMAIL_RESEND_TTL) || 3600;
+    const emailResendTTL = CONFIG.EMAIL_RESEND_TTL || 3600;
     this.cache.set(cacheKey, forgetPasswordCount + 1, emailResendTTL);
 
     return true;
@@ -174,8 +174,7 @@ export class CustomerService {
     const cacheKey = `resend:${customer.customerId}`;
     const resendCount = (this.cache.get(cacheKey) as number) || 0;
 
-    const maxAllowedAttempts =
-      parseInt(process.env.EMAIL_RESEND_MAX_ATTEMPTS) || 3;
+    const maxAllowedAttempts = CONFIG.EMAIL_RESEND_MAX_ATTEMPTS || 3;
     if (resendCount >= maxAllowedAttempts) {
       this.logService.createLogEntry({
         level: LogStatus.ERROR,
@@ -194,7 +193,7 @@ export class CustomerService {
     await this.emailService.sendEmailVerification(customer);
 
     // Set a 1-hour TTL for the cache key
-    const emailResendTTL = parseInt(process.env.EMAIL_RESEND_TTL) || 3600;
+    const emailResendTTL = CONFIG.EMAIL_RESEND_TTL || 3600;
     this.cache.set(cacheKey, resendCount + 1, emailResendTTL);
 
     return true;
@@ -210,8 +209,7 @@ export class CustomerService {
     const cacheKey = `resend:${customer.customerId}`;
     const resendCount = (this.cache.get(cacheKey) as number) || 0;
 
-    const maxAllowedAttempts =
-      parseInt(process.env.EMAIL_RESEND_MAX_ATTEMPTS) || 3;
+    const maxAllowedAttempts = CONFIG.EMAIL_RESEND_MAX_ATTEMPTS || 3;
     if (resendCount >= maxAllowedAttempts) {
       this.logService.createLogEntry({
         level: LogStatus.ERROR,
@@ -230,7 +228,7 @@ export class CustomerService {
     await this.emailService.sendAdminRegistrationEmail(customer);
 
     // Set a 1-hour TTL for the cache key
-    const emailResendTTL = parseInt(process.env.EMAIL_RESEND_TTL) || 3600;
+    const emailResendTTL = CONFIG.EMAIL_RESEND_TTL || 3600;
     this.cache.set(cacheKey, resendCount + 1, emailResendTTL);
 
     return true;

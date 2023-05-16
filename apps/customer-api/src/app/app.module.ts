@@ -9,6 +9,7 @@ import { ReferralModule } from '../referral/referral.module';
 import { AuthModule } from '../auth/auth.module';
 import cookieParser from 'cookie-parser';
 import { EmailModule } from '../email/email.module';
+import { UploadModule } from '../upload/upload.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { EmailModule } from '../email/email.module';
     ReferralModule,
     AuthModule,
     EmailModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

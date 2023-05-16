@@ -2,10 +2,16 @@ import { Resolver, Mutation, Query, Args, Context } from '@nestjs/graphql';
 import { AuthService } from './auth.service';
 import { LoginInput } from './dto/login.input';
 import { Request, Response } from 'express';
-import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@charonium/common';
+import {
+  CurrentUser,
+  ERROR_MESSAGES,
+  IJwtPayload,
+  SUCCESS_MESSAGES,
+} from '@charonium/common';
 import { UnauthorizedException, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { AdminGuard } from './admin.guard';
+import { JwtPayload } from './dto/jwt-payload.dto';
 
 @Resolver()
 export class AuthResolver {
@@ -56,15 +62,17 @@ export class AuthResolver {
     return SUCCESS_MESSAGES.LOGOUT_SUCCESS;
   }
 
-  @Query(() => Boolean)
+  @Query(() => JwtPayload)
   @UseGuards(JwtAuthGuard)
-  async protectedMethod(): Promise<boolean> {
-    return true;
+  async protectedMethod(@CurrentUser() user: IJwtPayload): Promise<JwtPayload> {
+    return user;
   }
 
-  @Query(() => Boolean)
+  @Query(() => JwtPayload)
   @UseGuards(AdminGuard)
-  async protectedAdminMethod(): Promise<boolean> {
-    return true;
+  async protectedAdminMethod(
+    @CurrentUser() user: IJwtPayload
+  ): Promise<JwtPayload> {
+    return user;
   }
 }

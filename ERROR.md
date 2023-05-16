@@ -151,12 +151,14 @@ mutation Register($input: RegisterInput!) {
 // Response with Customer JSON
 ```
 
-| Exception           | Code                  | Status Code | Message                                                                                                                                                                                                                                                                                                           |
-| ------------------- | --------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| BadRequestException | BAD_REQUEST           | 400         | [ "name must be longer than or equal to 2 characters", "name must be shorter than or equal to 50 characters" "name should not be empty", "name must be a string", "email must be an email", "password must be longer than or equal to 8 characters", "password must be shorter than or equal to 100 characters" ] |
-|                     | BAD_USER_INPUT        |             |                                                                                                                                                                                                                                                                                                                   |
-| BadRequestException | BAD_REQUEST           | 400         | Invalid referral code                                                                                                                                                                                                                                                                                             |
-| ConflictException   | INTERNAL_SERVER_ERROR | 409         | Email already exists                                                                                                                                                                                                                                                                                              |
+| Exception           | Code                  | Status Code | Message                                                                                                                                                           |
+| ------------------- | --------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| BadRequestException | BAD_REQUEST           | 400         | [ "name must be longer than or equal to 2 characters", "name must be shorter than or equal to 50 characters" "name should not be empty", "name must be a string"] |
+| BadRequestException | BAD_REQUEST           | 400         | [ "email must be an email" ]                                                                                                                                      |
+| BadRequestException | BAD_REQUEST           | 400         | [ "password must be longer than or equal to 8 characters", "password must be shorter than or equal to 100 characters" ]                                           |
+|                     | BAD_USER_INPUT        |             |                                                                                                                                                                   |
+| BadRequestException | BAD_REQUEST           | 400         | Invalid referral code                                                                                                                                             |
+| ConflictException   | INTERNAL_SERVER_ERROR | 409         | Email already exists                                                                                                                                              |
 
 <br />
 
@@ -199,14 +201,15 @@ mutation Login($input: LoginInput!) {
 // Response wtih String 'Login successful'
 ```
 
-| Exception           | Code                  | Status Code | Message                                                                                                                                           |
-| ------------------- | --------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| NotFoundException   | INTERNAL_SERVER_ERROR | 404         | Customer associated with this email does not exist                                                                                                |
-| BadRequestException | BAD_REQUEST           | 400         | Incorrect password                                                                                                                                |
-| BadRequestException | BAD_REQUEST           | 400         | Customer not verified                                                                                                                             |
-| BadRequestException | BAD_REQUEST           | 400         | Customer is suspended                                                                                                                             |
-|                     | BAD_USER_INPUT        |             |                                                                                                                                                   |
-| BadRequestException | BAD_REQUEST           | 400         | [ "email must be an email", "password must be longer than or equal to 8 characters", "password must be shorter than or equal to 100 characters" ] |
+| Exception           | Code                  | Status Code | Message                                                                                                                 |
+| ------------------- | --------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------- |
+| NotFoundException   | INTERNAL_SERVER_ERROR | 404         | Customer associated with this email does not exist                                                                      |
+| BadRequestException | BAD_REQUEST           | 400         | Incorrect password                                                                                                      |
+| BadRequestException | BAD_REQUEST           | 400         | Customer not verified                                                                                                   |
+| BadRequestException | BAD_REQUEST           | 400         | Customer is suspended                                                                                                   |
+|                     | BAD_USER_INPUT        |             |                                                                                                                         |
+| BadRequestException | BAD_REQUEST           | 400         | [ "email must be an email" ]                                                                                            |
+| BadRequestException | BAD_REQUEST           | 400         | [ "password must be longer than or equal to 8 characters", "password must be shorter than or equal to 100 characters" ] |
 
 <br />
 
@@ -281,12 +284,13 @@ mutation ResetPassword($input: ResetPasswordInput!) {
 // Response with Boolean true
 ```
 
-| Exception           | Code                  | Status Code | Message                                                                                                                                                                        |
-| ------------------- | --------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| NotFoundException   | INTERNAL_SERVER_ERROR | 404         | Customer associated with this email does not exist                                                                                                                             |
-| BadRequestException | BAD_REQUEST           | 400         | [ "token must be a string", "token should not be empty", "password must be longer than or equal to 8 characters", "password must be shorter than or equal to 100 characters" ] |
-| BadRequestException | BAD_REQUEST           | 400         | Customer not found                                                                                                                                                             |
-|                     | BAD_USER_INPUT        |             |                                                                                                                                                                                |
+| Exception           | Code                  | Status Code | Message                                                                                                                 |
+| ------------------- | --------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------- |
+| NotFoundException   | INTERNAL_SERVER_ERROR | 404         | Customer associated with this email does not exist                                                                      |
+| BadRequestException | BAD_REQUEST           | 400         | [ "token must be a string", "token should not be empty" ]                                                               |
+| BadRequestException | BAD_REQUEST           | 400         | [ "password must be longer than or equal to 8 characters", "password must be shorter than or equal to 100 characters" ] |
+| BadRequestException | BAD_REQUEST           | 400         | Customer not found                                                                                                      |
+|                     | BAD_USER_INPUT        |             |                                                                                                                         |
 
 ### Testing Protected Method
 
@@ -294,9 +298,13 @@ You need to login to access this protected method
 
 ```tsx
 query ProtectedMethod {
-      protectedMethod
+      protectedMethod {
+        sub
+        email
+        role
+      }
     }
-// Response with Boolean true
+// Response with JwtPayload {sub: 23, email: user@example.com, role: "USER" }
 ```
 
 | Exception             | Code            | Status Code | Message      |
@@ -382,10 +390,14 @@ mutation ResendAdminRegistrationEmail {
 
 ```tsx
 query ProtectedAdminMethod {
-  protectedAdminMethod
+  protectedAdminMethod {
+    sub
+    email
+    role
+  }
 }
 
-//response with Boolean true if success
+//response with JwtPayload {sub: 1, email: admin@example.com, role: "ADMIN" }
 
 ```
 
@@ -393,3 +405,72 @@ query ProtectedAdminMethod {
 | --------------------- | --------------- | ----------- | ------------------ |
 | ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |
 | UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |
+
+<br />
+
+## 3. Upload Image (For Admin)
+
+### Generate Presigned URL
+
+```tsx
+mutation GeneratePresignedUrl($uploadInput: UploadInput!) {
+      generatePresignedUrl(uploadInput: $uploadInput) {
+        presignedUrl
+        key
+      }
+    }
+
+{
+  "uploadInput" : {
+    "category" : "test", // This will be folder path in S3 bucket, category can be anything relevant
+    "fileExtension" : "jpg" // can be either 'jpg', 'jpeg', 'png', 'gif', 'webp'
+  }
+}
+
+
+// response with PresignedUrl
+{
+  // temporary URL for frontend to use upload to S3 bucket
+  "presignedUrl: "...",
+
+  // basically a file path in S3 bucket
+  "key": "..."
+}
+
+```
+
+| Exception                    | Code                  | Status Code | Message                                                                 |
+| ---------------------------- | --------------------- | ----------- | ----------------------------------------------------------------------- |
+| BadRequestException          | BAD_REQUEST           | 400         | Invalid file extension                                                  |
+| InternalServerErrorException | INTERNAL_SERVER_ERROR | 500         | Failed to generate pre-signed URL                                       |
+| BadRequestException          | BAD_REQUEST           | 400         | ["category must be a string", "category should not be empty"]           |
+| BadRequestException          | BAD_REQUEST           | 400         | ["fileExtension must be a string", "fileExtension should not be empty"] |
+|                              | BAD_USER_INPUT        |             |                                                                         |
+
+### Save Uploaded Image
+
+After Frontend uploading image to S3 bucket, save the path with this format `https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${key-from-generatePresignedUrl}` . You can see example in `upload.spec.ts` in end-to-end test folder
+
+```tsx
+mutation SaveUploadedImage($saveImageInput: SaveImageInput!) {
+      saveUploadedImage(saveImageInput: $saveImageInput) {
+        imageId
+        path
+        createdAt
+      }
+    }
+
+{
+  "saveImageInput" : {
+    "path" : `https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${key-from-generatePresignedUrl}`
+  }
+}
+
+// response with Image type
+
+```
+
+| Exception           | Code           | Status Code | Message                                               |
+| ------------------- | -------------- | ----------- | ----------------------------------------------------- |
+| BadRequestException | BAD_REQUEST    | 400         | ["path must be a string", "path should not be empty"] |
+|                     | BAD_USER_INPUT |             |                                                       |

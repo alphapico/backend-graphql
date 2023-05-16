@@ -75,3 +75,10 @@ model Log {
   customerEmail String?
   createdAt DateTime @default(now())
 }
+
+model Image {
+  imageId  Int      @id @default(autoincrement())
+  path        String
+  createdAt   DateTime @default(now())
+}
+

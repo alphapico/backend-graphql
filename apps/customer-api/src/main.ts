@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
+// import cookieParser from 'cookie-parser';
 
 import { AppModule } from './app/app.module';
 import { PrismaService } from '@charonium/prisma';
@@ -11,6 +12,12 @@ async function bootstrap() {
   const prismaService = app.get(PrismaService);
   const customerService = app.get(CustomerService);
   await prismaService.enableShutdownHooks(app);
+
+  // app.use(cookieParser());
+  // app.enableCors({
+  //   origin: 'http://localhost:3333', // Replace this with your client-side domain
+  //   credentials: true,
+  // });
 
   app.useGlobalPipes(
     new ValidationPipe({
