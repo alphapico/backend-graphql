@@ -5,7 +5,7 @@ import {
   connectToDatabase,
   disconnectFromDatabase,
 } from '../support/test-utils';
-import { ERROR_MESSAGES } from '@charonium/common';
+import { CONFIG, ERROR_MESSAGES } from '@charonium/common';
 import { INPUT } from '@charonium/common';
 
 describe('Customer', () => {
@@ -323,8 +323,7 @@ describe('Customer', () => {
     // Call resendEmailVerification multiple times to simulate spamming
     const emailInput = { email: input.email };
 
-    const maxAllowedAttempts =
-      parseInt(process.env.EMAIL_RESEND_MAX_ATTEMPTS) || 3;
+    const maxAllowedAttempts = CONFIG.EMAIL_RESEND_MAX_ATTEMPTS || 3;
     let attempts = 0;
     let errorThrown = false;
 
@@ -349,8 +348,7 @@ describe('Customer', () => {
   it('should prevent spamming on resendAdminRegistrationEmail', async () => {
     // assume admin user exists, since we use process.env.ADMIN_EMAIL
     // Call resendAdminRegistrationEmail multiple times to simulate spamming
-    const maxAllowedAttempts =
-      parseInt(process.env.EMAIL_RESEND_MAX_ATTEMPTS) || 3;
+    const maxAllowedAttempts = CONFIG.EMAIL_RESEND_MAX_ATTEMPTS || 3;
     let attempts = 0;
     let errorThrown = false;
 

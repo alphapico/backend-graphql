@@ -3,7 +3,7 @@ import { Customer } from './dto/customer.dto';
 import { RegisterInput } from './dto/register.input';
 import { CustomerService } from './customer.service';
 import { ResetPasswordInput } from './dto/reset-password.input';
-import { EmailInput } from './dto/email.input.dto';
+import { EmailInput } from './dto/email.input';
 import { RegisterAdminInput } from './dto/register-admin.input';
 
 @Resolver(() => Customer)

@@ -9,6 +9,7 @@ import {
   IJwtPayload,
   ERROR_MESSAGES,
   SUCCESS_MESSAGES,
+  CONFIG,
 } from '@charonium/common';
 import { JwtService, JwtModule } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
@@ -30,7 +31,7 @@ describe('Auth', () => {
       imports: [
         JwtModule.register({
           secret: process.env.JWT_SECRET,
-          signOptions: { expiresIn: '15m' },
+          signOptions: { expiresIn: CONFIG.ACCESS_TOKEN_EXPIRATION },
         }),
         PrismaModule,
       ],
@@ -81,7 +82,11 @@ describe('Auth', () => {
 
   const protectedMethodQuery = gql`
     query ProtectedMethod {
-      protectedMethod
+      protectedMethod {
+        sub
+        email
+        role
+      }
     }
   `;
 
@@ -111,7 +116,11 @@ describe('Auth', () => {
 
   const protectedAdminMethodQuery = gql`
     query ProtectedAdminMethod {
-      protectedAdminMethod
+      protectedAdminMethod {
+        sub
+        email
+        role
+      }
     }
   `;
 
@@ -459,9 +468,13 @@ describe('Auth', () => {
     });
 
     // Try to access the protected method with the new access token
-    const protectedMethodResponse: { protectedMethod: boolean } =
+    const protectedMethodResponse: { protectedMethod: IJwtPayload } =
       await graphQLClientWithNewAccessToken.request(protectedMethodQuery);
-    expect(protectedMethodResponse.protectedMethod).toBe(true);
+    expect(protectedMethodResponse.protectedMethod).toEqual({
+      sub: decodedAccessToken.sub,
+      email: decodedAccessToken.email,
+      role: decodedAccessToken.role,
+    });
   });
 
   it('should not refresh tokens with an expired refresh token', async () => {
@@ -581,7 +594,7 @@ describe('Auth', () => {
         role: CustomerRole.USER,
       },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.EMAIL_TOKEN_EXPIRATION }
+      { expiresIn: CONFIG.EMAIL_TOKEN_EXPIRATION }
     );
 
     // Call the resetPassword mutation
@@ -661,7 +674,7 @@ describe('Auth', () => {
       .replace('access_token=', '')
       .split(';')[0];
 
-    const graphQLClinetWithAdminAccessToken = new GraphQLClient(httpUrl, {
+    const graphQLClientWithAdminAccessToken = new GraphQLClient(httpUrl, {
       credentials: 'include',
       headers: {
         cookie: `access_token=${accessToken}`,
@@ -669,11 +682,13 @@ describe('Auth', () => {
     });
 
     const protectedAdminMethodResponse: { protectedAdminMethod: boolean } =
-      await graphQLClinetWithAdminAccessToken.request(
+      await graphQLClientWithAdminAccessToken.request(
         protectedAdminMethodQuery
       );
 
-    expect(protectedAdminMethodResponse.protectedAdminMethod).toBe(true);
+    expect(protectedAdminMethodResponse.protectedAdminMethod).toEqual(
+      adminPayload
+    );
   });
 
   it('should not allow non-admin user to access protected-admin method', async () => {
@@ -753,15 +768,14 @@ describe('Auth', () => {
     ).toBe(true);
 
     // Mock the email sending process and obtain the registration token
-    const registrationToken = jwt.sign(
-      {
-        sub: admin.customerId,
-        email: admin.email,
-        role: admin.customerRole,
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.EMAIL_TOKEN_EXPIRATION }
-    );
+    const adminPayload: IJwtPayload = {
+      sub: admin.customerId,
+      email: admin.email,
+      role: admin.customerRole,
+    };
+    const registrationToken = jwt.sign(adminPayload, process.env.JWT_SECRET, {
+      expiresIn: CONFIG.EMAIL_TOKEN_EXPIRATION,
+    });
 
     // Call the registerAdmin mutation with the registration token and the new password
     const newName = 'New Admin Name';
@@ -804,7 +818,7 @@ describe('Auth', () => {
       .replace('access_token=', '')
       .split(';')[0];
 
-    const graphQLClinetWithAdminAccessToken = new GraphQLClient(httpUrl, {
+    const graphQLClientWithAdminAccessToken = new GraphQLClient(httpUrl, {
       credentials: 'include',
       headers: {
         cookie: `access_token=${accessToken}`,
@@ -812,11 +826,13 @@ describe('Auth', () => {
     });
 
     const protectedAdminMethodResponse: { protectedAdminMethod: boolean } =
-      await graphQLClinetWithAdminAccessToken.request(
+      await graphQLClientWithAdminAccessToken.request(
         protectedAdminMethodQuery
       );
 
-    expect(protectedAdminMethodResponse.protectedAdminMethod).toBe(true);
+    expect(protectedAdminMethodResponse.protectedAdminMethod).toEqual(
+      adminPayload
+    );
   });
 
   // it('should allow admin user to reset their password and still able to access protected-admin method', async () => {
@@ -836,15 +852,14 @@ describe('Auth', () => {
   //   expect(forgetPasswordResponse.forgetPassword).toBe(true);
 
   //   // Mock the email sending process and obtain the reset token
-  //   const resetToken = jwt.sign(
-  //     {
-  //       sub: admin.customerId,
-  //       email: admin.email,
-  //       role: admin.customerRole,
-  //     },
-  //     process.env.JWT_SECRET,
-  //     { expiresIn: process.env.EMAIL_TOKEN_EXPIRATION }
-  //   );
+  //   const adminPayload: IJwtPayload = {
+  //     sub: admin.customerId,
+  //     email: admin.email,
+  //     role: admin.customerRole,
+  //   };
+  //   const resetToken = jwt.sign(adminPayload, process.env.JWT_SECRET, {
+  //     expiresIn: CONFIG.EMAIL_TOKEN_EXPIRATION,
+  //   });
 
   //   // Call the resetPassword mutation with the reset token and the new password
   //   const newPassword = 'newadminpassword12345';
@@ -885,7 +900,7 @@ describe('Auth', () => {
   //     .replace('access_token=', '')
   //     .split(';')[0];
 
-  //   const graphQLClinetWithAdminAccessToken = new GraphQLClient(httpUrl, {
+  //   const graphQLClientWithAdminAccessToken = new GraphQLClient(httpUrl, {
   //     credentials: 'include',
   //     headers: {
   //       cookie: `access_token=${accessToken}`,
@@ -893,10 +908,12 @@ describe('Auth', () => {
   //   });
 
   //   const protectedAdminMethodResponse: { protectedAdminMethod: boolean } =
-  //     await graphQLClinetWithAdminAccessToken.request(
+  //     await graphQLClientWithAdminAccessToken.request(
   //       protectedAdminMethodQuery
   //     );
 
-  //   expect(protectedAdminMethodResponse.protectedAdminMethod).toBe(true);
+  //   expect(protectedAdminMethodResponse.protectedAdminMethod).toEqual(
+  //     adminPayload
+  //   );
   // });
 });

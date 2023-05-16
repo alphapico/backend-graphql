@@ -4,6 +4,7 @@ import { CustomerModule } from '../customer/customer.module';
 import { AuthService } from './auth.service';
 import { AuthResolver } from './auth.resolver';
 import { JwtStrategy } from './jwt.strategy';
+import { CONFIG } from '@charonium/common';
 
 @Module({
   imports: [forwardRef(() => CustomerModule), JwtModule.register({})],
@@ -16,7 +17,7 @@ import { JwtStrategy } from './jwt.strategy';
       useFactory: () => {
         return new JwtService({
           secret: process.env.JWT_SECRET,
-          signOptions: { expiresIn: process.env.ACCESS_TOKEN_EXPIRATION },
+          signOptions: { expiresIn: CONFIG.ACCESS_TOKEN_EXPIRATION },
         });
       },
     },
@@ -25,7 +26,7 @@ import { JwtStrategy } from './jwt.strategy';
       useFactory: () => {
         return new JwtService({
           secret: process.env.JWT_SECRET,
-          signOptions: { expiresIn: process.env.REFRESH_TOKEN_EXPIRATION },
+          signOptions: { expiresIn: CONFIG.REFRESH_TOKEN_EXPIRATION },
         });
       },
     },
@@ -34,7 +35,7 @@ import { JwtStrategy } from './jwt.strategy';
       useFactory: () => {
         return new JwtService({
           secret: process.env.JWT_SECRET,
-          signOptions: { expiresIn: process.env.EMAIL_TOKEN_EXPIRATION },
+          signOptions: { expiresIn: CONFIG.EMAIL_TOKEN_EXPIRATION },
         });
       },
     },

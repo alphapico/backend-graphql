@@ -50,21 +50,36 @@
    # this is the sender email
    EMAIL_NAME=<e.g Styx>
    EMAIL_FROM=<sender-email@example.com>
-   EMAIL_FOOTER=""
 
    ADMIN_EMAIL=<admin-email@example.com>
    ADMIN_INITIAL_PASSWORD=<some-password>
-
-   ACCESS_TOKEN_EXPIRATION=15m
-   REFRESH_TOKEN_EXPIRATION=1d
-   EMAIL_TOKEN_EXPIRATION=1h
-
-   EMAIL_RESEND_MAX_ATTEMPTS=3
-   EMAIL_RESEND_TTL=3600
    ```
 
 2. Create a `.serve.env` file with the same contents as above. Just ensure the ports are different. This is for the `development` environment.
 3. For the `unit test` environment, it will share the same settings as the `development` environment.
+
+<br />
+
+### Extra Config
+
+Configs that are not related with server and not data-sensitive will be put in `<common lib path>/constants/config.constant.ts` , where `<common lib path>` is `<root>/libs/common/src/lib`. You can import it with `import {CONFIG} from @charonium/common`
+
+```tsx
+export const CONFIG = {
+  PRESIGNED_S3_URL_TTL: 60 * 10, // 10 minutes expiration
+  MIN_IMG_FILE_SIZE: 10 * 1024, // 10KB
+  MAX_IMG_FILE_SIZE: 10 * 1024 * 1024, // 10 MB
+  SUPPORTED_IMG_EXTENSIONS: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+
+  EMAIL_FOOTER: '',
+  EMAIL_RESEND_MAX_ATTEMPTS: 3,
+  EMAIL_RESEND_TTL: 3600,
+
+  ACCESS_TOKEN_EXPIRATION: '15m',
+  REFRESH_TOKEN_EXPIRATION: '1d',
+  EMAIL_TOKEN_EXPIRATION: '1h',
+};
+```
 
 <br />
 
@@ -192,9 +207,25 @@ export * from './prisma-error-messages.constant';
 export * from './jsonwebtoken-error-messages.constant';
 ```
 
+#### Success message
+
+Any relevant success messages can be placed inside the `<common lib path>/constants/success-messages.constant.ts`
+
+```tsx
+export const SUCCESS_MESSAGES = {
+  LOGIN_SUCCESS: 'Login successful',
+  LOGOUT_SUCCESS: 'Logout successful',
+  REFRESH_TOKEN_SUCCESS: 'Refresh token successful',
+  EMAIL_VERIFICATION_SENT: 'Email verification sent',
+  EMAIL_PASSWORD_RESET_SENT: 'Email password reset sent',
+  EMAIL_ADMIN_REGISTRATION_SENT: 'Email admin registration sent',
+  CUSTOMER_IS_VERIFIED: 'Customer is successfully verified',
+};
+```
+
 #### Error message
 
-Any relevant error messages can be placed inside the `<constants>/error-messages.constant.ts`.
+Any relevant error messages can be placed inside the `<common lib path>/constants/error-messages.constant.ts`
 
 ```tsx
 export const ERROR_MESSAGES = {
@@ -247,3 +278,47 @@ nx e2e customer-api-e2e
 
 Make sure to cover edge cases in your test cases as well.
 Please <span style="color:orange">document</span> the error messages and exceptions inside the <span style="color:orange">`ERROR.md`</span> file
+
+### Protecting your resolver
+
+If you would like to protect your endpoints resolver, just add `@UseGuards()` to the resolver method:
+
+```tsx
+// For Normal User
+@Query(() => your_return_type)
+  @UseGuards(JwtAuthGuard)
+  async YourProtectedMethod(): Promise<your_return_type> {
+    ...
+  }
+
+// For Admin
+@Query(() => your_return_type)
+  @UseGuards(AdminGuard)
+  async protectedAdminMethod(
+  ): Promise<your_return_type> {
+    ...
+  }
+
+```
+
+If you would like to receive user's details like customer ID and customer Email, just add `@CurrentUser()` decorator to your parameter. You do not need to pass anything to this parameter `@CurrentUser()` because it's just a decorator.
+
+```tsx
+ @Query(() => JwtPayload)
+  @UseGuards(AdminGuard)
+  async protectedAdminMethod(
+    @CurrentUser() user: IJwtPayload
+  ): Promise<JwtPayload> {
+    return user;
+  }
+```
+
+`@CurrentUser()` will give `user` with type `IJwtPayload`. It will give you these properties:
+
+```tsx
+{
+  sub: number; // customerId
+  email: string;
+  role: CustomerRole; // can be either "ADMIN" , "USER"
+}
+```

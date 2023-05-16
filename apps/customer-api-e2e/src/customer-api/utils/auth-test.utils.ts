@@ -1,6 +1,7 @@
 import { GraphQLClient, gql } from 'graphql-request';
 import { CustomerRole } from '@prisma/client';
 import * as jwt from 'jsonwebtoken';
+import { CONFIG } from '@charonium/common';
 
 export const registerMutation = gql`
   mutation Register($input: RegisterInput!) {
@@ -70,7 +71,7 @@ export async function createAndVerifyCustomer(
   const customerVerifiedEmailToken = jwt.sign(
     customerPayload,
     process.env.JWT_SECRET,
-    { expiresIn: process.env.EMAIL_TOKEN_EXPIRATION }
+    { expiresIn: CONFIG.EMAIL_TOKEN_EXPIRATION }
   );
 
   const verifiedEmailResponse: IVerifyEmailResponse =
