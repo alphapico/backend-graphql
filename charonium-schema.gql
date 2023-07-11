@@ -8,9 +8,9 @@ type Customer {
   email: String!
   emailStatus: EmailStatus!
   name: String!
+  referees: [Customer!]
   referralCode: String
   referralCustomerId: Int
-  referrees: [Customer!]
   referrer: Customer
 }
 
@@ -94,25 +94,25 @@ type PresignedUrl {
 }
 
 type Query {
-  getReferralMap(customerId: Int!): [ReferralMap!]!
+  getReferralMap(input: ReferralInput!): [ReferralMap!]!
   hello: String!
   protectedAdminMethod: JwtPayload!
   protectedMethod: JwtPayload!
 }
 
+type ReferralEntry {
+  referees: [Customer!]!
+  referrer: Customer!
+}
+
+input ReferralInput {
+  referrerId: Float!
+  startTier: Float
+}
+
 type ReferralMap {
-  tier: Int!
-  tierMaps: [TierMap!]!
-}
-
-type Referree {
-  customerId: Int!
-  customerName: String!
-}
-
-type Referrer {
-  customerId: Int!
-  customerName: String!
+  referralEntries: [ReferralEntry!]!
+  tier: String!
 }
 
 input RegisterAdminInput {
@@ -135,11 +135,6 @@ input ResetPasswordInput {
 
 input SaveImageInput {
   path: String!
-}
-
-type TierMap {
-  referrees: [Referree!]!
-  referrer: Referrer!
 }
 
 input UploadInput {

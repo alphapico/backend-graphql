@@ -78,6 +78,12 @@ export const ERROR_MESSAGES = {
   CUSTOMER_NOT_VERIFIED: 'Customer not verified',
   CUSTOMER_SUSPENDED: 'Customer is suspended',
   TOO_MANY_ATTEMPTS: 'Too many attempts',
+  INVALID_FILE_EXTENSION: 'Invalid file extension',
+  FAILED_GENERATE_PRESIGNED_URL: 'Failed to generate pre-signed URL',
+  START_TIER_MUST_BE_NON_NEGATIVE: 'Start tier must be non-negative',
+  RAW_QUERY_FAILED: 'Raw query failed',
+  PRISMA_CLIENT_REQUEST_ERROR: 'Client request error',
+  UNEXPECTED_ERROR: 'An unexpected error occurred',
   VAL: {
     IS_STRING: '$property must be a string',
     IS_EMAIL: '$property must be an email',
@@ -93,11 +99,13 @@ export const ERROR_MESSAGES = {
     FAILED_TO_SEND_VERIFICATION: 'Failed to send email verification',
     FAILED_TO_SEND_PASSWORD_RESET: 'Failed to send email password reset',
     FAILED_TO_SEND_ADMIN_REGISTRATION: 'Failed to send email admin registration',
+    FAILED_TO_SEND_WELCOME: 'Failed to send email welcome',
   },
 };
 ```
 
 ```tsx
+// libs/common/src/lib/constants/input.constant.ts
 export const INPUT = {
   MIN_NAME_LENGTH: 2,
   MAX_NAME_LENGTH: 50,
@@ -111,6 +119,7 @@ The `VAL` error message is a bit special. For example if we use `VAL.MAX_LENGTH`
 ### List of success messages
 
 ```tsx
+// libs/common/src/lib/constants/success-messages.constant.ts
 export const SUCCESS_MESSAGES = {
   LOGIN_SUCCESS: 'Login successful',
   LOGOUT_SUCCESS: 'Logout successful',
@@ -119,6 +128,7 @@ export const SUCCESS_MESSAGES = {
   EMAIL_PASSWORD_RESET_SENT: 'Email password reset sent',
   EMAIL_ADMIN_REGISTRATION_SENT: 'Email admin registration sent',
   CUSTOMER_IS_VERIFIED: 'Customer is successfully verified',
+  EMAIL_WELCOME_SENT: 'Email welcome sent',
 };
 ```
 
@@ -441,6 +451,8 @@ mutation GeneratePresignedUrl($uploadInput: UploadInput!) {
 
 | Exception                    | Code                  | Status Code | Message                                                                 |
 | ---------------------------- | --------------------- | ----------- | ----------------------------------------------------------------------- |
+| ForbiddenException           | FORBIDDEN             | 403         | Forbidden Resource                                                      |
+| UnauthorizedException        | UNAUTHENTICATED       | 401         | Unauthorized                                                            |
 | BadRequestException          | BAD_REQUEST           | 400         | Invalid file extension                                                  |
 | InternalServerErrorException | INTERNAL_SERVER_ERROR | 500         | Failed to generate pre-signed URL                                       |
 | BadRequestException          | BAD_REQUEST           | 400         | ["category must be a string", "category should not be empty"]           |
@@ -470,7 +482,93 @@ mutation SaveUploadedImage($saveImageInput: SaveImageInput!) {
 
 ```
 
-| Exception           | Code           | Status Code | Message                                               |
-| ------------------- | -------------- | ----------- | ----------------------------------------------------- |
-| BadRequestException | BAD_REQUEST    | 400         | ["path must be a string", "path should not be empty"] |
-|                     | BAD_USER_INPUT |             |                                                       |
+| Exception             | Code            | Status Code | Message                                               |
+| --------------------- | --------------- | ----------- | ----------------------------------------------------- |
+| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource                                    |
+| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized                                          |
+| BadRequestException   | BAD_REQUEST     | 400         | ["path must be a string", "path should not be empty"] |
+|                       | BAD_USER_INPUT  |             |                                                       |
+
+<br />
+
+## 4. Referrer and Referees
+
+### Get Referral Map
+
+```tsx
+query GetReferralMap($input: ReferralInput!) {
+      getReferralMap(input: $input) {
+        tier
+        referralEntries {
+          referrer {
+            customerId
+            name
+            email
+            referralCode
+            referralCustomerId
+          }
+          referees {
+            customerId
+            name
+            email
+            referralCode
+            referralCustomerId
+          }
+        }
+      }
+    }
+
+{
+  "input" : {
+    "referrerId" : 12, // customerId, who is the referrer (top tier)
+    "startTier" : 0 // the name scheming for tier. Put 0 wil make the name "tier0"
+                    // You can start at any number. The number of tier will increase
+                    // as we go down the tier ("tier1", "tier2" and so on)
+  }
+}
+
+
+// response
+[
+  {
+    "tier": "tier0",
+    "referralEntries": [
+      {
+        "referrer": {
+          "customerId": 3345,
+          "name": "John Doe Staniay",
+          "email": "john.doe.stania@gmail.com",
+          "customerStatus": "ACTIVE",
+          "emailStatus": "VERIFIED",
+          "referralCode": "HGVRMXU0",
+          "referralCustomerId": null
+        },
+        "referees": [
+          {
+            "customerId": 3346,
+            "name": "Jane Smith Sythy",
+            "email": "jane.smith.syth@gmail.com",
+            "customerStatus": "ACTIVE",
+            "emailStatus": "VERIFIED",
+            "referralCode": "LXQXGZQQ",
+            "referralCustomerId": 3345
+          }
+        ]
+      }
+    ]
+  }
+]
+
+```
+
+| Exception             | Code                  | Status Code | Message                                                           |
+| --------------------- | --------------------- | ----------- | ----------------------------------------------------------------- |
+| UnauthorizedException | UNAUTHENTICATED       | 401         | Unauthorized                                                      |
+| BadRequestException   | BAD_REQUEST           | 400         | ["referrerId must be a number", "referrerId should not be empty"] |
+| BadRequestException   | BAD_REQUEST           | 400         | ["startTier must be a number"]                                    |
+| NotFoundException     | INTERNAL_SERVER_ERROR | 404         | Customer not found                                                |
+| BadRequestException   | BAD_REQUEST           | 400         | Start tier must be non-negative                                   |
+| BadRequestException   | BAD_REQUEST           | 400         | Raw query failed                                                  |
+| BadRequestException   | BAD_REQUEST           | 400         | Client request error                                              |
+| HttpException         | INTERNAL_SERVER_ERROR | 500         | An unexpected error occurred                                      |
+|                       | BAD_USER_INPUT        |             |                                                                   |

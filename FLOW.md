@@ -49,3 +49,17 @@ if link expired or forget password, since you can set password also here
 - At step 2, Frontend should pass the `category` and `fileExtension` to `mutation generatePresignedUrl`. See the example `ERROR.md`
 - At step 3, use the pre-signed URL to upload to S3 bucket
 - After Frontend uploading image to S3 bucket, save the path in step 6 with this format `https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${key-from-generatePresignedUrl}` . You can see example in `upload.spec.ts` in end-to-end test folder
+
+<br />
+
+## 3. Referral Tree
+
+#### a. Get Referral Map
+
+- Let's say admin set the `depth=2` in database, by querying `getReferralMap` with arguments `customerId=<UserA ID>` , we would get the map like this:
+
+![diagram1](https://github.com/Tequnity/charonium/assets/128450164/32b30b18-9759-474a-8016-1692c2fadda4)
+
+- To query `getReferralMap` again, pass the arguments `customerId=<UserG ID>` and `startTier=3` (the tier of User G). If argument `startTier` is not passed, we can still get the right data, but the `tier` name will start from 0 (`tier0`) instead of `tier3`
+
+![diagram2](https://github.com/Tequnity/charonium/assets/128450164/f31d77d3-579c-45f2-8588-3e12a06730e2)

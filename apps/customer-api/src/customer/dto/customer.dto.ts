@@ -49,5 +49,5 @@ export class Customer implements CustomerPartial {
   referrer?: Customer;
 
   @Field(() => [Customer], { nullable: true })
-  referrees?: Customer[];
+  referees?: Customer[];
 }

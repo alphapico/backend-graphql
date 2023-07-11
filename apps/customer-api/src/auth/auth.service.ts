@@ -45,6 +45,7 @@ export class AuthService {
       throw new BadRequestException(ERROR_MESSAGES.INVALID_INPUT_PASSWORD);
     }
 
+    // CustomerStatus turns from PENDING into ACTIVE after email is verified
     if (customer.emailStatus !== EmailStatus.VERIFIED) {
       throw new BadRequestException(ERROR_MESSAGES.CUSTOMER_NOT_VERIFIED);
     }

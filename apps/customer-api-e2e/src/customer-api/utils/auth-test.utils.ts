@@ -2,6 +2,7 @@ import { GraphQLClient, gql } from 'graphql-request';
 import { CustomerRole } from '@prisma/client';
 import * as jwt from 'jsonwebtoken';
 import { CONFIG } from '@charonium/common';
+import { httpUrl } from '../../support/test-setup';
 
 export const registerMutation = gql`
   mutation Register($input: RegisterInput!) {
@@ -80,4 +81,47 @@ export async function createAndVerifyCustomer(
     });
 
   return { customer, verifiedEmailResponse };
+}
+
+export async function registerAndLogin(graphQLClient, customerInput) {
+  const { customer } = await createAndVerifyCustomer(
+    graphQLClient,
+    customerInput
+  );
+  const customerId = parseInt(customer.register.customerId, 10);
+  const referralCode = customer.register.referralCode;
+
+  // Now, attempt to log in with the registered user's credentials
+  const loginInput = {
+    email: customerInput.email,
+    password: customerInput.password,
+  };
+
+  const loginResponse = await graphQLClient.rawRequest(loginMutation, {
+    input: loginInput,
+  });
+
+  // Get the 'set-cookie' response header containing the access token
+  const cookiesString = loginResponse.headers.get('set-cookie');
+  const cookies = cookiesString.split(', ');
+  const accessTokenHeader = cookies.find((cookie: string) =>
+    cookie.startsWith('access_token=')
+  );
+
+  if (!accessTokenHeader) {
+    throw new Error('Access token not found in the response headers');
+  }
+
+  const accessToken = accessTokenHeader
+    .replace('access_token=', '')
+    .split(';')[0];
+
+  const graphQLClientWithAccessToken = new GraphQLClient(httpUrl, {
+    credentials: 'include',
+    headers: {
+      cookie: `access_token=${accessToken}`,
+    },
+  });
+
+  return { customerId, referralCode, graphQLClientWithAccessToken };
 }

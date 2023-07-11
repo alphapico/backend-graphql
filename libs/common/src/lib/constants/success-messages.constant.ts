@@ -6,4 +6,5 @@ export const SUCCESS_MESSAGES = {
   EMAIL_PASSWORD_RESET_SENT: 'Email password reset sent',
   EMAIL_ADMIN_REGISTRATION_SENT: 'Email admin registration sent',
   CUSTOMER_IS_VERIFIED: 'Customer is successfully verified',
+  EMAIL_WELCOME_SENT: 'Email welcome sent',
 };

@@ -1,4 +1,4 @@
-import { graphQLClient } from '../support/test-setup';
+import { clearCookies, graphQLClient } from '../support/test-setup';
 import { gql } from 'graphql-request';
 import {
   clearDatabase,
@@ -9,7 +9,7 @@ import { CONFIG, ERROR_MESSAGES } from '@charonium/common';
 import { INPUT } from '@charonium/common';
 
 describe('Customer', () => {
-  console.log('Running Customer tests');
+  // console.log('Running Customer tests');
 
   beforeAll(async () => {
     await connectToDatabase();
@@ -17,6 +17,8 @@ describe('Customer', () => {
 
   beforeEach(async () => {
     await clearDatabase();
+    // Clear cookies before running the test
+    clearCookies();
   });
 
   afterAll(async () => {

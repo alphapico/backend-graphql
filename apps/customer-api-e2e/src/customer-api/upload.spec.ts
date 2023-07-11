@@ -17,7 +17,7 @@ import Blob from 'fetch-blob';
 import FormData from 'form-data';
 
 describe('Upload', () => {
-  console.log('Running Upload tests');
+  // console.log('Running Upload tests');
 
   let jwtService: JwtService;
   let prismaService: PrismaService;
