@@ -47,7 +47,7 @@ model Customer {
   referralCode       String?        @unique
   referralCustomerId Int?
   referrer Customer? @relation("CustomerReferral", fields: [referralCustomerId], references: [customerId])
-  referrees Customer[] @relation("CustomerReferral")
+  referees Customer[] @relation("CustomerReferral")
   tokenVersion       Int            @default(0)
   createdAt          DateTime       @default(now())
   updatedAt          DateTime?      @updatedAt

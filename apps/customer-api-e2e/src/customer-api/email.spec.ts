@@ -9,7 +9,7 @@ import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@charonium/common';
 import { createAndVerifyCustomer } from './utils/auth-test.utils';
 
 describe('Email Verification', () => {
-  console.log('Running Email Verification tests');
+  // console.log('Running Email Verification tests');
 
   beforeAll(async () => {
     await connectToDatabase();

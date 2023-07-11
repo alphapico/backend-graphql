@@ -241,12 +241,15 @@ export class CustomerService {
     const hashedPassword = await argon2.hash(
       process.env.ADMIN_INITIAL_PASSWORD
     );
+
+    const referralCode = await this.referralCodeUtil.encodeReferralCode();
     const admin = await this.prisma.customer.create({
       data: {
         name: 'Admin',
         email: email,
         password: hashedPassword,
         customerRole: CustomerRole.ADMIN,
+        referralCode,
       },
     });
 
@@ -271,7 +274,7 @@ export class CustomerService {
 
     const hashedPassword = await argon2.hash(input.newPassword);
 
-    await this.prisma.customer.update({
+    const updatedAdmin = await this.prisma.customer.update({
       where: { customerId: payload.sub },
       data: {
         name: input.newName,
@@ -280,6 +283,8 @@ export class CustomerService {
         customerStatus: CustomerStatus.ACTIVE,
       },
     });
+
+    await this.emailService.sendWelcomeEmail(updatedAdmin, true);
 
     return true;
   }

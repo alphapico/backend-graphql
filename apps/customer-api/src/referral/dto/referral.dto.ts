@@ -1,30 +1,20 @@
-import { Field, Int, ObjectType } from '@nestjs/graphql';
+import { Field, ObjectType } from '@nestjs/graphql';
+import { Customer } from '../../customer/dto/customer.dto';
 
 @ObjectType()
-export class Referree {
-  @Field(() => Int)
-  customerId: number;
-  @Field()
-  customerName: string;
+export class ReferralEntry {
+  @Field(() => Customer)
+  referrer: Customer;
+
+  @Field(() => [Customer])
+  referees: Customer[];
 }
-@ObjectType()
-export class Referrer {
-  @Field(() => Int)
-  customerId: number;
-  @Field()
-  customerName: string;
-}
-@ObjectType()
-export class TierMap {
-  @Field(() => Referrer)
-  referrer: Referrer;
-  @Field(() => [Referree])
-  referrees: Referree[];
-}
+
 @ObjectType()
 export class ReferralMap {
-  @Field(() => Int)
-  tier: number;
-  @Field(() => [TierMap])
-  tierMaps: TierMap[];
+  @Field(() => String)
+  tier: string;
+
+  @Field(() => [ReferralEntry])
+  referralEntries: ReferralEntry[];
 }

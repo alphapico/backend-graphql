@@ -19,7 +19,7 @@ import { PrismaModule, PrismaService } from '@charonium/prisma';
 import { createAndVerifyCustomer } from './utils/auth-test.utils';
 
 describe('Auth', () => {
-  console.log('Running Auth tests');
+  // console.log('Running Auth tests');
 
   let jwtService: JwtService;
   let prismaService: PrismaService;

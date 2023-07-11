@@ -30,8 +30,9 @@ export class EmailService {
     });
   }
 
-  async createVerificationLink(
+  async createLink(
     customer: Customer,
+    path: string,
     isAdmin = false
   ): Promise<string> {
     const payload = {
@@ -40,68 +41,34 @@ export class EmailService {
       role: isAdmin ? CustomerRole.ADMIN : CustomerRole.USER,
     };
     const token = await this.authService.createEmailToken(payload);
-    const verificationLink = `${process.env.FRONTEND_DOMAIN}/${
-      isAdmin ? 'register-admin' : 'verify-email'
-    }?token=${token}`;
+    const link = `${process.env.FRONTEND_DOMAIN}/${path}?token=${token}`;
 
-    return verificationLink;
+    return link;
   }
 
-  async sendEmailVerification(customer: Customer): Promise<void> {
-    if (process.env.NODE_ENV === 'test') return;
-
-    const verificationLink = await this.createVerificationLink(customer);
-
-    const template = Handlebars.compile(
-      fs.readFileSync(
-        path.join(__dirname, './email-templates/verification.html'),
-        'utf-8'
-      )
-    );
-
-    const params: SendEmailCommandInput = {
-      Source: `${process.env.EMAIL_NAME} <${process.env.EMAIL_FROM}>`,
-      Destination: {
-        ToAddresses: [customer.email],
-      },
-      Message: {
-        Subject: {
-          Data: 'Email Verification',
-        },
-        Body: {
-          Html: {
-            Data: template({ verificationLink }),
-          },
-        },
-      },
-    };
-
-    await this.sendEmailWithRetry(EmailType.VERIFICATION, params, customer);
+  async createVerificationLink(
+    customer: Customer,
+    isAdmin = false
+  ): Promise<string> {
+    const path = isAdmin ? 'register-admin' : 'verify-email';
+    return this.createLink(customer, path, isAdmin);
   }
 
   async createResetPasswordLink(customer: Customer): Promise<string> {
-    const payload = {
-      email: customer.email,
-      sub: customer.customerId,
-      role: CustomerRole.USER,
-    };
-    const token = await this.authService.createEmailToken(payload);
-    const resetLink = `${process.env.FRONTEND_DOMAIN}/reset-password?token=${token}`;
-
-    return resetLink;
+    return this.createLink(customer, 'reset-password');
   }
 
-  // customer.service.ts
-  async sendPasswordResetEmail(customer: Customer): Promise<void> {
+  async sendEmail(
+    emailType: EmailType,
+    customer: Customer,
+    data: Record<string, any>,
+    templatePath: string,
+    subject: string
+  ): Promise<void> {
     if (process.env.NODE_ENV === 'test') return;
 
-    const resetLink = await this.createResetPasswordLink(customer);
-
     const template = Handlebars.compile(
-      fs.readFileSync(
-        path.join(__dirname, './email-templates/reset-password.html'),
-        'utf-8'
-      )
+      fs.readFileSync(path.join(__dirname, templatePath), 'utf-8')
     );
 
     const params: SendEmailCommandInput = {
@@ -111,55 +78,72 @@ export class EmailService {
       },
       Message: {
         Subject: {
-          Data: 'Password Reset',
+          Data: subject,
         },
         Body: {
           Html: {
-            Data: template({ resetLink }),
+            Data: template(data),
           },
         },
       },
     };
 
-    await this.sendEmailWithRetry(EmailType.PASSWORD_RESET, params, customer);
+    await this.sendEmailWithRetry(emailType, params, customer);
+  }
+
+  async sendEmailVerification(customer: Customer): Promise<void> {
+    const verificationLink = await this.createVerificationLink(customer);
+    const data = { verificationLink };
+    await this.sendEmail(
+      EmailType.VERIFICATION,
+      customer,
+      data,
+      './email-templates/verification.html',
+      'Email Verification'
+    );
+  }
+
+  async sendPasswordResetEmail(customer: Customer): Promise<void> {
+    const resetLink = await this.createResetPasswordLink(customer);
+    const data = { resetLink };
+    await this.sendEmail(
+      EmailType.PASSWORD_RESET,
+      customer,
+      data,
+      './email-templates/reset-password.html',
+      'Password Reset'
+    );
   }
 
   async sendAdminRegistrationEmail(admin: Customer): Promise<void> {
-    if (process.env.NODE_ENV === 'test') return;
-
     const verificationLink = await this.createVerificationLink(admin, true);
-
-    const template = Handlebars.compile(
-      fs.readFileSync(
-        path.join(__dirname, './email-templates/admin-registration.html'),
-        'utf-8'
-      )
+    const data = { verificationLink };
+    await this.sendEmail(
+      EmailType.ADMIN_REGISTRATION,
+      admin,
+      data,
+      './email-templates/admin-registration.html',
+      'Admin Registration'
     );
+  }
 
-    const params: SendEmailCommandInput = {
-      Source: `${process.env.EMAIL_NAME} <${process.env.EMAIL_FROM}>`,
-      Destination: {
-        ToAddresses: [admin.email],
-      },
-      Message: {
-        Subject: {
-          Data: 'Admin Registration',
-        },
-        Body: {
-          Html: {
-            Data: template({ verificationLink }),
-          },
-        },
-      },
-    };
-
-    await this.sendEmailWithRetry(EmailType.ADMIN_REGISTRATION, params, admin);
+  async sendWelcomeEmail(customer: Customer, isAdmin = false): Promise<void> {
+    const data = { referralCode: customer.referralCode };
+    const templatePath = isAdmin
+      ? './email-templates/admin-welcome.html'
+      : './email-templates/user-welcome.html';
+    await this.sendEmail(
+      EmailType.WELCOME,
+      customer,
+      data,
+      templatePath,
+      'Welcome'
+    );
   }
 
   async sendEmailWithRetry(
     emailType: EmailType,
     params: SendEmailCommandInput,
-
     customer: Customer
   ): Promise<void> {
     // Wrap the sendEmail function in a backoff.call instance
@@ -172,112 +156,50 @@ export class EmailService {
       },
       params,
       (error: Error | null) => {
+        let message = '';
+        switch (emailType) {
+          case EmailType.PASSWORD_RESET:
+            message = error
+              ? ERROR_MESSAGES.EMAIL_ERROR.FAILED_TO_SEND_PASSWORD_RESET
+              : SUCCESS_MESSAGES.EMAIL_PASSWORD_RESET_SENT;
+            break;
+          case EmailType.ADMIN_REGISTRATION:
+            message = error
+              ? ERROR_MESSAGES.EMAIL_ERROR.FAILED_TO_SEND_ADMIN_REGISTRATION
+              : SUCCESS_MESSAGES.EMAIL_ADMIN_REGISTRATION_SENT;
+            break;
+          case EmailType.WELCOME:
+            message = error
+              ? ERROR_MESSAGES.EMAIL_ERROR.FAILED_TO_SEND_WELCOME
+              : SUCCESS_MESSAGES.EMAIL_WELCOME_SENT;
+            break;
+          default:
+            message = error
+              ? ERROR_MESSAGES.EMAIL_ERROR.FAILED_TO_SEND_VERIFICATION
+              : SUCCESS_MESSAGES.EMAIL_VERIFICATION_SENT;
+            break;
+        }
+
+        const logEntry = {
+          level: error ? LogStatus.ERROR : LogStatus.INFO,
+          message: message,
+          serviceName: this.constructor.name,
+          methodName: 'sendEmailWithRetry',
+          customerId: customer.customerId,
+          customerEmail: customer.email,
+        };
+
+        this.logService.createLogEntry(logEntry).catch((updateError) => {
+          console.error(
+            `Failed to create log entry for Email:${emailType}`,
+            updateError
+          );
+        });
+
         if (error) {
           console.error('Failed to send email after retries:', error);
-
-          if (emailType == EmailType.PASSWORD_RESET) {
-            this.logService
-              .createLogEntry({
-                level: LogStatus.ERROR,
-                message:
-                  ERROR_MESSAGES.EMAIL_ERROR.FAILED_TO_SEND_PASSWORD_RESET,
-                serviceName: this.constructor.name,
-                methodName: 'sendEmailWithRetry',
-                customerId: customer.customerId,
-                customerEmail: customer.email,
-              })
-              .catch((updateError) => {
-                console.error(
-                  `Failed to create log entry for Email:${EmailType.PASSWORD_RESET}`,
-                  updateError
-                );
-              });
-          } else if (emailType == EmailType.ADMIN_REGISTRATION) {
-            this.logService
-              .createLogEntry({
-                level: LogStatus.ERROR,
-                message:
-                  ERROR_MESSAGES.EMAIL_ERROR.FAILED_TO_SEND_ADMIN_REGISTRATION,
-                serviceName: this.constructor.name,
-                methodName: 'sendEmailWithRetry',
-                customerId: customer.customerId,
-                customerEmail: customer.email,
-              })
-              .catch((updateError) => {
-                console.error(
-                  `Failed to create log entry for Email:${EmailType.ADMIN_REGISTRATION}`,
-                  updateError
-                );
-              });
-          } else {
-            this.logService
-              .createLogEntry({
-                level: LogStatus.ERROR,
-                message: ERROR_MESSAGES.EMAIL_ERROR.FAILED_TO_SEND_VERIFICATION,
-                serviceName: this.constructor.name,
-                methodName: 'sendEmailWithRetry',
-                customerId: customer.customerId,
-                customerEmail: customer.email,
-              })
-              .catch((updateError) => {
-                console.error(
-                  `Failed to create log entry for Email:${EmailType.VERIFICATION}`,
-                  updateError
-                );
-              });
-          }
         } else {
           console.log('Email sent successfully');
-
-          if (emailType == EmailType.PASSWORD_RESET) {
-            this.logService
-              .createLogEntry({
-                level: LogStatus.INFO,
-                message: SUCCESS_MESSAGES.EMAIL_PASSWORD_RESET_SENT,
-                serviceName: this.constructor.name,
-                methodName: 'sendEmailWithRetry',
-                customerId: customer.customerId,
-                customerEmail: customer.email,
-              })
-              .catch((updateError) => {
-                console.error(
-                  `Failed to create log entry for Email:${EmailType.PASSWORD_RESET}`,
-                  updateError
-                );
-              });
-          } else if (emailType == EmailType.ADMIN_REGISTRATION) {
-            this.logService
-              .createLogEntry({
-                level: LogStatus.INFO,
-                message: SUCCESS_MESSAGES.EMAIL_ADMIN_REGISTRATION_SENT,
-                serviceName: this.constructor.name,
-                methodName: 'sendEmailWithRetry',
-                customerId: customer.customerId,
-                customerEmail: customer.email,
-              })
-              .catch((updateError) => {
-                console.error(
-                  `Failed to create log entry for Email:${EmailType.ADMIN_REGISTRATION}`,
-                  updateError
-                );
-              });
-          } else {
-            this.logService
-              .createLogEntry({
-                level: LogStatus.INFO,
-                message: SUCCESS_MESSAGES.EMAIL_VERIFICATION_SENT,
-                serviceName: this.constructor.name,
-                methodName: 'sendEmailWithRetry',
-                customerId: customer.customerId,
-                customerEmail: customer.email,
-              })
-              .catch((updateError) => {
-                console.error(
-                  `Failed to create log entry for Email:${EmailType.VERIFICATION}`,
-                  updateError
-                );
-              });
-          }
         }
       }
     );
@@ -308,36 +230,6 @@ export class EmailService {
     sendEmailCall.start();
   }
 
-  // async sendEmailWithRetry(params: SendEmailCommandInput): Promise<void> {
-  //   const maxRetries = 3;
-  //   const initialDelay = 500;
-  //   const maxDelay = 60000;
-  //   const randomizationFactor = 0.5;
-
-  //   for (let attempt = 1; attempt <= maxRetries; attempt++) {
-  //     try {
-  //       await this.ses.sendEmail(params);
-  //       console.log('Email sent successfully');
-  //       return;
-  //     } catch (error) {
-  //       if (attempt === maxRetries) {
-  //         console.error('Failed to send email after all retries');
-
-  //         throw error;
-  //       } else {
-  //         const delay = Math.min(
-  //           initialDelay *
-  //             Math.pow(2, attempt - 1) *
-  //             (1 + Math.random() * randomizationFactor),
-  //           maxDelay
-  //         );
-  //         console.log(`Email send attempt failed. Retrying in ${delay} ms...`);
-  //         await new Promise((resolve) => setTimeout(resolve, delay));
-  //       }
-  //     }
-  //   }
-  // }
-
   async verifyEmail(token: string): Promise<boolean> {
     const payload = await this.authService.verifyEmailToken(token);
 
@@ -359,6 +251,8 @@ export class EmailService {
           customerStatus: CustomerStatus.ACTIVE,
         },
       });
+
+      await this.sendWelcomeEmail(customer);
 
       return true;
     }

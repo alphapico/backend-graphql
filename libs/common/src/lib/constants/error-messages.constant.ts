@@ -11,6 +11,10 @@ export const ERROR_MESSAGES = {
   TOO_MANY_ATTEMPTS: 'Too many attempts',
   INVALID_FILE_EXTENSION: 'Invalid file extension',
   FAILED_GENERATE_PRESIGNED_URL: 'Failed to generate pre-signed URL',
+  START_TIER_MUST_BE_NON_NEGATIVE: 'Start tier must be non-negative',
+  RAW_QUERY_FAILED: 'Raw query failed',
+  PRISMA_CLIENT_REQUEST_ERROR: 'Client request error',
+  UNEXPECTED_ERROR: 'An unexpected error occurred',
   VAL: {
     IS_STRING: '$property must be a string',
     IS_EMAIL: '$property must be an email',
@@ -29,5 +33,6 @@ export const ERROR_MESSAGES = {
     FAILED_TO_SEND_PASSWORD_RESET: 'Failed to send email password reset',
     FAILED_TO_SEND_ADMIN_REGISTRATION:
       'Failed to send email admin registration',
+    FAILED_TO_SEND_WELCOME: 'Failed to send email welcome',
   },
 };
