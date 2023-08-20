@@ -131,6 +131,8 @@ export const CONFIG = {
    ```
    The test results will be displayed in the terminal, and the test report will be saved at `<root>/coverage/customer-api-e2e/e2e-report.html`
 
+<br />
+
 ## 2. Development guide
 
 The code is modular, testable and easily extendable. It's following concept like DDD, OOP, SOLID and Clean Code.
@@ -183,6 +185,8 @@ To create GraphQL endpoint, you would need to create `module`, `service` and `re
                        └── ...
 
    ```
+
+<br />
 
 ### Managing common library
 
@@ -266,18 +270,7 @@ throw new BadRequestException(ERROR_MESSAGES.INVALID_REFERRAL_CODE());
 
 For additional exception methods, check the `ERROR.md` file for more information.
 
-### Writing end-to-end test code
-
-When writing end-to-end tests, create one test suite per module. Each module should have one file containing all the GraphQL endpoint test cases `it(...)` within the test suite module `describe(...)`. You can refer to `customer.spec.ts` and `auth.spec.ts` inside the `<root>/customer-api-e2e/src/customer-api` folder for an example.
-
-To run end-to-end tests, execute the following command:
-
-```bash
-nx e2e customer-api-e2e
-```
-
-Make sure to cover edge cases in your test cases as well.
-Please <span style="color:orange">document</span> the error messages and exceptions inside the <span style="color:orange">`ERROR.md`</span> file
+<br />
 
 ### Protecting your resolver
 
@@ -318,7 +311,31 @@ If you would like to receive user's details like customer ID and customer Email,
 ```tsx
 {
   sub: number; // customerId
+  name: string;
   email: string;
   role: CustomerRole; // can be either "ADMIN" , "USER"
 }
 ```
+
+<br />
+
+## 3. Testing API
+
+### Writing end-to-end test code
+
+When writing end-to-end tests, create one test suite per module. Each module should have one file containing all the GraphQL endpoint test cases `it(...)` within the test suite module `describe(...)`. You can refer to `customer.spec.ts` and `auth.spec.ts` inside the `<root>/customer-api-e2e/src/customer-api` folder for an example.
+
+To run end-to-end tests, execute the following command:
+
+```bash
+nx e2e customer-api-e2e
+```
+
+Make sure to cover edge cases in your test cases as well.
+Please <span style="color:orange">document</span> the error messages and exceptions inside the <span style="color:orange">`ERROR.md`</span> file
+
+### Manual Testing
+
+One method for manual testing involves directly calling the GraphQL API in the browser. For instance, if you've set the environment variable `PORT=3000`, you can test the API by navigating to `http://localhost:3000/graphql` after executing the `nx serve customer-api` command.
+
+Next, proceed to Settings ⚙️, and modify `"request.credentials": "omit"` to `"request.credentials": "include"`. Remember to save your changes and reload the page. With this setting in place, once you log in using the mutation Login command, the token credential will be included in the browser session.

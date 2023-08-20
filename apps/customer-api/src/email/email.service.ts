@@ -5,7 +5,12 @@ import * as Handlebars from 'handlebars';
 import * as fs from 'fs';
 import * as path from 'path';
 import { PrismaService } from '@charonium/prisma';
-import { ERROR_MESSAGES, EmailType, SUCCESS_MESSAGES } from '@charonium/common';
+import {
+  ERROR_MESSAGES,
+  EmailType,
+  IJwtPayload,
+  SUCCESS_MESSAGES,
+} from '@charonium/common';
 import {
   EmailStatus,
   CustomerStatus,
@@ -35,9 +40,10 @@ export class EmailService {
     path: string,
     isAdmin = false
   ): Promise<string> {
-    const payload = {
-      email: customer.email,
+    const payload: IJwtPayload = {
       sub: customer.customerId,
+      name: customer.name,
+      email: customer.email,
       role: isAdmin ? CustomerRole.ADMIN : CustomerRole.USER,
     };
     const token = await this.authService.createEmailToken(payload);
@@ -63,7 +69,8 @@ export class EmailService {
     customer: Customer,
     data: Record<string, any>,
     templatePath: string,
-    subject: string
+    subject: string,
+    isAdmin = false
   ): Promise<void> {
     if (process.env.NODE_ENV === 'test') return;
 
@@ -71,10 +78,12 @@ export class EmailService {
       fs.readFileSync(path.join(__dirname, templatePath), 'utf-8')
     );
 
+    const recipientEmail = isAdmin ? process.env.ADMIN_EMAIL : customer.email;
+
     const params: SendEmailCommandInput = {
       Source: `${process.env.EMAIL_NAME} <${process.env.EMAIL_FROM}>`,
       Destination: {
-        ToAddresses: [customer.email],
+        ToAddresses: [recipientEmail],
       },
       Message: {
         Subject: {
@@ -141,6 +150,89 @@ export class EmailService {
     );
   }
 
+  async sendUnresolvedUnderpaidEmail(
+    customer: Customer,
+    data: Record<string, any>
+  ): Promise<void> {
+    await this.sendEmail(
+      EmailType.UNRESOLVED_UNDERPAID,
+      customer,
+      data,
+      './email-templates/payment-underpaid.html',
+      'Payment Underpaid'
+    );
+  }
+
+  async sendUnresolvedUnderpaidEmailToAdmin(
+    customer: Customer,
+    data: Record<string, any>
+  ): Promise<void> {
+    await this.sendEmail(
+      EmailType.ADMIN_UNRESOLVED_UNDERPAID,
+      customer,
+      data,
+      './email-templates/admin-payment-underpaid.html',
+      'Payment Underpaid (Unresolved)',
+      true
+    );
+  }
+
+  async sendUnresolvedOverpaidEmailToAdmin(
+    customer: Customer,
+    data: Record<string, any>
+  ): Promise<void> {
+    await this.sendEmail(
+      EmailType.ADMIN_UNRESOLVED_OVERPAID,
+      customer,
+      data,
+      './email-templates/admin-payment-overpaid.html',
+      'Payment Overpaid (Unresolved)',
+      true
+    );
+  }
+
+  async sendUnresolvedDelayedEmailToAdmin(
+    customer: Customer,
+    data: Record<string, any>
+  ): Promise<void> {
+    await this.sendEmail(
+      EmailType.ADMIN_UNRESOLVED_DELAYED,
+      customer,
+      data,
+      './email-templates/admin-payment-delayed.html',
+      'Payment Delayed (Unresolved)',
+      true
+    );
+  }
+
+  async sendUnresolvedMultipleEmailToAdmin(
+    customer: Customer,
+    data: Record<string, any>
+  ): Promise<void> {
+    await this.sendEmail(
+      EmailType.ADMIN_UNRESOLVED_MULTIPLE,
+      customer,
+      data,
+      './email-templates/admin-payment-multiple.html',
+      'Payment Multiple (Unresolved)',
+      true
+    );
+  }
+
+  async sendUnresolvedOtherEmailToAdmin(
+    customer: Customer,
+    data: Record<string, any>
+  ): Promise<void> {
+    await this.sendEmail(
+      EmailType.ADMIN_UNRESOLVED_OTHER,
+      customer,
+      data,
+      './email-templates/admin-payment-other.html',
+      'Payment Other (Unresolved)',
+      true
+    );
+  }
+
   async sendEmailWithRetry(
     emailType: EmailType,
     params: SendEmailCommandInput,
@@ -172,6 +264,35 @@ export class EmailService {
             message = error
               ? ERROR_MESSAGES.EMAIL_ERROR.FAILED_TO_SEND_WELCOME
               : SUCCESS_MESSAGES.EMAIL_WELCOME_SENT;
+            break;
+          case EmailType.UNRESOLVED_UNDERPAID:
+            message = error
+              ? ERROR_MESSAGES.EMAIL_ERROR.FAILED_TO_SEND_UNRESOLVED_UNDERPAID
+              : SUCCESS_MESSAGES.EMAIL_UNRESOLVED_UNDERPAID_SENT;
+            break;
+          case EmailType.ADMIN_UNRESOLVED_UNDERPAID:
+            message = error
+              ? ERROR_MESSAGES.EMAIL_ERROR
+                  .FAILED_TO_SEND_ADMIN_UNRESOLVED_UNDERPAID
+              : SUCCESS_MESSAGES.EMAIL_ADMIN_UNRESOLVED_UNDERPAID_SENT;
+            break;
+          case EmailType.ADMIN_UNRESOLVED_OVERPAID:
+            message = error
+              ? ERROR_MESSAGES.EMAIL_ERROR
+                  .FAILED_TO_SEND_ADMIN_UNRESOLVED_OVERPAID
+              : SUCCESS_MESSAGES.EMAIL_ADMIN_UNRESOLVED_OVERPAID_SENT;
+            break;
+          case EmailType.ADMIN_UNRESOLVED_DELAYED:
+            message = error
+              ? ERROR_MESSAGES.EMAIL_ERROR
+                  .FAILED_TO_SEND_ADMIN_UNRESOLVED_DELAYED
+              : SUCCESS_MESSAGES.EMAIL_ADMIN_UNRESOLVED_DELAYED_SENT;
+            break;
+          case EmailType.ADMIN_UNRESOLVED_MULTIPLE:
+            message = error
+              ? ERROR_MESSAGES.EMAIL_ERROR
+                  .FAILED_TO_SEND_ADMIN_UNRESOLVED_MULTIPLE
+              : SUCCESS_MESSAGES.EMAIL_ADMIN_UNRESOLVED_MULTIPLE_SENT;
             break;
           default:
             message = error

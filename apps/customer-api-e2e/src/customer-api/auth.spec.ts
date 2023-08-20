@@ -84,6 +84,7 @@ describe('Auth', () => {
     query ProtectedMethod {
       protectedMethod {
         sub
+        name
         email
         role
       }
@@ -118,6 +119,7 @@ describe('Auth', () => {
     query ProtectedAdminMethod {
       protectedAdminMethod {
         sub
+        name
         email
         role
       }
@@ -199,6 +201,7 @@ describe('Auth', () => {
     } catch (e) {
       error = e;
     }
+
     expect(error).toBeDefined();
     expect(error.response.errors[0].extensions.code).toEqual('UNAUTHENTICATED');
     expect(error.response.errors[0].message).toEqual('Unauthorized');
@@ -472,6 +475,7 @@ describe('Auth', () => {
       await graphQLClientWithNewAccessToken.request(protectedMethodQuery);
     expect(protectedMethodResponse.protectedMethod).toEqual({
       sub: decodedAccessToken.sub,
+      name: decodedAccessToken.name,
       email: decodedAccessToken.email,
       role: decodedAccessToken.role,
     });
@@ -634,6 +638,7 @@ describe('Auth', () => {
 
     const adminPayload: IJwtPayload = {
       sub: admin.customerId,
+      name: admin.name,
       email: admin.email,
       role: admin.customerRole,
     };
@@ -770,6 +775,7 @@ describe('Auth', () => {
     // Mock the email sending process and obtain the registration token
     const adminPayload: IJwtPayload = {
       sub: admin.customerId,
+      name: admin.name,
       email: admin.email,
       role: admin.customerRole,
     };
@@ -785,6 +791,9 @@ describe('Auth', () => {
       newName: newName,
       newPassword: newPassword,
     };
+
+    // since we change admin name to new name
+    adminPayload.name = newName;
 
     const registerAdminResponse: { registerAdmin: boolean } =
       await graphQLClient.request(registerAdminMutation, {

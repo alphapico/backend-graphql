@@ -54,8 +54,9 @@ export class AuthService {
       throw new BadRequestException(ERROR_MESSAGES.CUSTOMER_SUSPENDED);
     }
 
-    const payload = {
+    const payload: IJwtPayload = {
       sub: customer.customerId,
+      name: customer.name,
       email: customer.email,
       role: customer.customerRole,
     };

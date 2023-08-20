@@ -1,8 +1,10 @@
 import { GraphQLClient, gql } from 'graphql-request';
-import { CustomerRole } from '@prisma/client';
+import { Customer, CustomerRole } from '@prisma/client';
 import * as jwt from 'jsonwebtoken';
-import { CONFIG } from '@charonium/common';
+import { CONFIG, IJwtPayload } from '@charonium/common';
 import { httpUrl } from '../../support/test-setup';
+import { JwtService } from '@nestjs/jwt';
+import { PrismaService } from '@charonium/prisma';
 
 export const registerMutation = gql`
   mutation Register($input: RegisterInput!) {
@@ -12,6 +14,12 @@ export const registerMutation = gql`
       name
       referralCode
     }
+  }
+`;
+
+export const registerAdminMutation = gql`
+  mutation RegisterAdmin($input: RegisterAdminInput!) {
+    registerAdmin(input: $input)
   }
 `;
 
@@ -32,7 +40,7 @@ export const loginMutation = gql`
 
 interface IRegisterResponse {
   register: {
-    customerId: string;
+    customerId: number;
     email: string;
     name: string;
     referralCode: string;
@@ -63,8 +71,9 @@ export async function createAndVerifyCustomer(
     }
   );
 
-  const customerPayload = {
+  const customerPayload: IJwtPayload = {
     sub: customer.register.customerId,
+    name: customer.register.name,
     email: customer.register.email,
     role: CustomerRole.USER,
   };
@@ -88,7 +97,7 @@ export async function registerAndLogin(graphQLClient, customerInput) {
     graphQLClient,
     customerInput
   );
-  const customerId = parseInt(customer.register.customerId, 10);
+  const customerId = customer.register.customerId;
   const referralCode = customer.register.referralCode;
 
   // Now, attempt to log in with the registered user's credentials
@@ -124,4 +133,77 @@ export async function registerAndLogin(graphQLClient, customerInput) {
   });
 
   return { customerId, referralCode, graphQLClientWithAccessToken };
+}
+
+export async function createAndVerifyAdmin(
+  graphQLClient: GraphQLClient,
+  jwtService: JwtService,
+  prismaService: PrismaService
+) {
+  const adminLoginInput = {
+    email: process.env.ADMIN_EMAIL,
+    password: 'admin_password12345',
+  };
+
+  let loginResponse;
+  try {
+    loginResponse = await graphQLClient.rawRequest(loginMutation, {
+      input: adminLoginInput,
+    });
+    console.log('Admin with password admin_password12345 already registered');
+  } catch (error) {
+    console.log('Admin with password admin_password12345 not registered yet');
+    // If login fails, register the admin
+    const admin: Customer = await prismaService.customer.findUnique({
+      where: { email: process.env.ADMIN_EMAIL },
+    });
+
+    const adminPayload: IJwtPayload = {
+      sub: admin.customerId,
+      name: admin.name,
+      email: admin.email,
+      role: CustomerRole.ADMIN,
+    };
+
+    const adminRegistrationToken = jwtService.sign(adminPayload);
+
+    const registerAdminInput = {
+      token: adminRegistrationToken,
+      newName: 'Admin User',
+      newPassword: 'admin_password12345',
+    };
+
+    await graphQLClient.request(registerAdminMutation, {
+      input: registerAdminInput,
+    });
+
+    // Try logging in again after registration
+    loginResponse = await graphQLClient.rawRequest(loginMutation, {
+      input: adminLoginInput,
+    });
+  }
+
+  // Get the 'set-cookie' response header containing the access token
+  const cookiesString = loginResponse.headers.get('set-cookie');
+  const cookies = cookiesString.split(', ');
+  const accessTokenHeader = cookies.find((cookie: string) =>
+    cookie.startsWith('access_token=')
+  );
+
+  if (!accessTokenHeader) {
+    throw new Error('Access token not found in the response headers');
+  }
+
+  const accessToken = accessTokenHeader
+    .replace('access_token=', '')
+    .split(';')[0];
+
+  const graphQLClientWithAdminAccessToken = new GraphQLClient(httpUrl, {
+    credentials: 'include',
+    headers: {
+      cookie: `access_token=${accessToken}`,
+    },
+  });
+
+  return { graphQLClientWithAdminAccessToken };
 }

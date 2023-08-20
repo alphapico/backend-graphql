@@ -176,7 +176,7 @@ describe('Referral', () => {
       refereeInput
     );
 
-    const refereeId = parseInt(referee.register.customerId, 10);
+    const refereeId = referee.register.customerId;
 
     const response: IGetReferralMapResponse =
       await graphQLClientWithAccessToken.request(getReferralMapQuery, {
@@ -465,7 +465,7 @@ describe('Referral', () => {
     );
 
     // fetching User H and its referrals
-    const userHId = parseInt(userH.register.customerId, 10);
+    const userHId = userH.register.customerId;
     const response2: IGetReferralMapResponse = await graphQLClient.request(
       getReferralMapQuery,
       {
@@ -496,7 +496,7 @@ describe('Referral', () => {
     );
 
     // fetching User J and its referrals
-    const userJId = parseInt(userJ.register.customerId, 10);
+    const userJId = userJ.register.customerId;
     const response3: IGetReferralMapResponse = await graphQLClient.request(
       getReferralMapQuery,
       {

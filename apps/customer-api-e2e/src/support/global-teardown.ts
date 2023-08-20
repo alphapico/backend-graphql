@@ -7,6 +7,8 @@ module.exports = async function () {
   console.log('\nTearing down...\n');
 
   try {
+    // Stop ngrok
+    execSync('npm run e2e:ngrok:stop');
     // Stop the application
     execAndWait('npm run e2e:stop', { stdio: 'inherit' });
     // Stop the test database using Docker
