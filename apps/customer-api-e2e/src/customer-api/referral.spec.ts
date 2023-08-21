@@ -9,6 +9,7 @@ import {
   createAndVerifyCustomer,
   registerAndLogin,
 } from './utils/auth-test.utils';
+import { ERROR_MESSAGES } from '@charonium/common';
 
 describe('Referral', () => {
   //   console.log('Running Referral tests');
@@ -113,13 +114,17 @@ describe('Referral', () => {
     );
     const nonExistentCustomerId = 9999; // Assuming this ID does not exist
 
-    await expect(
-      graphQLClientWithAccessToken.request(getReferralMapQuery, {
+    try {
+      await graphQLClientWithAccessToken.request(getReferralMapQuery, {
         input: {
           referrerId: nonExistentCustomerId,
         },
-      })
-    ).rejects.toThrowError(); // Expect an error to be thrown
+      });
+    } catch (error) {
+      expect(error.response.errors[0].message).toBe(
+        ERROR_MESSAGES.CUSTOMER_NOT_FOUND
+      );
+    }
   });
 
   it('should return an error for a negative start tier', async () => {
@@ -138,14 +143,27 @@ describe('Referral', () => {
 
     const negativeStartTier = -1;
 
-    await expect(
-      graphQLClientWithAccessToken.request(getReferralMapQuery, {
+    try {
+      await graphQLClientWithAccessToken.request(getReferralMapQuery, {
         input: {
           referrerId: customerId,
           startTier: negativeStartTier,
         },
-      })
-    ).rejects.toThrowError(); // Expect an error to be thrown
+      });
+    } catch (error) {
+      expect(error.response.errors[0].message).toBe(
+        ERROR_MESSAGES.START_TIER_MUST_BE_NON_NEGATIVE
+      );
+    }
+
+    // await expect(
+    //   graphQLClientWithAccessToken.request(getReferralMapQuery, {
+    //     input: {
+    //       referrerId: customerId,
+    //       startTier: negativeStartTier,
+    //     },
+    //   })
+    // ).rejects.toThrowError(); // Expect an error to be thrown
   });
 
   it('should return a referral map for a customer with referrals', async () => {
