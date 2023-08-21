@@ -6,7 +6,7 @@ import {
 export type ReferralResults = Array<{
   referrer_id: number;
   referee_id: number;
-  tier: number;
+  level: number;
   customerId: number;
   name: string;
   email: string;

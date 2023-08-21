@@ -268,12 +268,12 @@ type ReferralEntry {
 
 input ReferralInput {
   referrerId: Float!
-  startTier: Float
+  startLevel: Float
 }
 
 type ReferralMap {
+  level: String!
   referralEntries: [ReferralEntry!]!
-  tier: String!
 }
 
 input RegisterAdminInput {

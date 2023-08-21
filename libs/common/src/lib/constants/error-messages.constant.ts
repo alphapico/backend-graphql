@@ -13,7 +13,7 @@ export const ERROR_MESSAGES = {
   TOO_MANY_ATTEMPTS: 'Too many attempts',
   INVALID_FILE_EXTENSION: 'Invalid file extension',
   FAILED_GENERATE_PRESIGNED_URL: 'Failed to generate pre-signed URL',
-  START_TIER_MUST_BE_NON_NEGATIVE: 'Start tier must be non-negative',
+  START_LEVEL_MUST_BE_NON_NEGATIVE: 'Start level must be non-negative',
   RAW_QUERY_FAILED: 'Raw query failed',
   PRISMA_CLIENT_REQUEST_ERROR: 'Client request error',
   UNEXPECTED_ERROR: 'An unexpected error occurred',

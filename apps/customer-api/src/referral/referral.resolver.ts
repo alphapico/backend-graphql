@@ -16,7 +16,7 @@ export class ReferralResolver {
   ): Promise<ReferralMap[]> {
     return this.referralService.getReferralMap(
       input.referrerId,
-      input.startTier
+      input.startLevel
     );
   }
 }

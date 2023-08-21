@@ -12,5 +12,5 @@ export class ReferralInput {
   @Field({ nullable: true })
   @IsNumber()
   @IsOptional()
-  startTier?: number;
+  startLevel?: number;
 }

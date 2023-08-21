@@ -13,7 +13,7 @@ export class ReferralEntry {
 @ObjectType()
 export class ReferralMap {
   @Field(() => String)
-  tier: string;
+  level: string;
 
   @Field(() => [ReferralEntry])
   referralEntries: ReferralEntry[];

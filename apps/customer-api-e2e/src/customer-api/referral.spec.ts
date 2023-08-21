@@ -30,7 +30,7 @@ describe('Referral', () => {
 
   interface IGetReferralMapResponse {
     getReferralMap: {
-      tier: string;
+      level: string;
       referralEntries: {
         referrer: {
           customerId: number;
@@ -53,7 +53,7 @@ describe('Referral', () => {
   const getReferralMapQuery = gql`
     query GetReferralMap($input: ReferralInput!) {
       getReferralMap(input: $input) {
-        tier
+        level
         referralEntries {
           referrer {
             customerId
@@ -96,7 +96,7 @@ describe('Referral', () => {
       });
 
     expect(response).toHaveProperty('getReferralMap');
-    expect(response.getReferralMap).toHaveLength(0); // No tiers have referral entries
+    expect(response.getReferralMap).toHaveLength(0); // No levels have referral entries
   });
 
   it('should return an error for a non-existent customer', async () => {
@@ -127,7 +127,7 @@ describe('Referral', () => {
     }
   });
 
-  it('should return an error for a negative start tier', async () => {
+  it('should return an error for a negative start level', async () => {
     // Create a customer
     const customerInput = {
       name: 'John Doe',
@@ -141,18 +141,18 @@ describe('Referral', () => {
       customerInput
     );
 
-    const negativeStartTier = -1;
+    const negativeStartLevel = -1;
 
     try {
       await graphQLClientWithAccessToken.request(getReferralMapQuery, {
         input: {
           referrerId: customerId,
-          startTier: negativeStartTier,
+          startLevel: negativeStartLevel,
         },
       });
     } catch (error) {
       expect(error.response.errors[0].message).toBe(
-        ERROR_MESSAGES.START_TIER_MUST_BE_NON_NEGATIVE
+        ERROR_MESSAGES.START_LEVEL_MUST_BE_NON_NEGATIVE
       );
     }
 
@@ -160,7 +160,7 @@ describe('Referral', () => {
     //   graphQLClientWithAccessToken.request(getReferralMapQuery, {
     //     input: {
     //       referrerId: customerId,
-    //       startTier: negativeStartTier,
+    //       startLevel: negativeStartLevel,
     //     },
     //   })
     // ).rejects.toThrowError(); // Expect an error to be thrown
@@ -181,7 +181,7 @@ describe('Referral', () => {
       graphQLClientWithAccessToken,
     } = await registerAndLogin(graphQLClient, referrerInput);
 
-    // Create referral (tier 1)
+    // Create referral (level 1)
     const refereeInput = {
       name: 'Jane Smith Sythy',
       email: 'jane.smith.syth@gmail.com',
@@ -204,7 +204,7 @@ describe('Referral', () => {
       });
 
     expect(response).toHaveProperty('getReferralMap');
-    expect(response.getReferralMap).toHaveLength(1); // Only one tier has referral entries
+    expect(response.getReferralMap).toHaveLength(1); // Only one level has referral entries
     expect(response.getReferralMap[0].referralEntries).toHaveLength(1);
     expect(
       response.getReferralMap[0].referralEntries[0].referrer.customerId
@@ -216,10 +216,10 @@ describe('Referral', () => {
     ).toContain(refereeId);
   });
 
-  it('should progressively retrieve a multi-tiered referral map for a customer', async () => {
+  it('should progressively retrieve a multi-leveled referral map for a customer', async () => {
     // depth by default is 3
     const depth = 3;
-    const startTier = 0;
+    const startLevel = 0;
 
     // Create User A
     const userAInput = {
@@ -409,7 +409,7 @@ describe('Referral', () => {
       await graphQLClientWithAccessToken.request(getReferralMapQuery, {
         input: {
           referrerId: userAId,
-          startTier,
+          startLevel,
         },
       });
 
@@ -417,34 +417,34 @@ describe('Referral', () => {
     // Assertions
     expect(response).toHaveProperty('getReferralMap');
 
-    // Check that there are 4 tiers
+    // Check that there are 4 levels
     expect(response.getReferralMap).toHaveLength(4);
 
-    // Check tier 0
-    const tier0 = response.getReferralMap.find(
-      (tier) => tier.tier === `tier${startTier}`
+    // Check level 0
+    const level0 = response.getReferralMap.find(
+      (level) => level.level === `level${startLevel}`
     );
-    expect(tier0.referralEntries[0].referees).toHaveLength(3); // User A has 3 referrals
-    expect(tier0.referralEntries[0].referrer.customerId).toEqual(userAId);
-    expect(tier0.referralEntries[0].referees.map((r) => r.name)).toEqual(
+    expect(level0.referralEntries[0].referees).toHaveLength(3); // User A has 3 referrals
+    expect(level0.referralEntries[0].referrer.customerId).toEqual(userAId);
+    expect(level0.referralEntries[0].referees.map((r) => r.name)).toEqual(
       expect.arrayContaining(['User B', 'User C', 'User D'])
     );
 
-    // Check tier 1
-    const tier1 = response.getReferralMap.find(
-      (tier) => tier.tier === `tier${startTier + 1}`
+    // Check level 1
+    const level1 = response.getReferralMap.find(
+      (level) => level.level === `level${startLevel + 1}`
     );
-    expect(tier1.referralEntries).toHaveLength(2); // User B, User D have referrals, User C does not have referral
+    expect(level1.referralEntries).toHaveLength(2); // User B, User D have referrals, User C does not have referral
 
-    // Check User B's referrals in tier 1
-    const userBReferrals = tier1.referralEntries.find(
+    // Check User B's referrals in level 1
+    const userBReferrals = level1.referralEntries.find(
       (entry) => entry.referrer.name === 'User B'
     );
     expect(userBReferrals.referees).toHaveLength(1); // User B has 1 referral
     expect(userBReferrals.referees[0].name).toEqual('User E');
 
-    // Check User D's referrals in tier 1
-    const userDReferrals = tier1.referralEntries.find(
+    // Check User D's referrals in level 1
+    const userDReferrals = level1.referralEntries.find(
       (entry) => entry.referrer.name === 'User D'
     );
     expect(userDReferrals.referees).toHaveLength(2); // User D has 2 referrals
@@ -452,14 +452,14 @@ describe('Referral', () => {
       expect.arrayContaining(['User M', 'User N'])
     );
 
-    // Check tier 2
-    const tier2 = response.getReferralMap.find(
-      (tier) => tier.tier === `tier${startTier + 2}`
+    // Check level 2
+    const level2 = response.getReferralMap.find(
+      (level) => level.level === `level${startLevel + 2}`
     );
-    expect(tier2.referralEntries).toHaveLength(1); // Only User E has referrals, User M and N don't have referral
+    expect(level2.referralEntries).toHaveLength(1); // Only User E has referrals, User M and N don't have referral
 
-    // Check User E's referrals in tier 2
-    const userEReferrals = tier2.referralEntries.find(
+    // Check User E's referrals in level 2
+    const userEReferrals = level2.referralEntries.find(
       (entry) => entry.referrer.name === 'User E'
     );
     expect(userEReferrals.referees).toHaveLength(2); // User E has 2 referrals
@@ -467,14 +467,14 @@ describe('Referral', () => {
       expect.arrayContaining(['User F', 'User G'])
     );
 
-    // Check tier 3
-    const tier3 = response.getReferralMap.find(
-      (tier) => tier.tier === `tier${startTier + 3}`
+    // Check level 3
+    const level3 = response.getReferralMap.find(
+      (level) => level.level === `level${startLevel + 3}`
     );
-    expect(tier3.referralEntries).toHaveLength(1); // Only User G has referrals, User F has no referral
+    expect(level3.referralEntries).toHaveLength(1); // Only User G has referrals, User F has no referral
 
-    // Check User G's referrals in tier 3
-    const userGReferrals = tier3.referralEntries.find(
+    // Check User G's referrals in level 3
+    const userGReferrals = level3.referralEntries.find(
       (entry) => entry.referrer.name === 'User G'
     );
     expect(userGReferrals.referees).toHaveLength(3); // User G has 3 referrals
@@ -489,23 +489,23 @@ describe('Referral', () => {
       {
         input: {
           referrerId: userHId,
-          startTier: startTier + depth + 1,
+          startLevel: startLevel + depth + 1,
         },
       }
     );
 
     // Assertions
     expect(response2).toHaveProperty('getReferralMap');
-    // Check that there are 1 tier
+    // Check that there are 1 level
     expect(response2.getReferralMap).toHaveLength(1);
 
-    // Check tier 4
-    const tier4a = response2.getReferralMap.find(
-      (tier) => tier.tier === `tier${startTier + 4}`
+    // Check level 4
+    const level4a = response2.getReferralMap.find(
+      (level) => level.level === `level${startLevel + 4}`
     );
 
-    // Check User H's referrals in tier 3
-    const userHReferrals = tier4a.referralEntries.find(
+    // Check User H's referrals in level 3
+    const userHReferrals = level4a.referralEntries.find(
       (entry) => entry.referrer.name === 'User H'
     );
     expect(userHReferrals.referees).toHaveLength(2); // User H has 2 referrals
@@ -520,23 +520,23 @@ describe('Referral', () => {
       {
         input: {
           referrerId: userJId,
-          startTier: startTier + depth + 1,
+          startLevel: startLevel + depth + 1,
         },
       }
     );
 
     // Assertions
     expect(response3).toHaveProperty('getReferralMap');
-    // Check that there are 1 tier
+    // Check that there are 1 level
     expect(response3.getReferralMap).toHaveLength(1);
 
-    // Check tier 4
-    const tier4b = response3.getReferralMap.find(
-      (tier) => tier.tier === `tier${startTier + 4}`
+    // Check level 4
+    const level4b = response3.getReferralMap.find(
+      (level) => level.level === `level${startLevel + 4}`
     );
 
-    // Check User J's referrals in tier 3
-    const userJReferrals = tier4b.referralEntries.find(
+    // Check User J's referrals in level 3
+    const userJReferrals = level4b.referralEntries.find(
       (entry) => entry.referrer.name === 'User J'
     );
     expect(userJReferrals.referees).toHaveLength(1); // User J has 1 referral

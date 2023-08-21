@@ -80,7 +80,7 @@ export const ERROR_MESSAGES = {
   TOO_MANY_ATTEMPTS: 'Too many attempts',
   INVALID_FILE_EXTENSION: 'Invalid file extension',
   FAILED_GENERATE_PRESIGNED_URL: 'Failed to generate pre-signed URL',
-  START_TIER_MUST_BE_NON_NEGATIVE: 'Start tier must be non-negative',
+  START_LEVEL_MUST_BE_NON_NEGATIVE: 'Start level must be non-negative',
   RAW_QUERY_FAILED: 'Raw query failed',
   PRISMA_CLIENT_REQUEST_ERROR: 'Client request error',
   UNEXPECTED_ERROR: 'An unexpected error occurred',
@@ -498,7 +498,7 @@ mutation SaveUploadedImage($saveImageInput: SaveImageInput!) {
 ```tsx
 query GetReferralMap($input: ReferralInput!) {
       getReferralMap(input: $input) {
-        tier
+        level
         referralEntries {
           referrer {
             customerId
@@ -520,10 +520,10 @@ query GetReferralMap($input: ReferralInput!) {
 
 {
   "input" : {
-    "referrerId" : 12, // customerId, who is the referrer (top tier)
-    "startTier" : 0 // the name scheming for tier. Put 0 wil make the name "tier0"
-                    // You can start at any number. The number of tier will increase
-                    // as we go down the tier ("tier1", "tier2" and so on)
+    "referrerId" : 12, // customerId, who is the referrer (top level)
+    "startLevel" : 0 // the name scheming for level. Put 0 wil make the name "level0"
+                    // You can start at any number. The number of level will increase
+                    // as we go down the level ("level1", "level2" and so on)
   }
 }
 
@@ -531,7 +531,7 @@ query GetReferralMap($input: ReferralInput!) {
 // response
 [
   {
-    "tier": "tier0",
+    "level": "level0",
     "referralEntries": [
       {
         "referrer": {
@@ -565,9 +565,9 @@ query GetReferralMap($input: ReferralInput!) {
 | --------------------- | --------------------- | ----------- | ----------------------------------------------------------------- |
 | UnauthorizedException | UNAUTHENTICATED       | 401         | Unauthorized                                                      |
 | BadRequestException   | BAD_REQUEST           | 400         | ["referrerId must be a number", "referrerId should not be empty"] |
-| BadRequestException   | BAD_REQUEST           | 400         | ["startTier must be a number"]                                    |
+| BadRequestException   | BAD_REQUEST           | 400         | ["startLevel must be a number"]                                   |
 | NotFoundException     | INTERNAL_SERVER_ERROR | 404         | Customer not found                                                |
-| BadRequestException   | BAD_REQUEST           | 400         | Start tier must be non-negative                                   |
+| BadRequestException   | BAD_REQUEST           | 400         | Start level must be non-negative                                  |
 | BadRequestException   | BAD_REQUEST           | 400         | Raw query failed                                                  |
 | BadRequestException   | BAD_REQUEST           | 400         | Client request error                                              |
 | HttpException         | INTERNAL_SERVER_ERROR | 500         | An unexpected error occurred                                      |
