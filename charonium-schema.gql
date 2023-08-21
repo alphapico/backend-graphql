@@ -248,8 +248,10 @@ type Query {
   getCommissionsForCustomer(cursor: Int, isTransferred: Boolean, limit: Int): CommissionBaseResult!
   getCommissionsWithDetails(cursor: Int, customerId: Int, isTransferred: Boolean, limit: Int): CommissionResult!
   getCommissionsWithDetailsForCustomer(cursor: Int, isTransferred: Boolean, limit: Int): CommissionResult!
-  getPurchaseActivities(cursor: Int, limit: Int! = 10): PurchaseActivityBaseResult!
-  getPurchaseActivitiesWithDetails(cursor: Int, limit: Int! = 10): PurchaseActivityResult!
+  getPurchaseActivities(cursor: Int, customerId: Int, limit: Int! = 10, paymentStatus: PaymentStatus, purchaseConfirmed: Boolean): PurchaseActivityBaseResult!
+  getPurchaseActivitiesForCustomer(cursor: Int, limit: Int! = 10, paymentStatus: PaymentStatus, purchaseConfirmed: Boolean): PurchaseActivityBaseResult!
+  getPurchaseActivitiesWithDetails(cursor: Int, customerId: Int, limit: Int! = 10, paymentStatus: PaymentStatus, purchaseConfirmed: Boolean): PurchaseActivityResult!
+  getPurchaseActivitiesWithDetailsForCustomer(cursor: Int, limit: Int! = 10, paymentStatus: PaymentStatus, purchaseConfirmed: Boolean): PurchaseActivityResult!
   getReferralMap(input: ReferralInput!): [ReferralMap!]!
   getTokenPackage(packageId: Int!): TokenPackage
   getTokenPrice: TokenPrice

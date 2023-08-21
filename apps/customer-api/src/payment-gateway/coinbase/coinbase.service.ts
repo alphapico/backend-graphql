@@ -162,10 +162,12 @@ export class CoinbaseService {
         chargeId: chargeId,
         packageId: tokenPackage?.packageId,
         tokenPriceId: tokenPrice?.tokenPriceId,
+        price: tokenPackage?.price ?? tokenPrice?.price,
         tokenAmount: tokenAmount,
         amount: amount,
         currency: currency,
         purchaseConfirmed: false,
+        paymentStatus: PaymentStatus.NEW,
       },
     });
   }
@@ -300,6 +302,12 @@ export class CoinbaseService {
         true
       )) as ChargePayments;
 
+      // Update PurchaseAcitivty Payment Status
+      await this.updatePurchaseActivityPaymentStatus(
+        existingCharge.chargeId,
+        paymentStatus
+      );
+
       // Create a set of transaction IDs from existing payments
       const existingTransactionIds = new Set(
         existingCharge.payments.map((payment) => payment.transaction)
@@ -339,6 +347,20 @@ export class CoinbaseService {
         ERROR_MESSAGES.FAILED_HANDLING_CHARGE_EVENT
       );
     }
+  }
+
+  async updatePurchaseActivityPaymentStatus(
+    chargeId: number,
+    paymentStatus: PaymentStatus
+  ): Promise<void> {
+    await this.prismaService.purchaseActivity.update({
+      where: {
+        chargeId: chargeId,
+      },
+      data: {
+        paymentStatus: paymentStatus,
+      },
+    });
   }
 
   async createPaymentRecord(

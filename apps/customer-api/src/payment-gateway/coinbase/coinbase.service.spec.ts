@@ -489,9 +489,11 @@ describe('CoinbaseService', () => {
         packageId: 2,
         tokenPriceId: 3,
         tokenAmount: 100,
+        price: 20000, // USD 200 , we take form TokenPackage, not TokenPrice
         amount: 20000, // USD 200
         currency: 'USD',
         purchaseConfirmed: false,
+        paymentStatus: PaymentStatus.NEW,
       };
       mockPrismaService.purchaseActivity.create.mockResolvedValue(
         mockPurchaseActivity
@@ -538,9 +540,11 @@ describe('CoinbaseService', () => {
           packageId: tokenPackage.packageId,
           tokenPriceId: tokenPrice.tokenPriceId,
           tokenAmount: tokenAmount,
+          price: tokenPackage.price,
           amount: amount,
           currency: currency,
           purchaseConfirmed: false,
+          paymentStatus: mockPurchaseActivity.paymentStatus,
         },
       });
     });

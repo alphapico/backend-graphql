@@ -210,10 +210,12 @@ model PurchaseActivity {
   package               TokenPackage? @relation(fields: [packageId], references: [packageId], onDelete: SetNull)
   tokenPriceId          Int?          @unique
   tokenPrice            TokenPrice?   @relation(fields: [tokenPriceId], references: [tokenPriceId], onDelete: SetNull)
-	tokenAmount           Float?
+	price                 Int           // Price per unit or per package     
+  tokenAmount           Float
   amount                Int
   currency              String    // Currency code (e.g., "USD", "BTC")
   purchaseConfirmed     Boolean       @default(false) // Field to track purchase confirmation
+  paymentStatus         PaymentStatus
   createdAt             DateTime      @default(now())
   updatedAt             DateTime?     @updatedAt
 }

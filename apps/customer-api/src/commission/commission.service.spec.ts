@@ -7,6 +7,7 @@ import {
   CustomerRole,
   CustomerStatus,
   EmailStatus,
+  PaymentStatus,
   PurchaseActivity,
 } from '@prisma/client';
 
@@ -127,10 +128,12 @@ describe('CommissionService', () => {
         chargeId: 1,
         packageId: 1,
         tokenPriceId: 1,
+        price: 40, // EUR 0.40
         amount: 4000, // EUR 40.00
         currency: 'EUR',
         tokenAmount: 100,
         purchaseConfirmed: true,
+        paymentStatus: PaymentStatus.COMPLETED,
         createdAt: createdAt,
         updatedAt: null,
       };

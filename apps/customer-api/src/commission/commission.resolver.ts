@@ -9,7 +9,7 @@ import {
 } from './dto/commission.base.dto';
 import { UseGuards } from '@nestjs/common';
 import { AdminGuard } from '../auth/admin.guard';
-import { CurrentUser, IJwtPayload } from '@charonium/common';
+import { CurrentUser, IJwtPayload, PaymentStatus } from '@charonium/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Resolver()
@@ -22,12 +22,20 @@ export class CommissionResolver {
   @UseGuards(AdminGuard)
   async getPurchaseActivitiesWithDetails(
     @Args('cursor', { type: () => Int, nullable: true }) cursor?: number,
-    @Args('limit', { type: () => Int, defaultValue: 10 }) limit?: number
+    @Args('limit', { type: () => Int, defaultValue: 10 }) limit?: number,
+    @Args('purchaseConfirmed', { type: () => Boolean, nullable: true })
+    purchaseConfirmed?: boolean,
+    @Args('paymentStatus', { type: () => PaymentStatus, nullable: true })
+    paymentStatus?: PaymentStatus,
+    @Args('customerId', { type: () => Int, nullable: true }) customerId?: number
   ): Promise<PurchaseActivityResult> {
     const result =
       await this.commissionService.getPurchaseActivitiesWithDetails(
         cursor,
-        limit
+        limit,
+        purchaseConfirmed,
+        paymentStatus,
+        customerId
       );
     return result;
   }
@@ -38,11 +46,66 @@ export class CommissionResolver {
   @UseGuards(AdminGuard)
   async getPurchaseActivities(
     @Args('cursor', { type: () => Int, nullable: true }) cursor?: number,
-    @Args('limit', { type: () => Int, defaultValue: 10 }) limit?: number
+    @Args('limit', { type: () => Int, defaultValue: 10 }) limit?: number,
+    @Args('purchaseConfirmed', { type: () => Boolean, nullable: true })
+    purchaseConfirmed?: boolean,
+    @Args('paymentStatus', { type: () => PaymentStatus, nullable: true })
+    paymentStatus?: PaymentStatus,
+    @Args('customerId', { type: () => Int, nullable: true }) customerId?: number
   ): Promise<PurchaseActivityBaseResult> {
     const result = await this.commissionService.getPurchaseActivities(
       cursor,
-      limit
+      limit,
+      purchaseConfirmed,
+      paymentStatus,
+      customerId
+    );
+    return result;
+  }
+
+  @Query(() => PurchaseActivityResult, {
+    name: 'getPurchaseActivitiesWithDetailsForCustomer',
+  })
+  @UseGuards(JwtAuthGuard)
+  async getPurchaseActivitiesWithDetailsForCustomer(
+    @CurrentUser() user: IJwtPayload,
+    @Args('cursor', { type: () => Int, nullable: true }) cursor?: number,
+    @Args('limit', { type: () => Int, defaultValue: 10 }) limit?: number,
+    @Args('purchaseConfirmed', { type: () => Boolean, nullable: true })
+    purchaseConfirmed?: boolean,
+    @Args('paymentStatus', { type: () => PaymentStatus, nullable: true })
+    paymentStatus?: PaymentStatus
+  ): Promise<PurchaseActivityResult> {
+    const result =
+      await this.commissionService.getPurchaseActivitiesWithDetails(
+        cursor,
+        limit,
+        purchaseConfirmed,
+        paymentStatus,
+        user.sub
+      );
+    return result;
+  }
+
+  @Query(() => PurchaseActivityBaseResult, {
+    name: 'getPurchaseActivitiesForCustomer',
+  })
+  @UseGuards(JwtAuthGuard)
+  async getPurchaseActivitiesForCustomer(
+    @CurrentUser() user: IJwtPayload,
+    @Args('cursor', { type: () => Int, nullable: true }) cursor?: number,
+    @Args('limit', { type: () => Int, defaultValue: 10 }) limit?: number,
+    @Args('purchaseConfirmed', { type: () => Boolean, nullable: true })
+    purchaseConfirmed?: boolean,
+    @Args('paymentStatus', { type: () => PaymentStatus, nullable: true })
+    paymentStatus?: PaymentStatus
+  ): Promise<PurchaseActivityBaseResult> {
+    const result = await this.commissionService.getPurchaseActivities(
+      cursor,
+      limit,
+      purchaseConfirmed,
+      paymentStatus,
+      user.sub
     );
     return result;
   }

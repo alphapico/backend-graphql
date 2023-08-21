@@ -14,6 +14,7 @@ import {
   PurchaseActivity,
   TokenPackage,
   TokenPrice,
+  PaymentStatus,
 } from '@prisma/client';
 import { CommissionBaseResult } from './dto/commission.base.dto';
 import { CommissionResult } from './dto/commission.dto';
@@ -176,12 +177,36 @@ export class CommissionService {
     return true;
   }
 
-  async getPurchaseActivities(cursor?: number, limit = 10) {
+  async getPurchaseActivities(
+    cursor?: number,
+    limit = 10,
+    purchaseConfirmed?: boolean,
+    paymentStatus?: PaymentStatus,
+    customerId?: number
+  ) {
+    // Build the where filter object based on provided parameters
+    const whereFilter: any = {};
+
+    if (purchaseConfirmed !== undefined) {
+      whereFilter.purchaseConfirmed = purchaseConfirmed;
+    }
+
+    if (paymentStatus) {
+      whereFilter.paymentStatus = paymentStatus;
+    }
+
+    if (customerId) {
+      whereFilter.charge = {
+        customerId: customerId,
+      };
+    }
+
     const records = await this.prisma.purchaseActivity.findMany({
       take: limit + 1, // Fetch one extra record to determine if there's a next page
       cursor: cursor ? { purchaseActivityId: cursor } : undefined,
+      where: whereFilter, // Apply the filtering conditions
       orderBy: {
-        purchaseActivityId: 'asc', // 'id' is an auto-incrementing field
+        updatedAt: 'desc', // Order by updatedAt in descending order
       },
     });
 
@@ -199,12 +224,36 @@ export class CommissionService {
     };
   }
 
-  async getPurchaseActivitiesWithDetails(cursor?: number, limit = 10) {
+  async getPurchaseActivitiesWithDetails(
+    cursor?: number,
+    limit = 10,
+    purchaseConfirmed?: boolean,
+    paymentStatus?: PaymentStatus,
+    customerId?: number
+  ) {
+    // Build the where filter object based on provided parameters
+    const whereFilter: any = {};
+
+    if (purchaseConfirmed !== undefined) {
+      whereFilter.purchaseConfirmed = purchaseConfirmed;
+    }
+
+    if (paymentStatus) {
+      whereFilter.paymentStatus = paymentStatus;
+    }
+
+    if (customerId) {
+      whereFilter.charge = {
+        customerId: customerId,
+      };
+    }
+
     const records = await this.prisma.purchaseActivity.findMany({
       take: limit + 1, // Fetch one extra record to determine if there's a next page
       cursor: cursor ? { purchaseActivityId: cursor } : undefined,
+      where: whereFilter, // Apply the filtering conditions
       orderBy: {
-        purchaseActivityId: 'asc', // 'id' is an auto-incrementing field
+        updatedAt: 'desc',
       },
       include: {
         charge: {
@@ -258,7 +307,6 @@ export class CommissionService {
       },
       data: {
         isTransferred: true,
-        updatedAt: new Date(),
       },
     });
     return commission;
@@ -298,7 +346,7 @@ export class CommissionService {
       cursor: cursor ? { commissionId: cursor } : undefined,
       orderBy: [
         { isTransferred: 'asc' }, // This will ensure that 'isTransferred=false' results appear at the top
-        { commissionId: 'asc' },
+        { commissionId: 'desc' }, // largest values represent the earliest records.
       ],
       where: whereClause,
     });
@@ -344,7 +392,7 @@ export class CommissionService {
       cursor: cursor ? { commissionId: cursor } : undefined,
       orderBy: [
         { isTransferred: 'asc' }, // This will ensure that 'isTransferred=false' results appear at the top
-        { commissionId: 'asc' },
+        { commissionId: 'desc' }, // largest values represent the earliest records.
       ],
       where: whereClause,
       include: {
@@ -392,7 +440,7 @@ export class CommissionService {
       cursor: cursor ? { commissionId: cursor } : undefined,
       orderBy: [
         { isTransferred: 'asc' }, // This will ensure that 'isTransferred=false' results appear at the top
-        { commissionId: 'asc' },
+        { commissionId: 'desc' }, // largest values represent the earliest records.
       ],
       where: whereClause,
     });
@@ -434,7 +482,7 @@ export class CommissionService {
       cursor: cursor ? { commissionId: cursor } : undefined,
       orderBy: [
         { isTransferred: 'asc' }, // This will ensure that 'isTransferred=false' results appear at the top
-        { commissionId: 'asc' },
+        { commissionId: 'desc' }, // largest values represent the earliest records.
       ],
       where: whereClause,
       include: {
