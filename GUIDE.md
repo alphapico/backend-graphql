@@ -53,6 +53,10 @@
 
    ADMIN_EMAIL=<admin-email@example.com>
    ADMIN_INITIAL_PASSWORD=<some-password>
+
+   BUCKET_NAME=dev-charonium
+   COINBASE_API_KEY=<Coinbase API Key>
+   COINBASE_WEBHOOK_SECRET=<Coinbase Webhook secret>
    ```
 
 2. Create a `.serve.env` file with the same contents as above. Just ensure the ports are different. This is for the `development` environment.
@@ -78,6 +82,8 @@ export const CONFIG = {
   ACCESS_TOKEN_EXPIRATION: '15m',
   REFRESH_TOKEN_EXPIRATION: '1d',
   EMAIL_TOKEN_EXPIRATION: '1h',
+
+  COINBASE_SUPPORTED_FIAT: ['USD', 'GBP', 'EUR'],
 };
 ```
 
@@ -115,7 +121,7 @@ export const CONFIG = {
 
 1. Simply run this command to do unit test. The command will run any files ended with `*.spec.ts`
    ```bash
-   nx test customer-api
+   npm run test:unit
    ```
 
 ### E2E environment
@@ -127,9 +133,11 @@ export const CONFIG = {
    Press `Ctrl + C` to quit
 2. To start, test, and stop the end-to-end test automatically, simply run the following command:
    ```bash
-   nx e2e customer-api-e2e
+   npm run test:e2e
    ```
    The test results will be displayed in the terminal, and the test report will be saved at `<root>/coverage/customer-api-e2e/e2e-report.html`
+
+<br />
 
 ## 2. Development guide
 
@@ -184,6 +192,8 @@ To create GraphQL endpoint, you would need to create `module`, `service` and `re
 
    ```
 
+<br />
+
 ### Managing common library
 
 All reusable code for modules is located inside the `<root>/libs/common/src/lib` folder. This library folder comprises `constants`, `decorators`, `enums`, `exceptions`, `interfaces`, `types`, and `utils` folders. These are useful for both development and end-to-end testing. You can create any relevant files inside these folders accordingly. They will be reflected with the path `@charonium/common` if you want to import the code into the module.
@@ -220,6 +230,13 @@ export const SUCCESS_MESSAGES = {
   EMAIL_PASSWORD_RESET_SENT: 'Email password reset sent',
   EMAIL_ADMIN_REGISTRATION_SENT: 'Email admin registration sent',
   CUSTOMER_IS_VERIFIED: 'Customer is successfully verified',
+  EMAIL_WELCOME_SENT: 'Email welcome sent',
+  EMAIL_UNRESOLVED_UNDERPAID_SENT: 'Email Unresolved (Underpaid) sent',
+  EMAIL_ADMIN_UNRESOLVED_UNDERPAID_SENT: 'Email Unresolved (Underpaid) sent to Admin',
+  EMAIL_ADMIN_UNRESOLVED_OVERPAID_SENT: 'Email Unresolved (Overpaid) sent to Admin',
+  EMAIL_ADMIN_UNRESOLVED_DELAYED_SENT: 'Email Unresolved (Delayed) sent to Admin',
+  EMAIL_ADMIN_UNRESOLVED_MULTIPLE_SENT: 'Email Unresolved (Multiple) sent to Admin',
+  EMAIL_ADMIN_UNRESOLVED_OTHER_SEND: 'Email Unresolved (Other) sent to Admin',
 };
 ```
 
@@ -239,12 +256,38 @@ export const ERROR_MESSAGES = {
   CUSTOMER_NOT_VERIFIED: 'Customer not verified',
   CUSTOMER_SUSPENDED: 'Customer is suspended',
   TOO_MANY_ATTEMPTS: 'Too many attempts',
+  INVALID_FILE_EXTENSION: 'Invalid file extension',
+  FAILED_GENERATE_PRESIGNED_URL: 'Failed to generate pre-signed URL',
+  START_LEVEL_MUST_BE_NON_NEGATIVE: 'Start level must be non-negative',
+  RAW_QUERY_FAILED: 'Raw query failed',
+  PRISMA_CLIENT_REQUEST_ERROR: 'Client request error',
+  UNEXPECTED_ERROR: 'An unexpected error occurred',
+  FAILED_CREATE_CHARGE: 'Failed to create charge',
+  UNEXPECTED_CHARGE_STRUCTURE: 'Unexpected charge object structure',
+  CHARGE_NOT_FOUND: 'Charge not found',
+  PAYMENT_NOT_FOUND: 'Payment not found',
+  CURRENCY_MISMATCH: 'Currency mismatch',
+  TOKEN_PACKAGE_NOT_FOUND: 'Token Package not found',
+  TOKEN_PRICE_NOT_FOUND: 'Token Price not found',
+  TOKEN_AMOUNT_NOT_FOUND: 'Token Amount not found',
+  QUANTITY_TOKEN_NOT_PROVIDED: 'Quantity token not provided',
+  FAILED_RECORDING_NEW_CHARGE: 'Failed recording new charge',
+  FAILED_HANDLING_CHARGE_EVENT: 'Failed handling charge event',
+  AMOUNT_NOT_FOUND: 'Amount not found',
+  CURRENCY_NOT_FOUND: 'Currency not found',
   VAL: {
     IS_STRING: '$property must be a string',
     IS_EMAIL: '$property must be an email',
+    IS_URL: '$property must be a URL',
     IS_NOT_EMPTY: '$property should not be empty',
+    IS_VALID_CURRENCY_FORMAT: 'Invalid currency format',
+    IS_SUPPORTED_CURRENCY: `currency must be one of the following: ${supportedCurrencyList}`,
+    IS_CURRENCY_FORMAT: 'price must be a valid currency format',
     MIN_LENGTH: '$property must be longer than or equal to $constraint1 characters',
     MAX_LENGTH: '$property must be shorter than or equal to $constraint1 characters',
+  },
+  PRISMA: {
+    DATABASE_ERROR: 'Database error',
   },
 
   EMAIL_ERROR: {
@@ -254,6 +297,13 @@ export const ERROR_MESSAGES = {
     FAILED_TO_SEND_VERIFICATION: 'Failed to send email verification',
     FAILED_TO_SEND_PASSWORD_RESET: 'Failed to send email password reset',
     FAILED_TO_SEND_ADMIN_REGISTRATION: 'Failed to send email admin registration',
+    FAILED_TO_SEND_WELCOME: 'Failed to send email welcome',
+    FAILED_TO_SEND_UNRESOLVED_UNDERPAID: 'Failed to send Unresolved (Underpaid) email',
+    FAILED_TO_SEND_ADMIN_UNRESOLVED_UNDERPAID: 'Failed to send Unresolved (Underpaid) email to Admin',
+    FAILED_TO_SEND_ADMIN_UNRESOLVED_OVERPAID: 'Failed to send Unresolved (Overpaid) email to Admin',
+    FAILED_TO_SEND_ADMIN_UNRESOLVED_DELAYED: 'Failed to send Unresolved (Delayed) email to Admin',
+    FAILED_TO_SEND_ADMIN_UNRESOLVED_MULTIPLE: 'Failed to send Unresolved (Multiple) email to Admin',
+    FAILED_TO_SEND_ADMIN_UNRESOLVED_OTHER: 'Failed to send Unresolved (Other) email to Admin',
   },
 };
 ```
@@ -266,18 +316,7 @@ throw new BadRequestException(ERROR_MESSAGES.INVALID_REFERRAL_CODE());
 
 For additional exception methods, check the `ERROR.md` file for more information.
 
-### Writing end-to-end test code
-
-When writing end-to-end tests, create one test suite per module. Each module should have one file containing all the GraphQL endpoint test cases `it(...)` within the test suite module `describe(...)`. You can refer to `customer.spec.ts` and `auth.spec.ts` inside the `<root>/customer-api-e2e/src/customer-api` folder for an example.
-
-To run end-to-end tests, execute the following command:
-
-```bash
-nx e2e customer-api-e2e
-```
-
-Make sure to cover edge cases in your test cases as well.
-Please <span style="color:orange">document</span> the error messages and exceptions inside the <span style="color:orange">`ERROR.md`</span> file
+<br />
 
 ### Protecting your resolver
 
@@ -318,7 +357,31 @@ If you would like to receive user's details like customer ID and customer Email,
 ```tsx
 {
   sub: number; // customerId
+  name: string;
   email: string;
   role: CustomerRole; // can be either "ADMIN" , "USER"
 }
 ```
+
+<br />
+
+## 3. Testing API
+
+### Writing end-to-end test code
+
+When writing end-to-end tests, create one test suite per module. Each module should have one file containing all the GraphQL endpoint test cases `it(...)` within the test suite module `describe(...)`. You can refer to `customer.spec.ts` and `auth.spec.ts` inside the `<root>/customer-api-e2e/src/customer-api` folder for an example.
+
+To run end-to-end tests, execute the following command:
+
+```bash
+npm run test:e2e
+```
+
+Make sure to cover edge cases in your test cases as well.
+Please <span style="color:orange">document</span> the error messages and exceptions inside the <span style="color:orange">`ERROR.md`</span> file
+
+### Manual Testing
+
+One method for manual testing involves directly calling the GraphQL API in the browser. For instance, if you've set the environment variable `PORT=3000`, you can test the API by navigating to `http://localhost:3000/graphql` after executing the `nx serve customer-api` command.
+
+Next, proceed to Settings ⚙️, and modify `"request.credentials": "omit"` to `"request.credentials": "include"`. Remember to save your changes and reload the page. With this setting in place, once you log in using the mutation Login command, the token credential will be included in the browser session.

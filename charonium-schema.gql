@@ -2,7 +2,92 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type Charge {
+  addresses: JSON
+  cancelUrl: String
+  chargeId: Int!
+  code: String!
+  commissions: [Commission]!
+  createdAt: DateTime!
+  customer: Customer
+  customerId: Int
+  description: String
+  exchangeRates: JSON
+  expiresAt: DateTime!
+  feeRate: Float!
+  hostedUrl: String!
+  localExchangeRates: JSON
+  name: String!
+  paymentThreshold: JSON
+  payments: [Payment]!
+  pricing: JSON!
+  pricingType: String!
+  purchaseActivity: PurchaseActivity
+  redirectUrl: String
+  updatedAt: DateTime
+}
+
+type ChargeBase {
+  addresses: JSON
+  cancelUrl: String
+  chargeId: Int!
+  code: String!
+  createdAt: DateTime!
+  customerId: Int
+  description: String
+  exchangeRates: JSON
+  expiresAt: DateTime!
+  feeRate: Float!
+  hostedUrl: String!
+  localExchangeRates: JSON
+  name: String!
+  paymentThreshold: JSON
+  pricing: JSON!
+  pricingType: String!
+  redirectUrl: String
+  updatedAt: DateTime
+}
+
+type ChargeResult {
+  data: [Charge]!
+  nextPageCursor: Int
+}
+
+type Commission {
+  amount: Float!
+  charge: Charge
+  chargeId: Int
+  commissionId: Int!
+  commissionRate: Float!
+  createdAt: DateTime!
+  currency: String!
+  customer: Customer
+  customerId: Int
+  isTransferred: Boolean!
+  tier: Int!
+  updatedAt: DateTime
+}
+
+type CommissionBase {
+  amount: Float!
+  chargeId: Int
+  commissionId: Int!
+  commissionRate: Float!
+  createdAt: DateTime!
+  currency: String!
+  customerId: Int
+  isTransferred: Boolean!
+  tier: Int!
+  updatedAt: DateTime
+}
+
+type CommissionResult {
+  data: [Commission]!
+  nextPageCursor: Int
+}
+
 type Customer {
+  createdAt: DateTime
   customerId: Int!
   customerStatus: CustomerStatus!
   email: String!
@@ -12,6 +97,7 @@ type Customer {
   referralCode: String
   referralCustomerId: Int
   referrer: Customer
+  updatedAt: DateTime
 }
 
 enum CustomerRole {
@@ -52,11 +138,16 @@ type Image {
   path: String!
 }
 
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+
 type JwtPayload {
   email: String!
   exp: Float
-  firstName: String
   iat: Float
+  name: String!
   role: CustomerRole!
   sub: Float!
 }
@@ -67,12 +158,16 @@ input LoginInput {
 }
 
 type Mutation {
+  createTokenPackage(input: TokenPackageCreateInput!): TokenPackage!
+  deleteTokenPackage(packageId: Int!): TokenPackage!
+  editTokenPackage(input: TokenPackageUpdateInput!, packageId: Int!): TokenPackage!
   forgetPassword(input: EmailInput!): Boolean!
   generatePresignedPost(uploadInput: UploadInput!): PresignedPost!
   generatePresignedUrl(uploadInput: UploadInput!): PresignedUrl!
   generatePresignedUrls(uploadInputs: [UploadInput!]!): [PresignedUrl!]!
   login(input: LoginInput!): String!
   logout: String!
+  purchaseTokens(input: PurchaseTokensInput!): String!
   refreshTokens: String!
   register(input: RegisterInput!): Customer!
   registerAdmin(input: RegisterAdminInput!): Boolean!
@@ -80,7 +175,37 @@ type Mutation {
   resendEmailVerification(input: EmailInput!): Boolean!
   resetPassword(input: ResetPasswordInput!): Boolean!
   saveUploadedImage(saveImageInput: SaveImageInput!): Image!
+  setOrEditTokenPrice(input: TokenPriceCreateInput!): TokenPrice!
+  toggleTokenPackageStatus(packageId: Int!): TokenPackage!
+  updateCommissionTransferStatus(commissionId: Int!): CommissionBase!
   verifyEmail(token: String!): VerifyEmailResult!
+}
+
+type Payment {
+  charge: Charge
+  chargeId: Int
+  createdAt: DateTime!
+  network: String
+  paymentId: Int!
+  paymentStatus: PaymentStatus!
+  status: String
+  transaction: String
+  type: String
+  unresolvedReason: UnresolvedReason
+  updatedAt: DateTime
+  value: JSON
+}
+
+enum PaymentStatus {
+  CANCELED
+  COMPLETED
+  EXPIRED
+  MANUALLY_ACCEPTED
+  MANUALLY_UNACCEPTED
+  NEW
+  PENDING
+  RESOLVED
+  UNRESOLVED
 }
 
 type PresignedPost {
@@ -93,9 +218,64 @@ type PresignedUrl {
   presignedUrl: String!
 }
 
+type PurchaseActivity {
+  amount: Float!
+  charge: Charge
+  chargeId: Int
+  createdAt: DateTime!
+  currency: String!
+  package: TokenPackage
+  packageId: Int
+  paymentStatus: PaymentStatus!
+  price: Float!
+  purchaseActivityId: Int!
+  purchaseConfirmed: Boolean!
+  tokenAmount: Float
+  tokenPrice: TokenPrice
+  tokenPriceId: Int
+  updatedAt: DateTime
+}
+
+type PurchaseActivityBase {
+  amount: Float!
+  chargeId: Int
+  createdAt: DateTime!
+  currency: String!
+  packageId: Int
+  paymentStatus: PaymentStatus!
+  price: Float!
+  purchaseActivityId: Int!
+  purchaseConfirmed: Boolean!
+  tokenAmount: Float
+  tokenPriceId: Int
+  updatedAt: DateTime
+}
+
+type PurchaseActivityResult {
+  data: [PurchaseActivity]!
+  nextPageCursor: Int
+}
+
+input PurchaseTokensInput {
+  cancel_url: String!
+  packageId: Int
+  quantity: Int
+  redirect_url: String!
+}
+
 type Query {
+  getAllTokenPackages: [TokenPackage]!
+  getAllTokenPackagesByStatus(isActive: Boolean!): [TokenPackage]!
+  getCharges(code: String, cursor: Int, customerId: Int, limit: Int): ChargeResult!
+  getCommissions(cursor: Int, customerId: Int, isTransferred: Boolean, limit: Int): CommissionResult!
+  getCommissionsForCustomer(cursor: Int, isTransferred: Boolean, limit: Int): CommissionResult!
+  getPurchaseActivities(cursor: Int, customerId: Int, limit: Int! = 10, paymentStatus: PaymentStatus, purchaseConfirmed: Boolean): PurchaseActivityResult!
+  getPurchaseActivitiesForCustomer(cursor: Int, limit: Int! = 10, paymentStatus: PaymentStatus, purchaseConfirmed: Boolean): PurchaseActivityResult!
   getReferralMap(input: ReferralInput!): [ReferralMap!]!
+  getTokenPackage(packageId: Int!): TokenPackage
+  getTokenPrice: TokenPrice
   hello: String!
+  isCommissionTransferred(commissionId: Int!): Boolean!
   protectedAdminMethod: JwtPayload!
   protectedMethod: JwtPayload!
 }
@@ -107,12 +287,12 @@ type ReferralEntry {
 
 input ReferralInput {
   referrerId: Float!
-  startTier: Float
+  startLevel: Float
 }
 
 type ReferralMap {
+  level: String!
   referralEntries: [ReferralEntry!]!
-  tier: String!
 }
 
 input RegisterAdminInput {
@@ -135,6 +315,58 @@ input ResetPasswordInput {
 
 input SaveImageInput {
   path: String!
+}
+
+type TokenPackage {
+  createdAt: DateTime!
+  currency: String!
+  deletedAt: DateTime
+  description: String
+  isActive: Boolean!
+  name: String!
+  packageId: Int!
+  price: Float!
+  tokenAmount: Float!
+  updatedAt: DateTime
+}
+
+input TokenPackageCreateInput {
+  currency: String!
+  description: String
+  isActive: Boolean!
+  name: String!
+  price: Float!
+  tokenAmount: Float!
+}
+
+input TokenPackageUpdateInput {
+  currency: String
+  description: String
+  isActive: Boolean
+  name: String
+  price: Float
+  tokenAmount: Float
+}
+
+type TokenPrice {
+  createdAt: DateTime
+  currency: String!
+  price: Float!
+  tokenPriceId: Int!
+  updatedAt: DateTime
+}
+
+input TokenPriceCreateInput {
+  currency: String!
+  price: Float!
+}
+
+enum UnresolvedReason {
+  DELAYED
+  MULTIPLE
+  OTHER
+  OVERPAID
+  UNDERPAID
 }
 
 input UploadInput {

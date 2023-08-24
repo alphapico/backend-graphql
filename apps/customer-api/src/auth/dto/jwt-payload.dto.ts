@@ -13,8 +13,8 @@ export class JwtPayload {
   @Field(() => CustomerRole)
   role: (typeof PrismaCustomerRole)[keyof typeof PrismaCustomerRole];
 
-  @Field({ nullable: true })
-  firstName?: string;
+  @Field()
+  name: string;
 
   @Field({ nullable: true })
   iat?: number;

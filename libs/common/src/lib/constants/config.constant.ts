@@ -11,4 +11,20 @@ export const CONFIG = {
   ACCESS_TOKEN_EXPIRATION: '15m',
   REFRESH_TOKEN_EXPIRATION: '1d',
   EMAIL_TOKEN_EXPIRATION: '1h',
+
+  COINBASE_SUPPORTED_FIAT: ['USD', 'GBP', 'EUR'],
 };
+
+function formatCurrencies(currencies: string[]): string {
+  const copiedCurrencies = [...currencies]; // Make a copy of the currencies array
+
+  if (copiedCurrencies.length === 0) return '';
+  if (copiedCurrencies.length === 1) return copiedCurrencies[0];
+
+  const lastCurrency = copiedCurrencies.pop();
+  return `${copiedCurrencies.join(', ')} or ${lastCurrency}`;
+}
+
+export const supportedCurrencyList = formatCurrencies(
+  CONFIG.COINBASE_SUPPORTED_FIAT
+);

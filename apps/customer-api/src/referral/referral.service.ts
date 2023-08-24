@@ -1,22 +1,18 @@
 import {
   BadRequestException,
-  HttpException,
-  HttpStatus,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '@charonium/prisma';
 import { ReferralMap, ReferralEntry } from './dto/referral.dto';
-import {
-  Prisma,
-  CustomerStatus as PrismaCustomerStatus,
-  EmailStatus as PrismaEmailStatus,
-} from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { Customer } from '../customer/dto/customer.dto';
 import {
   CustomerStatus,
   ERROR_MESSAGES,
   PRISMA_ERROR_MESSAGES,
+  ReferralResults,
 } from '@charonium/common';
 // import * as fs from 'fs';
 import { writeDataToFile } from '@charonium/common';
@@ -27,86 +23,109 @@ export class ReferralService {
 
   async getReferralMap(
     referrerId: number,
-    startTier = 0
+    startLevel = 0
   ): Promise<ReferralMap[]> {
-    const referrerExists = await this.prisma.customer.findUnique({
+    await this.validateInputs(referrerId, startLevel);
+
+    // allow admin to set depth
+    const depth = 3;
+
+    const result = await this.executeQuery(referrerId, depth);
+    // Write the output to a text file
+    writeDataToFile(`${this.constructor.name}/sql-query.txt`, result);
+    const filteredReferralMap = this.constructReferralMap(
+      result,
+      startLevel,
+      depth
+    );
+    // Write the output to a text file
+    writeDataToFile(
+      `${this.constructor.name}/referral-map.txt`,
+      filteredReferralMap
+    );
+
+    return filteredReferralMap;
+  }
+
+  private async referrerExists(referrerId: number): Promise<boolean> {
+    const referrer = await this.prisma.customer.findUnique({
       where: { customerId: referrerId },
     });
+    return !!referrer;
+  }
 
-    if (!referrerExists) {
+  private async validateInputs(
+    referrerId: number,
+    startLevel: number
+  ): Promise<void> {
+    if (!(await this.referrerExists(referrerId))) {
       throw new NotFoundException(ERROR_MESSAGES.CUSTOMER_NOT_FOUND);
     }
 
-    if (startTier < 0) {
+    if (startLevel < 0) {
       throw new BadRequestException(
-        ERROR_MESSAGES.START_TIER_MUST_BE_NON_NEGATIVE
+        ERROR_MESSAGES.START_LEVEL_MUST_BE_NON_NEGATIVE
       );
     }
+  }
 
-    const depth = 3;
-
-    let result: Array<{
-      referrer_id: number;
-      referee_id: number;
-      tier: number;
-      customerId: number;
-      name: string;
-      email: string;
-      customerStatus: (typeof PrismaCustomerStatus)[keyof typeof PrismaCustomerStatus];
-      emailStatus: (typeof PrismaEmailStatus)[keyof typeof PrismaEmailStatus];
-      referralCode: string;
-      referralCustomerId: number;
-    }>;
-
-    try {
-      const query = Prisma.sql`
-      WITH RECURSIVE referrals ("referrer_id", "referee_id", tier) AS (
-      SELECT "customerId", "customerId", -1 as tier
+  private async executeQuery(
+    referrerId: number,
+    depth: number
+  ): Promise<ReferralResults> {
+    const query = Prisma.sql`
+      WITH RECURSIVE referrals ("referrer_id", "referee_id", level) AS (
+      SELECT "customerId", "customerId", -1 as level
       FROM "Customer"
       WHERE "customerId" = ${referrerId}
 
       UNION
 
-      SELECT "referralCustomerId", "customerId", 0 as tier
+      SELECT "referralCustomerId", "customerId", 0 as level
       FROM "Customer"
       WHERE "referralCustomerId" = ${referrerId}
 
       UNION ALL
 
-      SELECT r."referralCustomerId", r."customerId", tier + 1
+      SELECT r."referralCustomerId", r."customerId", level + 1
       FROM "Customer" r
       JOIN referrals ON r."referralCustomerId" = referrals."referee_id"
-      WHERE tier < ${depth}
+      WHERE level < ${depth}
       )
-      SELECT DISTINCT ON ("referrer_id", "referee_id") "referrer_id", "referee_id", tier, c.*
+      SELECT DISTINCT ON ("referrer_id", "referee_id") "referrer_id", "referee_id", level, c.*
       FROM referrals
       JOIN "Customer" c ON referrals."referee_id" = c."customerId"
       WHERE c."customerStatus" <> ${CustomerStatus.PENDING}::"CustomerStatus"
       ORDER BY "referrer_id", "referee_id";
       `;
 
-      result = await this.prisma.$queryRaw(query);
+    try {
+      return await this.prisma.$queryRaw(query);
     } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        switch (error.code) {
-          case PRISMA_ERROR_MESSAGES.CLIENT.RAW_QUERY_FAILED:
-            throw new BadRequestException(ERROR_MESSAGES.RAW_QUERY_FAILED);
-          default:
-            throw new BadRequestException(
-              ERROR_MESSAGES.PRISMA_CLIENT_REQUEST_ERROR
-            );
-        }
-      } else {
-        throw new HttpException(
-          ERROR_MESSAGES.UNEXPECTED_ERROR,
-          HttpStatus.INTERNAL_SERVER_ERROR
-        );
-      }
+      this.handleQueryError(error);
     }
+  }
 
-    // Write the output to a text file
-    writeDataToFile(`${this.constructor.name}/sql-query.txt`, result);
+  private handleQueryError(error: any): void {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      switch (error.code) {
+        case PRISMA_ERROR_MESSAGES.CLIENT.RAW_QUERY_FAILED:
+          throw new BadRequestException(ERROR_MESSAGES.RAW_QUERY_FAILED);
+        default:
+          throw new BadRequestException(
+            ERROR_MESSAGES.PRISMA_CLIENT_REQUEST_ERROR
+          );
+      }
+    } else {
+      throw new InternalServerErrorException(ERROR_MESSAGES.UNEXPECTED_ERROR);
+    }
+  }
 
+  private constructReferralMap(
+    result: ReferralResults,
+    startLevel: number,
+    depth: number
+  ): ReferralMap[] {
     // If the result is empty, return an empty array
     if (result.length === 0) {
       return [];
@@ -114,23 +133,23 @@ export class ReferralService {
 
     // Create the referralMap and a map for quick access
     const referralMap: ReferralMap[] = [];
-    const referralMapLookup: { [tier: string]: ReferralMap } = {};
+    const referralMapLookup: { [level: string]: ReferralMap } = {};
 
     for (let i = 0; i <= depth; i++) {
-      const tier = `tier${i + startTier}`;
+      const level = `level${i + startLevel}`;
       const referralMapEntry = {
-        tier,
+        level,
         referralEntries: [],
       };
       referralMap.push(referralMapEntry);
-      referralMapLookup[tier] = referralMapEntry;
+      referralMapLookup[level] = referralMapEntry;
     }
 
     const referralEntriesMap: { [referrerId: number]: ReferralEntry } = {};
     const customersMap: { [customerId: number]: Customer } = {};
 
     for (const row of result) {
-      if (row.tier === -1) {
+      if (row.level === -1) {
         customersMap[row.referrer_id] = {
           customerId: row.customerId,
           name: row.name,
@@ -139,6 +158,8 @@ export class ReferralService {
           emailStatus: row.emailStatus,
           referralCode: row.referralCode,
           referralCustomerId: row.referralCustomerId,
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt,
         };
         continue;
       }
@@ -152,6 +173,8 @@ export class ReferralService {
           emailStatus: row.emailStatus,
           referralCode: row.referralCode,
           referralCustomerId: row.referralCustomerId,
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt,
         };
       }
 
@@ -165,10 +188,10 @@ export class ReferralService {
           referees: [],
         };
 
-        const matchingTierObj =
-          referralMapLookup[`tier${row.tier + startTier}`];
-        if (matchingTierObj) {
-          matchingTierObj.referralEntries.push(
+        const matchingLevelObj =
+          referralMapLookup[`level${row.level + startLevel}`];
+        if (matchingLevelObj) {
+          matchingLevelObj.referralEntries.push(
             referralEntriesMap[row.referrer_id]
           );
         }
@@ -187,25 +210,6 @@ export class ReferralService {
       (map) => map.referralEntries.length > 0
     );
 
-    // Write the output to a text file
-    writeDataToFile(
-      `${this.constructor.name}/referral-map.txt`,
-      filteredReferralMap
-    );
-
     return filteredReferralMap;
   }
-
-  // Get the number of referral tiers from the database.
-  //   async getNumTier(): Promise<number> {
-  //     const numTier = await this.prisma.config.findUnique({
-  //       where: {
-  //         configId: 1,
-  //       },
-  //       select: {
-  //         value: true,
-  //       },
-  //     });
-  //     return numTier.value;
-  //   }
 }

@@ -10,22 +10,30 @@ import { AuthModule } from '../auth/auth.module';
 import cookieParser from 'cookie-parser';
 import { EmailModule } from '../email/email.module';
 import { UploadModule } from '../upload/upload.module';
+import { PaymentGatewayModule } from '../payment-gateway/payment-gateway.module';
+import { CommissionModule } from '../commission/commission.module';
+import { ConfigModule } from '../config/config.module';
+import GraphQLJSON from 'graphql-type-json';
 
 @Module({
   imports: [
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: 'charonium-schema.gql',
+      resolvers: { JSON: GraphQLJSON },
       context: ({ req, res }) => ({ req, res }),
-      sortSchema: true, // disabled this in production
-      playground: true, // disabled this in production
-      introspection: true, // disabled this in production
+      sortSchema: true, // disabled this in production, process.env.NODE_ENV !== 'production'
+      playground: true, // disabled this in production, process.env.NODE_ENV !== 'production'
+      introspection: true, // disabled this in production, process.env.NODE_ENV !== 'production'
     }),
     CustomerModule,
     ReferralModule,
     AuthModule,
     EmailModule,
     UploadModule,
+    PaymentGatewayModule,
+    CommissionModule,
+    ConfigModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

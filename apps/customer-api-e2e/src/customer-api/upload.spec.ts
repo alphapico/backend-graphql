@@ -1,5 +1,5 @@
-import { clearCookies, graphQLClient, httpUrl } from '../support/test-setup';
-import { gql, GraphQLClient } from 'graphql-request';
+import { clearCookies, graphQLClient } from '../support/test-setup';
+import { gql } from 'graphql-request';
 import {
   clearDatabase,
   connectToDatabase,
@@ -7,14 +7,15 @@ import {
 } from '../support/test-utils';
 import { Test } from '@nestjs/testing';
 import { JwtService, JwtModule } from '@nestjs/jwt';
-import { CONFIG, IJwtPayload } from '@charonium/common';
+import { CONFIG } from '@charonium/common';
 import { PrismaModule, PrismaService } from '@charonium/prisma';
-import { Customer, Image } from '@prisma/client';
+import { Image } from '@prisma/client';
 import fetch from 'node-fetch';
 import fs from 'fs';
 import path from 'path';
-import Blob from 'fetch-blob';
-import FormData from 'form-data';
+import { createAndVerifyAdmin } from './utils/auth-test.utils';
+// import Blob from 'fetch-blob';
+// import FormData from 'form-data';
 
 describe('Upload', () => {
   // console.log('Running Upload tests');
@@ -49,18 +50,6 @@ describe('Upload', () => {
     await disconnectFromDatabase();
   });
 
-  const registerAdminMutation = gql`
-    mutation RegisterAdmin($input: RegisterAdminInput!) {
-      registerAdmin(input: $input)
-    }
-  `;
-
-  const loginMutation = gql`
-    mutation Login($input: LoginInput!) {
-      login(input: $input)
-    }
-  `;
-
   const generatePresignedUrlMutation = gql`
     mutation GeneratePresignedUrl($uploadInput: UploadInput!) {
       generatePresignedUrl(uploadInput: $uploadInput) {
@@ -70,17 +59,17 @@ describe('Upload', () => {
     }
   `;
 
-  const generatePresignedPostMutation = gql`
-    mutation GeneratePresignedPost($uploadInput: UploadInput!) {
-      generatePresignedPost(uploadInput: $uploadInput) {
-        url
-        fields {
-          key
-          value
-        }
-      }
-    }
-  `;
+  // const generatePresignedPostMutation = gql`
+  //   mutation GeneratePresignedPost($uploadInput: UploadInput!) {
+  //     generatePresignedPost(uploadInput: $uploadInput) {
+  //       url
+  //       fields {
+  //         key
+  //         value
+  //       }
+  //     }
+  //   }
+  // `;
 
   const saveUploadedImageMutation = gql`
     mutation SaveUploadedImage($saveImageInput: SaveImageInput!) {
@@ -93,59 +82,12 @@ describe('Upload', () => {
   `;
 
   it('should upload image successfully using presigned URL', async () => {
-    // Admin login
-    const admin: Customer = await prismaService.customer.findUnique({
-      where: { email: process.env.ADMIN_EMAIL },
-    });
-
-    const adminPayload: IJwtPayload = {
-      sub: admin.customerId,
-      email: admin.email,
-      role: admin.customerRole,
-    };
-
-    const adminRegistrationToken = jwtService.sign(adminPayload);
-
-    const registerAdminInput = {
-      token: adminRegistrationToken,
-      newName: 'Admin User',
-      newPassword: 'admin_password12345',
-    };
-
-    await graphQLClient.request(registerAdminMutation, {
-      input: registerAdminInput,
-    });
-
-    const adminLoginInput = {
-      email: process.env.ADMIN_EMAIL,
-      password: 'admin_password12345',
-    };
-
-    const loginResponse = await graphQLClient.rawRequest(loginMutation, {
-      input: adminLoginInput,
-    });
-
-    // Get the 'set-cookie' response header containing the access token
-    const cookiesString = loginResponse.headers.get('set-cookie');
-    const cookies = cookiesString.split(', ');
-    const accessTokenHeader = cookies.find((cookie: string) =>
-      cookie.startsWith('access_token=')
+    // Admin login and get GraphQL client with admin access token
+    const { graphQLClientWithAdminAccessToken } = await createAndVerifyAdmin(
+      graphQLClient,
+      jwtService,
+      prismaService
     );
-
-    if (!accessTokenHeader) {
-      throw new Error('Access token not found in the response headers');
-    }
-
-    const accessToken = accessTokenHeader
-      .replace('access_token=', '')
-      .split(';')[0];
-
-    const graphQLClientWithAdminAccessToken = new GraphQLClient(httpUrl, {
-      credentials: 'include',
-      headers: {
-        cookie: `access_token=${accessToken}`,
-      },
-    });
 
     // Generate a presigned URL
     const uploadInput = {

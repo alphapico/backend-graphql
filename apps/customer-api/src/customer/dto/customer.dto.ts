@@ -50,4 +50,10 @@ export class Customer implements CustomerPartial {
 
   @Field(() => [Customer], { nullable: true })
   referees?: Customer[];
+
+  @Field({ nullable: true })
+  createdAt?: Date;
+
+  @Field({ nullable: true })
+  updatedAt?: Date;
 }

@@ -1,5 +1,10 @@
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { PRISMA_ERROR_MESSAGES } from '../constants';
+import { ERROR_MESSAGES, PRISMA_ERROR_MESSAGES } from '../constants';
+import {
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 
 export async function retryPrismaOperation<T>(
   operation: () => Promise<T>,
@@ -26,4 +31,31 @@ export async function retryPrismaOperation<T>(
     }
     throw error;
   }
+}
+
+export function handlePrismaError(error: any) {
+  console.error('An error occurred while performing the transaction:', error);
+
+  if (error instanceof Prisma.PrismaClientValidationError) {
+    throw new BadRequestException(error.message);
+  }
+
+  if (error instanceof Prisma.PrismaClientInitializationError) {
+    throw new InternalServerErrorException(error.message);
+  }
+
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    throw new InternalServerErrorException(error.message);
+  }
+
+  if (error instanceof Prisma.PrismaClientUnknownRequestError) {
+    throw new InternalServerErrorException(error.message);
+  }
+
+  if (error instanceof Prisma.PrismaClientRustPanicError) {
+    throw new InternalServerErrorException(error.message);
+  }
+
+  // If the error doesn't match any known type, throw a generic error
+  throw new InternalServerErrorException(ERROR_MESSAGES.PRISMA.DATABASE_ERROR);
 }
