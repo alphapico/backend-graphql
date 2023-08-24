@@ -1,5 +1,7 @@
 import { Field, Float, Int, ObjectType } from '@nestjs/graphql';
 import { PaginationMixin } from './pagination.mixin';
+import { PaymentStatus } from '@charonium/common';
+import { PaymentStatus as PrismaPaymentStatus } from '@prisma/client';
 
 @ObjectType()
 export class PurchaseActivityBase {
@@ -19,6 +21,9 @@ export class PurchaseActivityBase {
   tokenAmount?: number;
 
   @Field()
+  price: number;
+
+  @Field()
   amount: number;
 
   @Field()
@@ -26,6 +31,9 @@ export class PurchaseActivityBase {
 
   @Field()
   purchaseConfirmed: boolean;
+
+  @Field(() => PaymentStatus)
+  paymentStatus: (typeof PrismaPaymentStatus)[keyof typeof PrismaPaymentStatus];
 
   @Field()
   createdAt: Date;

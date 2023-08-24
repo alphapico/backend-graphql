@@ -4,7 +4,6 @@ import { TokenPriceCreateInput } from './dto/token-price-create.input';
 import { TokenPrice } from './dto/token-price.dto';
 import { UseGuards } from '@nestjs/common';
 import { AdminGuard } from '../auth/admin.guard';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { TokenPackage } from './dto/token-package.dto';
 import { TokenPackageCreateInput } from './dto/token-package-create.input';
 import { TokenPackageUpdateInput } from './dto/token-package-update.input';
@@ -66,12 +65,12 @@ export class ConfigResolver {
     return this.configService.getTokenPackage(packageId);
   }
 
-  @Query(() => TokenPackage, { nullable: true })
+  @Query(() => [TokenPackage], { nullable: 'items' })
   async getAllTokenPackages(): Promise<TokenPackage[]> {
     return this.configService.getAllTokenPackages();
   }
 
-  @Query(() => TokenPackage, { nullable: true })
+  @Query(() => [TokenPackage], { nullable: 'items' })
   async getAllTokenPackagesByStatus(
     @Args('isActive', { type: () => Boolean }) isActive: boolean
   ): Promise<TokenPackage[]> {

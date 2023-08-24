@@ -1,75 +1,25 @@
-import { Field, Int, Float, ObjectType } from '@nestjs/graphql';
+import { Field, ObjectType } from '@nestjs/graphql';
 import { Customer } from '../../customer/dto/customer.dto';
 import { Payment } from './payment.dto';
 import { PurchaseActivity } from './purchase-activity.dto';
 import { Commission } from './commission.dto';
-import GraphQLJSON from 'graphql-type-json';
+import { ChargeBase } from './charge.base.dto';
+import { PaginationMixin } from './pagination.mixin';
 
 @ObjectType()
-export class Charge {
-  @Field(() => Int)
-  chargeId: number;
-
-  @Field(() => Int, { nullable: true })
-  customerId?: number;
-
+export class Charge extends ChargeBase {
   @Field(() => Customer, { nullable: true })
   customer?: Customer;
 
-  @Field()
-  code: string;
-
-  @Field()
-  name: string;
-
-  @Field({ nullable: true })
-  description?: string;
-
-  @Field()
-  pricingType: string;
-
-  @Field(() => GraphQLJSON)
-  pricing: JSON;
-
-  @Field(() => GraphQLJSON, { nullable: true })
-  addresses?: JSON;
-
-  @Field(() => GraphQLJSON, { nullable: true })
-  exchangeRates?: JSON;
-
-  @Field(() => GraphQLJSON, { nullable: true })
-  localExchangeRates?: JSON;
-
-  @Field()
-  hostedUrl: string;
-
-  @Field({ nullable: true })
-  cancelUrl?: string;
-
-  @Field({ nullable: true })
-  redirectUrl?: string;
-
-  @Field(() => Float)
-  feeRate: number;
-
-  @Field()
-  expiresAt: Date;
-
-  @Field(() => GraphQLJSON, { nullable: true })
-  paymentThreshold?: JSON;
-
-  @Field(() => [Payment])
+  @Field(() => [Payment], { nullable: 'items' })
   payments: Payment[];
 
-  @Field(() => [Commission])
+  @Field(() => [Commission], { nullable: 'items' })
   commissions: Commission[];
 
   @Field(() => PurchaseActivity, { nullable: true })
   purchaseActivity?: PurchaseActivity;
-
-  @Field()
-  createdAt: Date;
-
-  @Field({ nullable: true })
-  updatedAt?: Date;
 }
+
+@ObjectType()
+export class ChargeResult extends PaginationMixin(Charge) {}

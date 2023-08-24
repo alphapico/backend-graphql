@@ -7,7 +7,7 @@ type Charge {
   cancelUrl: String
   chargeId: Int!
   code: String!
-  commissions: [Commission!]!
+  commissions: [Commission]!
   createdAt: DateTime!
   customer: Customer
   customerId: Int
@@ -19,12 +19,38 @@ type Charge {
   localExchangeRates: JSON
   name: String!
   paymentThreshold: JSON
-  payments: [Payment!]!
+  payments: [Payment]!
   pricing: JSON!
   pricingType: String!
   purchaseActivity: PurchaseActivity
   redirectUrl: String
   updatedAt: DateTime
+}
+
+type ChargeBase {
+  addresses: JSON
+  cancelUrl: String
+  chargeId: Int!
+  code: String!
+  createdAt: DateTime!
+  customerId: Int
+  description: String
+  exchangeRates: JSON
+  expiresAt: DateTime!
+  feeRate: Float!
+  hostedUrl: String!
+  localExchangeRates: JSON
+  name: String!
+  paymentThreshold: JSON
+  pricing: JSON!
+  pricingType: String!
+  redirectUrl: String
+  updatedAt: DateTime
+}
+
+type ChargeResult {
+  data: [Charge]!
+  nextPageCursor: Int
 }
 
 type Commission {
@@ -55,17 +81,13 @@ type CommissionBase {
   updatedAt: DateTime
 }
 
-type CommissionBaseResult {
-  data: [CommissionBase]!
-  nextPageCursor: Int
-}
-
 type CommissionResult {
   data: [Commission]!
   nextPageCursor: Int
 }
 
 type Customer {
+  createdAt: DateTime
   customerId: Int!
   customerStatus: CustomerStatus!
   email: String!
@@ -75,6 +97,7 @@ type Customer {
   referralCode: String
   referralCustomerId: Int
   referrer: Customer
+  updatedAt: DateTime
 }
 
 enum CustomerRole {
@@ -203,6 +226,8 @@ type PurchaseActivity {
   currency: String!
   package: TokenPackage
   packageId: Int
+  paymentStatus: PaymentStatus!
+  price: Float!
   purchaseActivityId: Int!
   purchaseConfirmed: Boolean!
   tokenAmount: Float
@@ -217,16 +242,13 @@ type PurchaseActivityBase {
   createdAt: DateTime!
   currency: String!
   packageId: Int
+  paymentStatus: PaymentStatus!
+  price: Float!
   purchaseActivityId: Int!
   purchaseConfirmed: Boolean!
   tokenAmount: Float
   tokenPriceId: Int
   updatedAt: DateTime
-}
-
-type PurchaseActivityBaseResult {
-  data: [PurchaseActivityBase]!
-  nextPageCursor: Int
 }
 
 type PurchaseActivityResult {
@@ -242,16 +264,13 @@ input PurchaseTokensInput {
 }
 
 type Query {
-  getAllTokenPackages: TokenPackage
-  getAllTokenPackagesByStatus(isActive: Boolean!): TokenPackage
-  getCommissions(cursor: Int, customerId: Int, isTransferred: Boolean, limit: Int): CommissionBaseResult!
-  getCommissionsForCustomer(cursor: Int, isTransferred: Boolean, limit: Int): CommissionBaseResult!
-  getCommissionsWithDetails(cursor: Int, customerId: Int, isTransferred: Boolean, limit: Int): CommissionResult!
-  getCommissionsWithDetailsForCustomer(cursor: Int, isTransferred: Boolean, limit: Int): CommissionResult!
-  getPurchaseActivities(cursor: Int, customerId: Int, limit: Int! = 10, paymentStatus: PaymentStatus, purchaseConfirmed: Boolean): PurchaseActivityBaseResult!
-  getPurchaseActivitiesForCustomer(cursor: Int, limit: Int! = 10, paymentStatus: PaymentStatus, purchaseConfirmed: Boolean): PurchaseActivityBaseResult!
-  getPurchaseActivitiesWithDetails(cursor: Int, customerId: Int, limit: Int! = 10, paymentStatus: PaymentStatus, purchaseConfirmed: Boolean): PurchaseActivityResult!
-  getPurchaseActivitiesWithDetailsForCustomer(cursor: Int, limit: Int! = 10, paymentStatus: PaymentStatus, purchaseConfirmed: Boolean): PurchaseActivityResult!
+  getAllTokenPackages: [TokenPackage]!
+  getAllTokenPackagesByStatus(isActive: Boolean!): [TokenPackage]!
+  getCharges(code: String, cursor: Int, customerId: Int, limit: Int): ChargeResult!
+  getCommissions(cursor: Int, customerId: Int, isTransferred: Boolean, limit: Int): CommissionResult!
+  getCommissionsForCustomer(cursor: Int, isTransferred: Boolean, limit: Int): CommissionResult!
+  getPurchaseActivities(cursor: Int, customerId: Int, limit: Int! = 10, paymentStatus: PaymentStatus, purchaseConfirmed: Boolean): PurchaseActivityResult!
+  getPurchaseActivitiesForCustomer(cursor: Int, limit: Int! = 10, paymentStatus: PaymentStatus, purchaseConfirmed: Boolean): PurchaseActivityResult!
   getReferralMap(input: ReferralInput!): [ReferralMap!]!
   getTokenPackage(packageId: Int!): TokenPackage
   getTokenPrice: TokenPrice
@@ -301,6 +320,7 @@ input SaveImageInput {
 type TokenPackage {
   createdAt: DateTime!
   currency: String!
+  deletedAt: DateTime
   description: String
   isActive: Boolean!
   name: String!

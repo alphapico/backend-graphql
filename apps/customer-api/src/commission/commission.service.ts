@@ -1,6 +1,7 @@
 import {
   Commission,
   ERROR_MESSAGES,
+  PurchaseActivityRecord,
   handlePrismaError,
 } from '@charonium/common';
 import { PrismaService } from '@charonium/prisma';
@@ -16,8 +17,8 @@ import {
   TokenPrice,
   PaymentStatus,
 } from '@prisma/client';
-import { CommissionBaseResult } from './dto/commission.base.dto';
 import { CommissionResult } from './dto/commission.dto';
+import graphqlFields from 'graphql-fields';
 
 @Injectable()
 export class CommissionService {
@@ -178,12 +179,47 @@ export class CommissionService {
   }
 
   async getPurchaseActivities(
+    info: any,
     cursor?: number,
     limit = 10,
     purchaseConfirmed?: boolean,
     paymentStatus?: PaymentStatus,
     customerId?: number
   ) {
+    // Use graphql-fields to determine which fields were requested
+    const fields = graphqlFields(info);
+    // Build the include object based on the requested fields
+    const include: any = {};
+
+    if (fields.data) {
+      if (fields.data.charge) {
+        include.charge = {
+          include: {},
+        };
+        // Check if payments field was requested
+        if (fields.data.charge.payments) {
+          include.charge.include.payments = true;
+        }
+        // Check if commissions field was requested
+        if (fields.data.charge.commissions) {
+          include.charge.include.commissions = true;
+        }
+      }
+
+      if (fields.data.package) {
+        include.package = true;
+      }
+
+      if (fields.data.tokenPrice) {
+        include.tokenPrice = true;
+      }
+    }
+
+    // Check if the include.charge.include object is empty
+    if (include.charge && Object.keys(include.charge.include).length === 0) {
+      delete include.charge;
+    }
+
     // Build the where filter object based on provided parameters
     const whereFilter: any = {};
 
@@ -201,71 +237,21 @@ export class CommissionService {
       };
     }
 
-    const records = await this.prisma.purchaseActivity.findMany({
-      take: limit + 1, // Fetch one extra record to determine if there's a next page
-      cursor: cursor ? { purchaseActivityId: cursor } : undefined,
-      where: whereFilter, // Apply the filtering conditions
-      orderBy: {
-        updatedAt: 'desc', // Order by updatedAt in descending order
-      },
-    });
-
-    const hasNextPage = records.length > limit;
-    if (hasNextPage) {
-      // Remove the extra record
-      records.pop();
-    }
-
-    return {
-      data: records,
-      nextPageCursor: hasNextPage
-        ? records[records.length - 1].purchaseActivityId
-        : null,
-    };
-  }
-
-  async getPurchaseActivitiesWithDetails(
-    cursor?: number,
-    limit = 10,
-    purchaseConfirmed?: boolean,
-    paymentStatus?: PaymentStatus,
-    customerId?: number
-  ) {
-    // Build the where filter object based on provided parameters
-    const whereFilter: any = {};
-
-    if (purchaseConfirmed !== undefined) {
-      whereFilter.purchaseConfirmed = purchaseConfirmed;
-    }
-
-    if (paymentStatus) {
-      whereFilter.paymentStatus = paymentStatus;
-    }
-
-    if (customerId) {
-      whereFilter.charge = {
-        customerId: customerId,
-      };
-    }
-
-    const records = await this.prisma.purchaseActivity.findMany({
+    // Check if the include object is empty
+    const isIncludeEmpty = Object.keys(include).length === 0;
+    const findManyArgs: any = {
       take: limit + 1, // Fetch one extra record to determine if there's a next page
       cursor: cursor ? { purchaseActivityId: cursor } : undefined,
       where: whereFilter, // Apply the filtering conditions
       orderBy: {
         updatedAt: 'desc',
       },
-      include: {
-        charge: {
-          include: {
-            payments: true,
-            commissions: true,
-          },
-        },
-        package: true,
-        tokenPrice: true,
-      },
-    });
+    };
+
+    if (!isIncludeEmpty) {
+      findManyArgs.include = include;
+    }
+    const records = await this.prisma.purchaseActivity.findMany(findManyArgs);
 
     const hasNextPage = records.length > limit;
     if (hasNextPage) {
@@ -274,21 +260,60 @@ export class CommissionService {
     }
 
     // Format the price fields
-    const formattedRecords = records.map((record) => {
-      if (record.package) {
-        record.package.price = record.package.price / 100;
-      }
-      if (record.tokenPrice) {
-        record.tokenPrice.price = record.tokenPrice.price / 100;
-      }
-      if (record.charge && record.charge.commissions) {
-        record.charge.commissions.forEach((commission) => {
-          commission.amount = commission.amount / 100;
-        });
-      }
+    const formattedRecords = (records as PurchaseActivityRecord[]).map(
+      (record) => {
+        const { package: pkg, tokenPrice, charge } = record;
 
-      return record;
-    });
+        const formattedPackage = pkg && {
+          ...pkg,
+          price: pkg.price ? pkg.price / 100 : pkg.price,
+        };
+
+        const formattedTokenPrice = tokenPrice && {
+          ...tokenPrice,
+          price: tokenPrice.price ? tokenPrice.price / 100 : tokenPrice.price,
+        };
+
+        const formattedCommissions = charge?.commissions?.map((commission) => ({
+          ...commission,
+          amount: commission.amount
+            ? commission.amount / 100
+            : commission.amount,
+        }));
+
+        const formattedCharge = charge && {
+          ...charge,
+          commissions: formattedCommissions || charge.commissions,
+        };
+
+        return {
+          ...record,
+          package: formattedPackage || record.package,
+          tokenPrice: formattedTokenPrice || record.tokenPrice,
+          charge: formattedCharge || record.charge,
+        };
+      }
+    );
+
+    // const formattedRecords = (records as PurchaseActivityRecord[]).map(
+    //   (record) => {
+    //     if (record.package && record.package.price) {
+    //       record.package.price = record.package.price / 100;
+    //     }
+    //     if (record.tokenPrice && record.tokenPrice.price) {
+    //       record.tokenPrice.price = record.tokenPrice.price / 100;
+    //     }
+    //     if (record.charge && record.charge.commissions) {
+    //       record.charge.commissions.forEach((commission) => {
+    //         if (commission.amount) {
+    //           commission.amount = commission.amount / 100;
+    //         }
+    //       });
+    //     }
+
+    //     return record;
+    //   }
+    // );
 
     return {
       data: formattedRecords,
@@ -326,11 +351,25 @@ export class CommissionService {
   }
 
   async getCommissions(
+    info: any,
     cursor?: number,
     limit = 10,
     customerId?: number,
     isTransferred?: boolean
-  ): Promise<CommissionBaseResult> {
+  ): Promise<CommissionResult> {
+    const fields = graphqlFields(info);
+
+    const include: any = {};
+
+    if (fields.data) {
+      if (fields.data.customer) {
+        include.customer = true;
+      }
+      if (fields.data.charge) {
+        include.charge = true;
+      }
+    }
+
     const whereClause: Prisma.CommissionWhereInput = {};
 
     if (customerId) {
@@ -341,7 +380,9 @@ export class CommissionService {
       whereClause.isTransferred = isTransferred;
     }
 
-    const records = await this.prisma.commission.findMany({
+    // Check if the include object is empty
+    const isIncludeEmpty = Object.keys(include).length === 0;
+    const findManyArgs: any = {
       take: limit + 1, // Fetch one extra record to determine if there's a next page
       cursor: cursor ? { commissionId: cursor } : undefined,
       orderBy: [
@@ -349,7 +390,12 @@ export class CommissionService {
         { commissionId: 'desc' }, // largest values represent the earliest records.
       ],
       where: whereClause,
-    });
+    };
+
+    if (!isIncludeEmpty) {
+      findManyArgs.include = include;
+    }
+    const records = await this.prisma.commission.findMany(findManyArgs);
 
     const hasNextPage = records.length > limit;
     if (hasNextPage) {
@@ -359,7 +405,10 @@ export class CommissionService {
 
     // Format the amount field
     const formattedRecords = records.map((record) => {
-      record.amount = record.amount / 100;
+      if (record.amount) {
+        record.amount = record.amount / 100;
+      }
+
       return record;
     });
 
@@ -371,141 +420,69 @@ export class CommissionService {
     };
   }
 
-  async getCommissionsWithDetails(
+  async getCharges(
+    info: any, // This is the GraphQL resolver's info argument
     cursor?: number,
     limit = 10,
     customerId?: number,
-    isTransferred?: boolean
-  ): Promise<CommissionResult> {
-    const whereClause: Prisma.CommissionWhereInput = {};
+    code?: string
+  ) {
+    const fields = graphqlFields(info);
+
+    console.log({ fields });
+
+    const include: any = {};
+
+    if (fields.data) {
+      if (fields.data.customer) {
+        include.customer = true;
+      }
+      if (fields.data.payments) {
+        include.payments = true;
+      }
+      if (fields.data.commissions) {
+        include.commissions = true;
+      }
+      if (fields.data.purchaseActivity) {
+        include.purchaseActivity = true;
+      }
+    }
+
+    // Build the where filter object based on provided parameters
+    const whereFilter: any = {};
 
     if (customerId) {
-      whereClause.customerId = customerId;
+      whereFilter.customerId = customerId;
     }
 
-    if (isTransferred !== undefined) {
-      whereClause.isTransferred = isTransferred;
+    if (code) {
+      whereFilter.code = code;
     }
 
-    const records = await this.prisma.commission.findMany({
-      take: limit + 1, // Fetch one extra record to determine if there's a next page
-      cursor: cursor ? { commissionId: cursor } : undefined,
-      orderBy: [
-        { isTransferred: 'asc' }, // This will ensure that 'isTransferred=false' results appear at the top
-        { commissionId: 'desc' }, // largest values represent the earliest records.
-      ],
-      where: whereClause,
-      include: {
-        customer: true,
-        charge: true,
-      },
-    });
-
-    const hasNextPage = records.length > limit;
-    if (hasNextPage) {
-      // Remove the extra record
-      records.pop();
-    }
-
-    // Format the amount field
-    const formattedRecords = records.map((record) => {
-      record.amount = record.amount / 100;
-      return record;
-    });
-
-    return {
-      data: formattedRecords,
-      nextPageCursor: hasNextPage
-        ? records[records.length - 1].commissionId
-        : null,
-    };
-  }
-
-  async getCommissionsForCustomer(
-    customerId: number,
-    cursor?: number,
-    limit = 10,
-    isTransferred?: boolean
-  ): Promise<CommissionBaseResult> {
-    const whereClause: Prisma.CommissionWhereInput = {
-      customerId: customerId,
-    };
-
-    if (isTransferred !== undefined) {
-      whereClause.isTransferred = isTransferred;
-    }
-
-    const records = await this.prisma.commission.findMany({
+    // Check if the include object is empty
+    const isIncludeEmpty = Object.keys(include).length === 0;
+    const findManyArgs: any = {
       take: limit + 1,
-      cursor: cursor ? { commissionId: cursor } : undefined,
-      orderBy: [
-        { isTransferred: 'asc' }, // This will ensure that 'isTransferred=false' results appear at the top
-        { commissionId: 'desc' }, // largest values represent the earliest records.
-      ],
-      where: whereClause,
-    });
-
-    const hasNextPage = records.length > limit;
-    if (hasNextPage) {
-      records.pop();
-    }
-
-    const formattedRecords = records.map((record) => {
-      record.amount = record.amount / 100;
-      return record;
-    });
-
-    return {
-      data: formattedRecords,
-      nextPageCursor: hasNextPage
-        ? records[records.length - 1].commissionId
-        : null,
-    };
-  }
-
-  async getCommissionsWithDetailsForCustomer(
-    customerId: number,
-    cursor?: number,
-    limit = 10,
-    isTransferred?: boolean
-  ): Promise<CommissionResult> {
-    const whereClause: Prisma.CommissionWhereInput = {
-      customerId: customerId,
-    };
-
-    if (isTransferred !== undefined) {
-      whereClause.isTransferred = isTransferred;
-    }
-
-    const records = await this.prisma.commission.findMany({
-      take: limit + 1,
-      cursor: cursor ? { commissionId: cursor } : undefined,
-      orderBy: [
-        { isTransferred: 'asc' }, // This will ensure that 'isTransferred=false' results appear at the top
-        { commissionId: 'desc' }, // largest values represent the earliest records.
-      ],
-      where: whereClause,
-      include: {
-        customer: true,
-        charge: true,
+      cursor: cursor ? { chargeId: cursor } : undefined,
+      where: whereFilter,
+      orderBy: {
+        createdAt: 'desc',
       },
-    });
+    };
+
+    if (!isIncludeEmpty) {
+      findManyArgs.include = include;
+    }
+    const records = await this.prisma.charge.findMany(findManyArgs);
 
     const hasNextPage = records.length > limit;
     if (hasNextPage) {
       records.pop();
     }
 
-    const formattedRecords = records.map((record) => {
-      record.amount = record.amount / 100;
-      return record;
-    });
-
     return {
-      data: formattedRecords,
-      nextPageCursor: hasNextPage
-        ? records[records.length - 1].commissionId
-        : null,
+      data: records,
+      nextPageCursor: hasNextPage ? records[records.length - 1].chargeId : null,
     };
   }
 }

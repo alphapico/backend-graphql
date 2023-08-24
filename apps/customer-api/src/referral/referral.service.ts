@@ -158,6 +158,8 @@ export class ReferralService {
           emailStatus: row.emailStatus,
           referralCode: row.referralCode,
           referralCustomerId: row.referralCustomerId,
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt,
         };
         continue;
       }
@@ -171,6 +173,8 @@ export class ReferralService {
           emailStatus: row.emailStatus,
           referralCode: row.referralCode,
           referralCustomerId: row.referralCustomerId,
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt,
         };
       }
 

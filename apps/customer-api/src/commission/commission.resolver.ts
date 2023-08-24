@@ -1,26 +1,24 @@
-import { Resolver, Query, Args, Int, Mutation } from '@nestjs/graphql';
+import { Resolver, Query, Args, Int, Mutation, Info } from '@nestjs/graphql';
 import { CommissionService } from './commission.service'; // Assuming the service is in the same directory
 import { PurchaseActivityResult } from './dto/purchase-activity.dto';
-import { PurchaseActivityBaseResult } from './dto/purchase-activity.base.dto';
 import { CommissionResult } from './dto/commission.dto';
-import {
-  CommissionBase,
-  CommissionBaseResult,
-} from './dto/commission.base.dto';
+import { CommissionBase } from './dto/commission.base.dto';
 import { UseGuards } from '@nestjs/common';
 import { AdminGuard } from '../auth/admin.guard';
 import { CurrentUser, IJwtPayload, PaymentStatus } from '@charonium/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { ChargeResult } from './dto/charge.dto';
 
 @Resolver()
 export class CommissionResolver {
   constructor(private readonly commissionService: CommissionService) {}
 
   @Query(() => PurchaseActivityResult, {
-    name: 'getPurchaseActivitiesWithDetails',
+    name: 'getPurchaseActivities',
   })
   @UseGuards(AdminGuard)
-  async getPurchaseActivitiesWithDetails(
+  async getPurchaseActivities(
+    @Info() info: any,
     @Args('cursor', { type: () => Int, nullable: true }) cursor?: number,
     @Args('limit', { type: () => Int, defaultValue: 10 }) limit?: number,
     @Args('purchaseConfirmed', { type: () => Boolean, nullable: true })
@@ -29,31 +27,8 @@ export class CommissionResolver {
     paymentStatus?: PaymentStatus,
     @Args('customerId', { type: () => Int, nullable: true }) customerId?: number
   ): Promise<PurchaseActivityResult> {
-    const result =
-      await this.commissionService.getPurchaseActivitiesWithDetails(
-        cursor,
-        limit,
-        purchaseConfirmed,
-        paymentStatus,
-        customerId
-      );
-    return result;
-  }
-
-  @Query(() => PurchaseActivityBaseResult, {
-    name: 'getPurchaseActivities',
-  })
-  @UseGuards(AdminGuard)
-  async getPurchaseActivities(
-    @Args('cursor', { type: () => Int, nullable: true }) cursor?: number,
-    @Args('limit', { type: () => Int, defaultValue: 10 }) limit?: number,
-    @Args('purchaseConfirmed', { type: () => Boolean, nullable: true })
-    purchaseConfirmed?: boolean,
-    @Args('paymentStatus', { type: () => PaymentStatus, nullable: true })
-    paymentStatus?: PaymentStatus,
-    @Args('customerId', { type: () => Int, nullable: true }) customerId?: number
-  ): Promise<PurchaseActivityBaseResult> {
     const result = await this.commissionService.getPurchaseActivities(
+      info,
       cursor,
       limit,
       purchaseConfirmed,
@@ -64,11 +39,12 @@ export class CommissionResolver {
   }
 
   @Query(() => PurchaseActivityResult, {
-    name: 'getPurchaseActivitiesWithDetailsForCustomer',
+    name: 'getPurchaseActivitiesForCustomer',
   })
   @UseGuards(JwtAuthGuard)
-  async getPurchaseActivitiesWithDetailsForCustomer(
+  async getPurchaseActivitiesForCustomer(
     @CurrentUser() user: IJwtPayload,
+    @Info() info: any,
     @Args('cursor', { type: () => Int, nullable: true }) cursor?: number,
     @Args('limit', { type: () => Int, defaultValue: 10 }) limit?: number,
     @Args('purchaseConfirmed', { type: () => Boolean, nullable: true })
@@ -76,31 +52,8 @@ export class CommissionResolver {
     @Args('paymentStatus', { type: () => PaymentStatus, nullable: true })
     paymentStatus?: PaymentStatus
   ): Promise<PurchaseActivityResult> {
-    const result =
-      await this.commissionService.getPurchaseActivitiesWithDetails(
-        cursor,
-        limit,
-        purchaseConfirmed,
-        paymentStatus,
-        user.sub
-      );
-    return result;
-  }
-
-  @Query(() => PurchaseActivityBaseResult, {
-    name: 'getPurchaseActivitiesForCustomer',
-  })
-  @UseGuards(JwtAuthGuard)
-  async getPurchaseActivitiesForCustomer(
-    @CurrentUser() user: IJwtPayload,
-    @Args('cursor', { type: () => Int, nullable: true }) cursor?: number,
-    @Args('limit', { type: () => Int, defaultValue: 10 }) limit?: number,
-    @Args('purchaseConfirmed', { type: () => Boolean, nullable: true })
-    purchaseConfirmed?: boolean,
-    @Args('paymentStatus', { type: () => PaymentStatus, nullable: true })
-    paymentStatus?: PaymentStatus
-  ): Promise<PurchaseActivityBaseResult> {
     const result = await this.commissionService.getPurchaseActivities(
+      info,
       cursor,
       limit,
       purchaseConfirmed,
@@ -111,10 +64,11 @@ export class CommissionResolver {
   }
 
   @Query(() => CommissionResult, {
-    name: 'getCommissionsWithDetails',
+    name: 'getCommissions',
   })
   @UseGuards(AdminGuard)
-  async getCommissionsWithDetails(
+  async getCommissions(
+    @Info() info: any,
     @Args('cursor', { type: () => Int, nullable: true }) cursor?: number,
     @Args('limit', { type: () => Int, nullable: true }) limit?: number,
     @Args('customerId', { type: () => Int, nullable: true })
@@ -122,7 +76,8 @@ export class CommissionResolver {
     @Args('isTransferred', { type: () => Boolean, nullable: true })
     isTransferred?: boolean
   ): Promise<CommissionResult> {
-    return this.commissionService.getCommissionsWithDetails(
+    return this.commissionService.getCommissions(
+      info,
       cursor,
       limit,
       customerId,
@@ -130,22 +85,23 @@ export class CommissionResolver {
     );
   }
 
-  @Query(() => CommissionBaseResult, {
-    name: 'getCommissions',
+  @Query(() => CommissionResult, {
+    name: 'getCommissionsForCustomer',
   })
-  @UseGuards(AdminGuard)
-  async getCommissions(
+  @UseGuards(JwtAuthGuard)
+  async getCommissionsForCustomer(
+    @CurrentUser() user: IJwtPayload,
+    @Info() info: any,
     @Args('cursor', { type: () => Int, nullable: true }) cursor?: number,
     @Args('limit', { type: () => Int, nullable: true }) limit?: number,
-    @Args('customerId', { type: () => Int, nullable: true })
-    customerId?: number,
     @Args('isTransferred', { type: () => Boolean, nullable: true })
     isTransferred?: boolean
-  ): Promise<CommissionBaseResult> {
+  ): Promise<CommissionResult> {
     return this.commissionService.getCommissions(
+      info,
       cursor,
       limit,
-      customerId,
+      user.sub,
       isTransferred
     );
   }
@@ -166,41 +122,21 @@ export class CommissionResolver {
     return this.commissionService.isCommissionTransferred(commissionId);
   }
 
-  @Query(() => CommissionBaseResult, {
-    name: 'getCommissionsForCustomer',
-  })
-  @UseGuards(JwtAuthGuard)
-  async getCommissionsForCustomer(
-    @CurrentUser() user: IJwtPayload,
+  @Query(() => ChargeResult)
+  async getCharges(
+    @Info() info: any,
     @Args('cursor', { type: () => Int, nullable: true }) cursor?: number,
     @Args('limit', { type: () => Int, nullable: true }) limit?: number,
-    @Args('isTransferred', { type: () => Boolean, nullable: true })
-    isTransferred?: boolean
-  ): Promise<CommissionBaseResult> {
-    return this.commissionService.getCommissionsForCustomer(
-      user.sub,
+    @Args('customerId', { type: () => Int, nullable: true })
+    customerId?: number,
+    @Args('code', { type: () => String, nullable: true }) code?: string
+  ): Promise<ChargeResult> {
+    return this.commissionService.getCharges(
+      info,
       cursor,
       limit,
-      isTransferred
-    );
-  }
-
-  @Query(() => CommissionResult, {
-    name: 'getCommissionsWithDetailsForCustomer',
-  })
-  @UseGuards(JwtAuthGuard)
-  async getCommissionsWithDetailsForCustomer(
-    @CurrentUser() user: IJwtPayload,
-    @Args('cursor', { type: () => Int, nullable: true }) cursor?: number,
-    @Args('limit', { type: () => Int, nullable: true }) limit?: number,
-    @Args('isTransferred', { type: () => Boolean, nullable: true })
-    isTransferred?: boolean
-  ): Promise<CommissionResult> {
-    return this.commissionService.getCommissionsWithDetailsForCustomer(
-      user.sub,
-      cursor,
-      limit,
-      isTransferred
+      customerId,
+      code
     );
   }
 }

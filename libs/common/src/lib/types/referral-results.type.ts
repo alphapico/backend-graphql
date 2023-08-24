@@ -14,4 +14,6 @@ export type ReferralResults = Array<{
   emailStatus: (typeof PrismaEmailStatus)[keyof typeof PrismaEmailStatus];
   referralCode: string;
   referralCustomerId: number;
+  createdAt?: Date;
+  updatedAt?: Date;
 }>;

@@ -84,12 +84,32 @@ export const ERROR_MESSAGES = {
   RAW_QUERY_FAILED: 'Raw query failed',
   PRISMA_CLIENT_REQUEST_ERROR: 'Client request error',
   UNEXPECTED_ERROR: 'An unexpected error occurred',
+  FAILED_CREATE_CHARGE: 'Failed to create charge',
+  UNEXPECTED_CHARGE_STRUCTURE: 'Unexpected charge object structure',
+  CHARGE_NOT_FOUND: 'Charge not found',
+  PAYMENT_NOT_FOUND: 'Payment not found',
+  CURRENCY_MISMATCH: 'Currency mismatch',
+  TOKEN_PACKAGE_NOT_FOUND: 'Token Package not found',
+  TOKEN_PRICE_NOT_FOUND: 'Token Price not found',
+  TOKEN_AMOUNT_NOT_FOUND: 'Token Amount not found',
+  QUANTITY_TOKEN_NOT_PROVIDED: 'Quantity token not provided',
+  FAILED_RECORDING_NEW_CHARGE: 'Failed recording new charge',
+  FAILED_HANDLING_CHARGE_EVENT: 'Failed handling charge event',
+  AMOUNT_NOT_FOUND: 'Amount not found',
+  CURRENCY_NOT_FOUND: 'Currency not found',
   VAL: {
     IS_STRING: '$property must be a string',
     IS_EMAIL: '$property must be an email',
+    IS_URL: '$property must be a URL',
     IS_NOT_EMPTY: '$property should not be empty',
+    IS_VALID_CURRENCY_FORMAT: 'Invalid currency format',
+    IS_SUPPORTED_CURRENCY: `currency must be one of the following: ${supportedCurrencyList}`,
+    IS_CURRENCY_FORMAT: 'price must be a valid currency format',
     MIN_LENGTH: '$property must be longer than or equal to $constraint1 characters',
     MAX_LENGTH: '$property must be shorter than or equal to $constraint1 characters',
+  },
+  PRISMA: {
+    DATABASE_ERROR: 'Database error',
   },
 
   EMAIL_ERROR: {
@@ -100,6 +120,12 @@ export const ERROR_MESSAGES = {
     FAILED_TO_SEND_PASSWORD_RESET: 'Failed to send email password reset',
     FAILED_TO_SEND_ADMIN_REGISTRATION: 'Failed to send email admin registration',
     FAILED_TO_SEND_WELCOME: 'Failed to send email welcome',
+    FAILED_TO_SEND_UNRESOLVED_UNDERPAID: 'Failed to send Unresolved (Underpaid) email',
+    FAILED_TO_SEND_ADMIN_UNRESOLVED_UNDERPAID: 'Failed to send Unresolved (Underpaid) email to Admin',
+    FAILED_TO_SEND_ADMIN_UNRESOLVED_OVERPAID: 'Failed to send Unresolved (Overpaid) email to Admin',
+    FAILED_TO_SEND_ADMIN_UNRESOLVED_DELAYED: 'Failed to send Unresolved (Delayed) email to Admin',
+    FAILED_TO_SEND_ADMIN_UNRESOLVED_MULTIPLE: 'Failed to send Unresolved (Multiple) email to Admin',
+    FAILED_TO_SEND_ADMIN_UNRESOLVED_OTHER: 'Failed to send Unresolved (Other) email to Admin',
   },
 };
 ```
@@ -111,6 +137,8 @@ export const INPUT = {
   MAX_NAME_LENGTH: 50,
   MIN_PASSWORD_LENGTH: 8,
   MAX_PASSWORD_LENGTH: 100,
+  MIN_CURRENCY_LENGTH: 3,
+  MAX_CURRENCY_LENGTH: 5,
 };
 ```
 
@@ -129,6 +157,12 @@ export const SUCCESS_MESSAGES = {
   EMAIL_ADMIN_REGISTRATION_SENT: 'Email admin registration sent',
   CUSTOMER_IS_VERIFIED: 'Customer is successfully verified',
   EMAIL_WELCOME_SENT: 'Email welcome sent',
+  EMAIL_UNRESOLVED_UNDERPAID_SENT: 'Email Unresolved (Underpaid) sent',
+  EMAIL_ADMIN_UNRESOLVED_UNDERPAID_SENT: 'Email Unresolved (Underpaid) sent to Admin',
+  EMAIL_ADMIN_UNRESOLVED_OVERPAID_SENT: 'Email Unresolved (Overpaid) sent to Admin',
+  EMAIL_ADMIN_UNRESOLVED_DELAYED_SENT: 'Email Unresolved (Delayed) sent to Admin',
+  EMAIL_ADMIN_UNRESOLVED_MULTIPLE_SENT: 'Email Unresolved (Multiple) sent to Admin',
+  EMAIL_ADMIN_UNRESOLVED_OTHER_SEND: 'Email Unresolved (Other) sent to Admin',
 };
 ```
 
@@ -146,6 +180,8 @@ mutation Register($input: RegisterInput!) {
     email
     emailStatus
     referralCustomerId
+    createdAt
+    updatedAt
   }
 }
 
@@ -201,7 +237,7 @@ mutation Login($input: LoginInput!) {
       login(input: $input)
     }
 
-// example input
+// Example input
 {"input": {
       "email": "john.doer@gmail.com",
       "password": "password12345",
@@ -261,6 +297,7 @@ mutation ForgetPassword($input: EmailInput!) {
       forgetPassword(input: $input)
     }
 
+// Example input
 {"input": {
       "email": "john.doer@gmail.com"
     }
@@ -285,6 +322,7 @@ mutation ResetPassword($input: ResetPasswordInput!) {
       resetPassword(input: $input)
     }
 
+// Example input
 { "input": {
     "token" : "some-long-token-string",
     "newPassword" : "newpassword12345"
@@ -302,7 +340,11 @@ mutation ResetPassword($input: ResetPasswordInput!) {
 | BadRequestException | BAD_REQUEST           | 400         | Customer not found                                                                                                      |
 |                     | BAD_USER_INPUT        |             |                                                                                                                         |
 
+<br />
+
 ### Testing Protected Method
+
+`Restricted to User and Admin`
 
 You need to login to access this protected method
 
@@ -332,6 +374,7 @@ mutation ResendEmailVerification($input: EmailInput!) {
       resendEmailVerification(input: $input)
     }
 
+// Example input
 { "input": {
     "email" : "customer-email@example.com"
   }
@@ -357,6 +400,7 @@ mutation RegisterAdmin($input: RegisterAdminInput!) {
       registerAdmin(input: $input)
     }
 
+// Example input
 {
   "input" : {
       "token": "some-admin-registration-token",
@@ -398,6 +442,8 @@ mutation ResendAdminRegistrationEmail {
 
 ### Testing Protected Admin method
 
+`Restricted to Admin only`
+
 ```tsx
 query ProtectedAdminMethod {
   protectedAdminMethod {
@@ -418,9 +464,11 @@ query ProtectedAdminMethod {
 
 <br />
 
-## 3. Upload Image (For Admin)
+## 3. Upload Image
 
 ### Generate Presigned URL
+
+`Restricted to Admin only`
 
 ```tsx
 mutation GeneratePresignedUrl($uploadInput: UploadInput!) {
@@ -430,6 +478,7 @@ mutation GeneratePresignedUrl($uploadInput: UploadInput!) {
       }
     }
 
+// Example input
 {
   "uploadInput" : {
     "category" : "test", // This will be folder path in S3 bucket, category can be anything relevant
@@ -461,6 +510,8 @@ mutation GeneratePresignedUrl($uploadInput: UploadInput!) {
 
 ### Save Uploaded Image
 
+`Restricted to Admin only`
+
 After Frontend uploading image to S3 bucket, save the path with this format `https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${key-from-generatePresignedUrl}` . You can see example in `upload.spec.ts` in end-to-end test folder
 
 ```tsx
@@ -472,6 +523,7 @@ mutation SaveUploadedImage($saveImageInput: SaveImageInput!) {
       }
     }
 
+// Example input
 {
   "saveImageInput" : {
     "path" : `https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${key-from-generatePresignedUrl}`
@@ -493,7 +545,7 @@ mutation SaveUploadedImage($saveImageInput: SaveImageInput!) {
 
 ## 4. Referrer and Referees
 
-### Get Referral Map
+### Get Referral Map (Restricted to User and Admin)
 
 ```tsx
 query GetReferralMap($input: ReferralInput!) {
@@ -506,6 +558,10 @@ query GetReferralMap($input: ReferralInput!) {
             email
             referralCode
             referralCustomerId
+            customerStatus
+            emailStatus
+            createdAt
+            updatedAt
           }
           referees {
             customerId
@@ -513,11 +569,16 @@ query GetReferralMap($input: ReferralInput!) {
             email
             referralCode
             referralCustomerId
+            customerStatus
+            emailStatus
+            createdAt
+            updatedAt
           }
         }
       }
     }
 
+// Example input
 {
   "input" : {
     "referrerId" : 12, // customerId, who is the referrer (top level)
@@ -572,3 +633,1144 @@ query GetReferralMap($input: ReferralInput!) {
 | BadRequestException   | BAD_REQUEST           | 400         | Client request error                                              |
 | HttpException         | INTERNAL_SERVER_ERROR | 500         | An unexpected error occurred                                      |
 |                       | BAD_USER_INPUT        |             |                                                                   |
+
+<br />
+
+## 5. Token Price and Package
+
+### Set or Edit Token Price
+
+`Restricted to Admin only`
+
+```tsx
+// Set or Edit Price per Token
+mutation SetOrEditTokenPrice($input: TokenPriceCreateInput!) {
+      setOrEditTokenPrice(input: $input) {
+        tokenPriceId
+        currency
+        price
+        createdAt
+        updatedAt
+      }
+    }
+
+// Example input
+{
+  "input" :
+    {
+      "currency": "EUR", // Only 'EUR', 'USD' and 'GBP' are supporting currencies
+      "price": 2  // You can set price as 2 , 2.0 or 2.00 . Set 2.000 will be invalid
+    }
+}
+
+// response with TokenPrice
+{
+  "data": {
+    "setOrEditTokenPrice": {
+      "tokenPriceId": 1,
+      "currency": "EUR",
+      "price": 2,
+      "createdAt": "2023-08-18T05:47:11.524Z",
+      "updatedAt": "2023-08-18T05:47:11.524Z"
+    }
+  }
+}
+```
+
+| Exception             | Code            | Status Code | Message                                                                                                                 |
+| --------------------- | --------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------- |
+| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource                                                                                                      |
+| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized                                                                                                            |
+| BadRequestException   | BAD_REQUEST     | 400         | ["price must be a number", "price should not be empty", "price must be a valid currency format"]                        |
+| BadRequestException   | BAD_REQUEST     | 400         | ["currency must be a string", "currency should not be empty", "currency must be one of the following: USD, GBP or EUR"] |
+|                       | BAD_USER_INPUT  |             |                                                                                                                         |
+
+<br />
+
+### Get Token Price
+
+```tsx
+query GetTokenPrice {
+      getTokenPrice {
+        tokenPriceId
+        currency
+        price
+        createdAt
+        updatedAt
+      }
+    }
+
+    // response with TokenPrice | null
+```
+
+<br />
+
+### Create Token Package
+
+`Restricted to Admin only`
+
+```tsx
+mutation CreateTokenPackage($input: TokenPackageCreateInput!) {
+        createTokenPackage(input: $input) {
+          packageId
+          name
+          price
+          tokenAmount
+          isActive
+        }
+      }
+
+// Example input
+  {
+    "input" : {
+        "name": "Basic Package",
+        "price": 100, // You can set price as 100, 100.0 or 100.00 . Set 100.000 will be invalid
+        "tokenAmount": 100,
+        "currency": "USD", // Only 'EUR', 'USD' and 'GBP' are supporting currencies
+        "isActive": true
+      }
+  }
+
+  // response with TokenPackage
+  {
+    "data": {
+      "createTokenPackage": {
+        "packageId": 1,
+        "name": "Basic Package",
+        "price": 100,
+        "tokenAmount": 100,
+        "isActive": true
+      }
+    }
+  }
+```
+
+| Exception             | Code            | Status Code | Message                                                                                                                 |
+| --------------------- | --------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------- |
+| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource                                                                                                      |
+| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized                                                                                                            |
+| BadRequestException   | BAD_REQUEST     | 400         | ["name must be a string", "name should not be empty"]                                                                   |
+| BadRequestException   | BAD_REQUEST     | 400         | ["description must be a string"]                                                                                        |
+| BadRequestException   | BAD_REQUEST     | 400         | ["tokenAmount must be a number", "tokenAmount should not be empty"]                                                     |
+| BadRequestException   | BAD_REQUEST     | 400         | ["price must be a number", "price should not be empty", "price must be a valid currency format"]                        |
+| BadRequestException   | BAD_REQUEST     | 400         | ["currency must be a string", "currency should not be empty", "currency must be one of the following: USD, GBP or EUR"] |
+| BadRequestException   | BAD_REQUEST     | 400         | ["isActive must be a boolean", "isActive should not be empty"]                                                          |
+|                       | BAD_USER_INPUT  |             |                                                                                                                         |
+
+<br />
+
+### Edit Token Package
+
+`Restricted to Admin only`
+
+```tsx
+mutation EditTokenPackage(
+        $packageId: Int!
+        $input: TokenPackageUpdateInput!
+      ) {
+        editTokenPackage(packageId: $packageId, input: $input) {
+          packageId
+          name
+          price
+          tokenAmount
+        }
+      }
+
+// Example input
+{
+  "packageId": 1,
+  "input": {
+      "price": 120,
+      "tokenAmount": 150
+    }
+}
+
+// response with TokenPackage
+```
+
+| Exception             | Code            | Status Code | Message                                                                                 |
+| --------------------- | --------------- | ----------- | --------------------------------------------------------------------------------------- |
+| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource                                                                      |
+| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized                                                                            |
+| BadRequestException   | BAD_REQUEST     | 400         | ["name must be a string"]                                                               |
+| BadRequestException   | BAD_REQUEST     | 400         | ["description must be a string"]                                                        |
+| BadRequestException   | BAD_REQUEST     | 400         | ["tokenAmount must be a number"]                                                        |
+| BadRequestException   | BAD_REQUEST     | 400         | ["price must be a number", "price must be a valid currency format"]                     |
+| BadRequestException   | BAD_REQUEST     | 400         | ["currency must be a string", "currency must be one of the following: USD, GBP or EUR"] |
+| BadRequestException   | BAD_REQUEST     | 400         | ["isActive must be a boolean"]                                                          |
+|                       | BAD_USER_INPUT  |             |                                                                                         |
+
+<br />
+
+### Toggle Token Package Status
+
+`Restricted to Admin only`
+
+```tsx
+mutation ToggleTokenPackageStatus($packageId: Int!) {
+        toggleTokenPackageStatus(packageId: $packageId) {
+          packageId
+          isActive
+        }
+      }
+
+// Example input
+{
+  "packageId": 1
+}
+
+// response with TokenPackage
+```
+
+| Exception             | Code            | Status Code | Message            |
+| --------------------- | --------------- | ----------- | ------------------ |
+| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |
+| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |
+|                       | BAD_USER_INPUT  |             |                    |
+
+<br />
+
+### Delete Token Package
+
+`Restricted to Admin only`
+
+```tsx
+mutation DeleteTokenPackage($packageId: Int!) {
+        deleteTokenPackage(packageId: $packageId) {
+          packageId
+          name
+          price
+          tokenAmount
+          isActive
+        }
+      }
+
+// Example input
+{
+  "packageId": 1
+}
+
+// response with the deleted TokenPackage
+```
+
+| Exception             | Code            | Status Code | Message            |
+| --------------------- | --------------- | ----------- | ------------------ |
+| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |
+| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |
+|                       | BAD_USER_INPUT  |             |                    |
+
+<br />
+
+### Get Token Package
+
+```tsx
+query GetTokenPackage($packageId: Int!) {
+        getTokenPackage(packageId: $packageId) {
+          packageId
+          name
+          price
+          tokenAmount
+          isActive
+        }
+      }
+
+// Example input
+{
+  "packageId": 1
+}
+
+// response with TokenPackage | null
+```
+
+| Exception | Code           | Status Code | Message |
+| --------- | -------------- | ----------- | ------- |
+|           | BAD_USER_INPUT |             |         |
+
+<br />
+
+### Get All Token Packages
+
+```tsx
+query GetAllTokenPackages{
+        getAllTokenPackages{
+          packageId
+          name
+          price
+          tokenAmount
+          isActive
+        }
+      }
+
+// response with TokenPackage[]
+```
+
+| Exception | Code           | Status Code | Message |
+| --------- | -------------- | ----------- | ------- |
+|           | BAD_USER_INPUT |             |         |
+
+<br />
+
+### Get All Token Packages By Status
+
+```tsx
+query GetAllTokenPackagesByStatus($isActive: Boolean!){
+        getAllTokenPackagesByStatus(isActive : $isActive){
+          packageId
+          name
+          price
+          tokenAmount
+          isActive
+        }
+      }
+
+// Example input
+{
+  "isActive": true
+}
+
+// response with TokenPackage[]
+```
+
+| Exception | Code           | Status Code | Message |
+| --------- | -------------- | ----------- | ------- |
+|           | BAD_USER_INPUT |             |         |
+
+<br />
+
+## 6. Token Purchase
+
+### Purchase Tokens
+
+`Restricted to User and Admin`
+
+```tsx
+mutation PurchaseTokens($input: PurchaseTokensInput!) {
+      purchaseTokens(input: $input)
+    }
+
+// Example input
+// <FRONTEND_URL> can't be localhost.
+// Some alternatives:
+// register `ngrok` and install `ngrok` package
+// Try using `ngrok http <FRONTEND_PORT>` to get real URL
+{
+	"input" : {
+      "redirect_url": "https://<FRONTEND_URL>/payment-success",
+      "cancel_url": "https://<FRONTEND_URL>/payment-cancelled",
+      "quantity": 20
+    }
+}
+
+// response with string (Charge code from Coinbase)
+// e.g:
+// {
+//  "data": {
+//    "purchaseTokens": "VK4VB4WD"
+//  }
+//}
+```
+
+<br />
+
+## 7. Purchase Activities
+
+### Get Purchase Activities
+
+`Restricted to Admin only`
+
+```tsx
+// inside data {...} fields,
+// all fields are optional but you need to specify at least one!
+// For example, you can specify data query as simple as this
+// data {
+//       purchaseActivityId
+//       chargeId
+//       packageId
+//       tokenPriceId
+//       tokenAmount
+//       price
+//       amount
+//       currency
+// }
+
+query GetPurchaseActivities($cursor: Int, $limit: Int, $purchaseConfirmed: Boolean, $paymentStatus: PaymentStatus, $customerId: Int) {
+  getPurchaseActivities(cursor: $cursor, limit: $limit, purchaseConfirmed: $purchaseConfirmed, paymentStatus: $paymentStatus, customerId: $customerId) {
+    data {
+      purchaseActivityId
+      chargeId
+      packageId
+      tokenPriceId
+      tokenAmount
+      price
+      amount
+      currency
+      purchaseConfirmed
+      paymentStatus
+      createdAt
+      updatedAt
+      charge {
+        chargeId
+        customerId
+        code
+        name
+        description
+        pricingType
+        pricing
+        addresses
+        exchangeRates
+        localExchangeRates
+        hostedUrl
+        cancelUrl
+        redirectUrl
+        feeRate
+        expiresAt
+        paymentThreshold
+        createdAt
+        updatedAt
+        payments {
+          paymentId
+          chargeId
+          network
+          transaction
+          value
+          type
+          status
+          paymentStatus
+          unresolvedReason
+          createdAt
+          updatedAt
+        }
+        commissions {
+          commissionId
+          customerId
+          chargeId
+          tier
+          commissionRate
+          amount
+          currency
+          isTransferred
+          createdAt
+          updatedAt
+        }
+      }
+      package {
+        packageId
+        name
+        description
+        tokenAmount
+        price
+        currency
+        isActive
+        createdAt
+        updatedAt
+        deletedAt
+      }
+      tokenPrice {
+        tokenPriceId
+        currency
+        price
+        createdAt
+        updatedAt
+      }
+    }
+    nextPageCursor
+  }
+}
+
+// Example input
+{
+  "cursor": 18, // Optional, ID from Cursor, sent null for the first time
+  "limit": 10, // Optional, how many data you want per fetch
+  "purchaseConfirmed": true, // Optional
+  "paymentStatus": "COMPLETED", //Optional,  PaymentStatus
+  "customerId": 8 // Optional
+}
+
+// Response with PurchaseActivityResult
+// example:
+{
+  "data": {
+    "getPurchaseActivities": {
+      "data": [],
+      "nextPageCursor": null // if there is cursor ID, store it for the next fetch
+    }
+  }
+}
+
+// another example:
+{
+  "data": {
+    "getPurchaseActivities": {
+      "data": [
+        {
+          "purchaseActivityId": 3,
+          "chargeId": 3,
+          "packageId": null,
+          "tokenPriceId": 1,
+          "tokenAmount": 20,
+          "price": 125,
+          "amount": 2500,
+          "currency": "EUR",
+          "purchaseConfirmed": false,
+          "paymentStatus": "NEW",
+          "createdAt": "2023-08-23T13:17:43.169Z",
+          "updatedAt": "2023-08-23T13:17:43.169Z",
+          "charge": {
+            "chargeId": 3,
+            "customerId": 5,
+            "code": "WH3WHAJQ",
+            "name": "Sham Stack",
+            "description": "Purchase of 20 tokens at 25.00 EUR",
+            "pricingType": "fixed_price",
+            "pricing": {
+              "dai": {
+                "amount": "27.047099993858618793",
+                "currency": "DAI"
+              },
+              "usdc": {
+                "amount": "27.043043",
+                "currency": "USDC"
+              },
+              "local": {
+                "amount": "25.00",
+                "currency": "EUR"
+              },
+              "pusdc": {
+                "amount": "27.043043",
+                "currency": "PUSDC"
+              },
+              "pweth": {
+                "amount": "0.016531644651728041",
+                "currency": "PWETH"
+              },
+              "tether": {
+                "amount": "27.059685",
+                "currency": "USDT"
+              },
+              "apecoin": {
+                "amount": "18.303243945082598985",
+                "currency": "APE"
+              },
+              "bitcoin": {
+                "amount": "0.00104774",
+                "currency": "BTC"
+              },
+              "polygon": {
+                "amount": "49.597511000",
+                "currency": "PMATIC"
+              },
+              "dogecoin": {
+                "amount": "430.24489585",
+                "currency": "DOGE"
+              },
+              "ethereum": {
+                "amount": "0.016533000",
+                "currency": "ETH"
+              },
+              "litecoin": {
+                "amount": "0.42202002",
+                "currency": "LTC"
+              },
+              "shibainu": {
+                "amount": "3324283.088980889981561156",
+                "currency": "SHIB"
+              },
+              "bitcoincash": {
+                "amount": "0.14459201",
+                "currency": "BCH"
+              }
+            },
+            "addresses": {
+              "dai": "0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f",
+              "usdc": "0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f",
+              "pusdc": "0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f",
+              "pweth": "0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f",
+              "tether": "0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f",
+              "apecoin": "0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f",
+              "bitcoin": "34URso9pwmaWXXXsGjwiUdy3g9j23qg5TW",
+              "polygon": "0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f",
+              "dogecoin": "DB5kPE4VY6TFaopwphBaHpWkqDAxsbDhic",
+              "ethereum": "0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f",
+              "litecoin": "MUndhhRBZffhd7nXhnQ7mTMgKd2LBeyEHE",
+              "shibainu": "0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f",
+              "bitcoincash": "qzqyjeskkq2wxy3t8k0rctmgpsc59wdv4g6epkd8u5"
+            },
+            "exchangeRates": {
+              "APE-USD": "1.4775",
+              "BCH-USD": "187.03",
+              "BTC-USD": "25810.785",
+              "DAI-USD": "0.99985",
+              "ETH-USD": "1635.665",
+              "LTC-USD": "64.08",
+              "DOGE-USD": "0.062855",
+              "SHIB-USD": "0.000008135",
+              "USDC-USD": "1.0",
+              "USDT-USD": "0.999385",
+              "PUSDC-USD": "1.0",
+              "PWETH-USD": "1635.835",
+              "PMATIC-USD": "0.54525"
+            },
+            "localExchangeRates": {
+              "APE-EUR": "1.37",
+              "BCH-EUR": "172.90",
+              "BTC-EUR": "23860.84",
+              "DAI-EUR": "0.92",
+              "ETH-EUR": "1512.09",
+              "LTC-EUR": "59.24",
+              "DOGE-EUR": "0.06",
+              "SHIB-EUR": "0.00",
+              "USDC-EUR": "0.92",
+              "USDT-EUR": "0.92",
+              "PUSDC-EUR": "0.92",
+              "PWETH-EUR": "1512.25",
+              "PMATIC-EUR": "0.50"
+            },
+            "hostedUrl": "https://commerce.coinbase.com/charges/WH3WHAJQ",
+            "cancelUrl": "https://3f13-2001-f40-943-178f-79f5-4b8b-b90d-827d.ngrok-free.app/payment-cancelled",
+            "redirectUrl": "https://3f13-2001-f40-943-178f-79f5-4b8b-b90d-827d.ngrok-free.app/payment-success",
+            "feeRate": 0.01,
+            "expiresAt": "2023-08-23T14:17:42.000Z",
+            "paymentThreshold": {
+              "overpayment_absolute_threshold": {
+                "amount": "5.00",
+                "currency": "USD"
+              },
+              "overpayment_relative_threshold": "0.045",
+              "underpayment_absolute_threshold": {
+                "amount": "5.00",
+                "currency": "USD"
+              },
+              "underpayment_relative_threshold": "0.005"
+            },
+            "createdAt": "2023-08-23T13:17:43.096Z",
+            "updatedAt": "2023-08-23T13:17:43.096Z",
+            "payments": [],
+            "commissions": []
+          },
+          "package": null,
+          "tokenPrice": {
+            "tokenPriceId": 1,
+            "currency": "EUR",
+            "price": 1.25,
+            "createdAt": "2023-08-18T05:47:11.524Z",
+            "updatedAt": "2023-08-18T05:47:11.524Z"
+          }
+        }
+      ],
+      "nextPageCursor": null
+    }
+  }
+}
+
+// PaymentStatus is defined as
+export enum PaymentStatus {
+  NEW = 'NEW',
+  PENDING = 'PENDING',
+  COMPLETED = 'COMPLETED',
+  UNRESOLVED = 'UNRESOLVED',
+  RESOLVED = 'RESOLVED',
+  EXPIRED = 'EXPIRED',
+  CANCELED = 'CANCELED',
+  MANUALLY_ACCEPTED = 'MANUALLY_ACCEPTED',
+  MANUALLY_UNACCEPTED = 'MANUALLY_UNACCEPTED',
+}
+
+```
+
+| Exception             | Code            | Status Code | Message            |
+| --------------------- | --------------- | ----------- | ------------------ |
+| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |
+| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |
+|                       | BAD_USER_INPUT  |             |                    |
+
+<br />
+
+### Get Purchase Activities for Customer
+
+`Restricted to User and Admin`
+
+```tsx
+// customer's own purchase activities. (the login one)
+
+query GetPurchaseActivitiesForCustomer($cursor: Int, $limit: Int, $purchaseConfirmed: Boolean, $paymentStatus: PaymentStatus) {
+  getPurchaseActivitiesForCustomer(cursor: $cursor, limit: $limit, purchaseConfirmed: $purchaseConfirmed, paymentStatus: $paymentStatus) {
+    data {
+      ... // Same fields as getPurchaseActivities
+    }
+    nextPageCursor
+  }
+}
+
+// Example input
+{
+  "cursor": 18, // Optional, ID from Cursor, sent null for the first time
+  "limit": 10, // Optional, how many data you want per fetch
+  "purchaseConfirmed": true, // Optional, wether full payment has been made or not
+  "paymentStatus": "COMPLETED", //Optional,  PaymentStatus
+}
+
+// Response with PurchaseActivityResult
+{
+  "data": {
+    "getPurchaseActivitiesForCustomer": {
+      "data": [],
+      "nextPageCursor": null // if there is cursor ID, store it for the next fetch
+    }
+  }
+}
+
+```
+
+| Exception             | Code            | Status Code | Message      |
+| --------------------- | --------------- | ----------- | ------------ |
+| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized |
+|                       | BAD_USER_INPUT  |             |              |
+
+<br />
+
+### Get Charges
+
+`Restricted to Admin only`
+
+```tsx
+query GetCharges($cursor: Int, $limit: Int, $customerId: Int, $code: String) {
+  getCharges(cursor: $cursor, limit: $limit, customerId: $customerId, code: $code) {
+    data {
+      chargeId
+      code
+      name
+      description
+      pricingType
+      addresses
+      pricing
+      exchangeRates
+      localExchangeRates
+      hostedUrl
+      cancelUrl
+      redirectUrl
+      feeRate
+      expiresAt
+      paymentThreshold
+      createdAt
+      updatedAt
+      customer {
+        customerId
+        name
+        email
+        customerStatus
+      }
+      payments {
+        paymentId
+        chargeId
+        network
+        transaction
+        value
+        type
+        status
+        paymentStatus
+        unresolvedReason
+        createdAt
+        updatedAt
+      }
+      commissions {
+        commissionId
+        customerId
+        chargeId
+        tier
+        commissionRate
+        amount
+        currency
+        isTransferred
+        createdAt
+        updatedAt
+      }
+      purchaseActivity {
+        purchaseActivityId
+      	chargeId
+      	packageId
+      	tokenPriceId
+      	tokenAmount
+      	price
+      	amount
+      	currency
+      	purchaseConfirmed
+      	paymentStatus
+      	createdAt
+      	updatedAt
+      }
+    }
+    nextPageCursor
+  }
+}
+
+// Example input
+{
+  "cursor": 18, // Optional, ID from Cursor, sent null for the first time
+  "limit": 10, // Optional, how many data you want per fetch
+  "customerId": 8, // Optional
+  "code": "ABC123" // Optional, Charge code from Coinbase, specifying this will return only 1 result since the `code` is unique
+}
+
+// response with ChargeResult
+// example:
+{
+  "data": {
+    "getCharges": {
+      "data": [
+        {
+          "chargeId": 3,
+          "code": "WH3WHAJQ",
+          "name": "Sham Stack",
+          "description": "Purchase of 20 tokens at 25.00 EUR",
+          "pricingType": "fixed_price",
+          "addresses": {
+            "dai": "0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f",
+            "usdc": "0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f",
+            "pusdc": "0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f",
+            "pweth": "0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f",
+            "tether": "0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f",
+            "apecoin": "0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f",
+            "bitcoin": "34URso9pwmaWXXXsGjwiUdy3g9j23qg5TW",
+            "polygon": "0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f",
+            "dogecoin": "DB5kPE4VY6TFaopwphBaHpWkqDAxsbDhic",
+            "ethereum": "0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f",
+            "litecoin": "MUndhhRBZffhd7nXhnQ7mTMgKd2LBeyEHE",
+            "shibainu": "0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f",
+            "bitcoincash": "qzqyjeskkq2wxy3t8k0rctmgpsc59wdv4g6epkd8u5"
+          },
+          "pricing": {
+            "dai": {
+              "amount": "27.047099993858618793",
+              "currency": "DAI"
+            },
+            "usdc": {
+              "amount": "27.043043",
+              "currency": "USDC"
+            },
+            "local": {
+              "amount": "25.00",
+              "currency": "EUR"
+            },
+            "pusdc": {
+              "amount": "27.043043",
+              "currency": "PUSDC"
+            },
+            "pweth": {
+              "amount": "0.016531644651728041",
+              "currency": "PWETH"
+            },
+            "tether": {
+              "amount": "27.059685",
+              "currency": "USDT"
+            },
+            "apecoin": {
+              "amount": "18.303243945082598985",
+              "currency": "APE"
+            },
+            "bitcoin": {
+              "amount": "0.00104774",
+              "currency": "BTC"
+            },
+            "polygon": {
+              "amount": "49.597511000",
+              "currency": "PMATIC"
+            },
+            "dogecoin": {
+              "amount": "430.24489585",
+              "currency": "DOGE"
+            },
+            "ethereum": {
+              "amount": "0.016533000",
+              "currency": "ETH"
+            },
+            "litecoin": {
+              "amount": "0.42202002",
+              "currency": "LTC"
+            },
+            "shibainu": {
+              "amount": "3324283.088980889981561156",
+              "currency": "SHIB"
+            },
+            "bitcoincash": {
+              "amount": "0.14459201",
+              "currency": "BCH"
+            }
+          },
+          "exchangeRates": {
+            "APE-USD": "1.4775",
+            "BCH-USD": "187.03",
+            "BTC-USD": "25810.785",
+            "DAI-USD": "0.99985",
+            "ETH-USD": "1635.665",
+            "LTC-USD": "64.08",
+            "DOGE-USD": "0.062855",
+            "SHIB-USD": "0.000008135",
+            "USDC-USD": "1.0",
+            "USDT-USD": "0.999385",
+            "PUSDC-USD": "1.0",
+            "PWETH-USD": "1635.835",
+            "PMATIC-USD": "0.54525"
+          },
+          "localExchangeRates": {
+            "APE-EUR": "1.37",
+            "BCH-EUR": "172.90",
+            "BTC-EUR": "23860.84",
+            "DAI-EUR": "0.92",
+            "ETH-EUR": "1512.09",
+            "LTC-EUR": "59.24",
+            "DOGE-EUR": "0.06",
+            "SHIB-EUR": "0.00",
+            "USDC-EUR": "0.92",
+            "USDT-EUR": "0.92",
+            "PUSDC-EUR": "0.92",
+            "PWETH-EUR": "1512.25",
+            "PMATIC-EUR": "0.50"
+          },
+          "hostedUrl": "https://commerce.coinbase.com/charges/WH3WHAJQ",
+          "cancelUrl": "https://3f13-2001-f40-943-178f-79f5-4b8b-b90d-827d.ngrok-free.app/payment-cancelled",
+          "redirectUrl": "https://3f13-2001-f40-943-178f-79f5-4b8b-b90d-827d.ngrok-free.app/payment-success",
+          "feeRate": 0.01,
+          "expiresAt": "2023-08-23T14:17:42.000Z",
+          "paymentThreshold": {
+            "overpayment_absolute_threshold": {
+              "amount": "5.00",
+              "currency": "USD"
+            },
+            "overpayment_relative_threshold": "0.045",
+            "underpayment_absolute_threshold": {
+              "amount": "5.00",
+              "currency": "USD"
+            },
+            "underpayment_relative_threshold": "0.005"
+          },
+          "createdAt": "2023-08-23T13:17:43.096Z",
+          "updatedAt": "2023-08-23T13:17:43.096Z",
+          "customer": {
+            "customerId": 5,
+            "name": "Sham Stack",
+            "email": "realtimestack@gmail.com",
+            "customerStatus": "ACTIVE"
+          },
+          "payments": [],
+          "commissions": [],
+          "purchaseActivity": {
+            "purchaseActivityId": 3,
+            "chargeId": 3,
+            "packageId": null,
+            "tokenPriceId": 1,
+            "tokenAmount": 20,
+            "price": 125,
+            "amount": 2500,
+            "currency": "EUR",
+            "purchaseConfirmed": false,
+            "paymentStatus": "NEW",
+            "createdAt": "2023-08-23T13:17:43.169Z",
+            "updatedAt": "2023-08-23T13:17:43.169Z"
+          }
+        }
+      ],
+      "nextPageCursor": null
+    }
+  }
+}
+```
+
+## 8. Commissions
+
+### Get Commissions
+
+`Restricted to Admin only`
+
+```tsx
+// inside data {...} fields,
+// all fields are optional but you need to specify at least one!
+
+query GetCommissions($cursor: Int, $limit: Int, $customerId: Int, $isTransferred: Boolean) {
+  getCommissions(cursor: $cursor, limit: $limit, customerId: $customerId, isTransferred: $isTransferred) {
+    data {
+      commissionId
+      customerId
+      chargeId
+      tier
+      commissionRate
+      amount
+      currency
+      isTransferred
+      createdAt
+      updatedAt
+      customer {
+        customerId
+        name
+        email
+        customerStatus
+        createdAt
+        updatedAt
+      }
+      charge {
+        chargeId
+        customerId
+        code
+        name
+        description
+        pricingType
+        pricing
+        addresses
+        exchangeRates
+        localExchangeRates
+        hostedUrl
+        cancelUrl
+        redirectUrl
+        feeRate
+        expiresAt
+        paymentThreshold
+        createdAt
+        updatedAt
+      }
+    }
+    nextPageCursor
+  }
+}
+
+// Example input
+  {
+    "cursor": 1, // Optional, ID from Cursor, sent null for the first time
+    "limit": 10, // Optional, how many data you want per fetch
+    "customerId": 12, // Optional
+    "isTransferred": false // Optional, wether the commission has been transferred to user's wallet or not
+  }
+
+// response with CommissionResult
+{
+  "data": {
+    "getCommissions": {
+      "data": [],
+      "nextPageCursor": null
+    }
+  }
+}
+```
+
+| Exception             | Code            | Status Code | Message            |
+| --------------------- | --------------- | ----------- | ------------------ |
+| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |
+| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |
+|                       | BAD_USER_INPUT  |             |                    |
+
+<br />
+
+### Get Commissions for Customer
+
+`Restricted to User and Admin`
+
+```tsx
+// customer's own commissions (the login one)
+
+query GetCommissionsForCustomer($cursor: Int, $limit: Int, $isTransferred: Boolean) {
+  getCommissionsForCustomer(cursor: $cursor, limit: $limit, isTransferred: $isTransferred) {
+    data {
+      ... // Same fields as getCommissionsWithDetails
+    }
+    nextPageCursor
+  }
+}
+
+// Example input
+  {
+    "cursor": 1, // Optional, ID from Cursor, sent null for the first time
+    "limit": 10, // Optional, how many data you want per fetch
+    "isTransferred": false // Optional, wether the commission has been transferred to user's wallet or not
+  }
+
+  // Response with CommissionResult
+  {
+    "data": {
+      "getCommissionsForCustomer": {
+        "data": [],
+        "nextPageCursor": null
+      }
+    }
+  }
+```
+
+| Exception             | Code            | Status Code | Message      |
+| --------------------- | --------------- | ----------- | ------------ |
+| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized |
+|                       | BAD_USER_INPUT  |             |              |
+
+<br />
+
+### Update Commissions Transfer Status
+
+`Restricted to Admin only`
+
+```tsx
+mutation UpdateCommissionTransferStatus($commissionId: Int!) {
+  updateCommissionTransferStatus(commissionId: $commissionId) {
+    commissionId
+    customerId
+    chargeId
+    tier
+    commissionRate
+    amount
+    currency
+    isTransferred
+    createdAt
+    updatedAt
+  }
+}
+
+// Example input
+{
+  "commissionId": 6789
+}
+
+// Response with CommissionBase
+{
+  "data": {
+    "updateCommissionTransferStatus": {
+      "commissionId" : 2,
+      "customerId": 3,
+      "chargeId": 5,
+      "tier" : 2,
+      "commissionRate": 0.02,
+      "amount": 18.35,
+      "currency": "EUR",
+      "isTransferred": true
+    }
+  }
+}
+
+```
+
+| Exception             | Code            | Status Code | Message            |
+| --------------------- | --------------- | ----------- | ------------------ |
+| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |
+| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |
+|                       | BAD_USER_INPUT  |             |                    |
+
+<br />
+
+### Check is Commission Transferred
+
+`Restricted to Admin only`
+
+```tsx
+query IsCommissionTransferred($commissionId: Int!) {
+  isCommissionTransferred(commissionId: $commissionId)
+}
+
+// Example input
+{
+  "commissionId": 6789
+}
+
+// response with Boolean
+
+
+```
+
+| Exception             | Code            | Status Code | Message            |
+| --------------------- | --------------- | ----------- | ------------------ |
+| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |
+| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |
+|                       | BAD_USER_INPUT  |             |                    |

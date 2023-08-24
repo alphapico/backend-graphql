@@ -11,6 +11,9 @@ import {
   PurchaseActivity,
 } from '@prisma/client';
 
+jest.mock('graphql-fields');
+import graphqlFields from 'graphql-fields';
+
 describe('CommissionService', () => {
   let service: CommissionService;
   let mockPrismaService: MockPrismaService;
@@ -38,6 +41,19 @@ describe('CommissionService', () => {
     }).compile();
 
     service = module.get<CommissionService>(CommissionService);
+
+    // Mock the implementation of graphqlFields for this test
+    (graphqlFields as jest.Mock).mockImplementation(() => ({
+      data: {
+        customer: true,
+        charge: true,
+      },
+    }));
+  });
+
+  afterEach(() => {
+    // Restore the original implementation
+    (graphqlFields as jest.Mock).mockRestore();
   });
 
   it('should be defined', () => {
@@ -236,7 +252,9 @@ describe('CommissionService', () => {
 
       mockPrismaService.commission.findMany.mockResolvedValue(mockCommissions);
 
-      const result = await service.getCommissions();
+      // Mock the info argument
+      const mockInfo = {};
+      const result = await service.getCommissions(mockInfo);
 
       expect(result.data).toEqual([
         {
@@ -269,7 +287,9 @@ describe('CommissionService', () => {
 
       mockPrismaService.commission.findMany.mockResolvedValue(mockCommissions);
 
-      const result = await service.getCommissions();
+      // Mock the info argument
+      const mockInfo = {};
+      const result = await service.getCommissions(mockInfo);
 
       expect(result.data.length).toEqual(10);
       expect(result.nextPageCursor).toEqual(10);
@@ -295,7 +315,8 @@ describe('CommissionService', () => {
 
       mockPrismaService.commission.findMany.mockResolvedValue(mockCommissions);
 
-      const result = await service.getCommissions(undefined, 10, 1);
+      const mockInfo = {};
+      const result = await service.getCommissions(mockInfo, undefined, 10, 1);
 
       expect(result.data).toEqual([
         {
@@ -343,7 +364,8 @@ describe('CommissionService', () => {
 
       mockPrismaService.commission.findMany.mockResolvedValue(mockCommissions);
 
-      const result = await service.getCommissions(undefined, 2);
+      const mockInfo = {};
+      const result = await service.getCommissions(mockInfo, undefined, 2);
 
       expect(result.data).toEqual([
         {
@@ -408,7 +430,8 @@ describe('CommissionService', () => {
         mockCommissions.slice(0, 3) // Mock 3 records
       );
 
-      const result = await service.getCommissions(1, 2);
+      const mockInfo = {};
+      const result = await service.getCommissions(mockInfo, 1, 2);
 
       expect(result.data).toEqual([
         {
@@ -469,7 +492,9 @@ describe('CommissionService', () => {
 
       mockPrismaService.commission.findMany.mockResolvedValue(mockCommissions);
 
-      const result = await service.getCommissions();
+      // Mock the info argument
+      const mockInfo = {};
+      const result = await service.getCommissions(mockInfo);
 
       expect(result.data).toEqual(mockCommissions);
     });
@@ -477,7 +502,9 @@ describe('CommissionService', () => {
     it('should handle cases where there are no commissions to return', async () => {
       mockPrismaService.commission.findMany.mockResolvedValue([]);
 
-      const result = await service.getCommissions();
+      // Mock the info argument
+      const mockInfo = {};
+      const result = await service.getCommissions(mockInfo);
 
       expect(result.data).toEqual([]);
       expect(result.nextPageCursor).toBeNull();

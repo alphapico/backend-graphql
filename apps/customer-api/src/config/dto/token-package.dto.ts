@@ -28,4 +28,7 @@ export class TokenPackage {
 
   @Field({ nullable: true })
   updatedAt?: Date;
+
+  @Field({ nullable: true })
+  deletedAt?: Date;
 }

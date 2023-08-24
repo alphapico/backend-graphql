@@ -307,6 +307,7 @@ describe('ConfigModule', () => {
         }
       );
     } catch (error) {
+      // {"code":"BAD_USER_INPUT"}
       const expectedErrorMessage = `Variable "$input" got invalid value "${invalidPriceStringDetails.price}" at "${fieldPath}"; Float cannot represent non numeric value: "${invalidPriceStringDetails.price}"`;
       expect(error.response.errors[0].message).toEqual(expectedErrorMessage);
     }
