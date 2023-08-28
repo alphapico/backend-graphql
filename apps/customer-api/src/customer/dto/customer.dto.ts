@@ -6,6 +6,7 @@ import {
   CustomerStatus as PrismaCustomerStatus,
   EmailStatus as PrismaEmailStatus,
 } from '@prisma/client';
+import { Image } from '../../upload/dto/image.dto';
 
 type CustomerOmitted = Omit<
   PrismaCustomer,
@@ -50,6 +51,9 @@ export class Customer implements CustomerPartial {
 
   @Field(() => [Customer], { nullable: true })
   referees?: Customer[];
+
+  @Field(() => Image, { nullable: true })
+  image?: Image;
 
   @Field({ nullable: true })
   createdAt?: Date;

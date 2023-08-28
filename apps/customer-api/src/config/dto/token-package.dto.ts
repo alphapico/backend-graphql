@@ -1,4 +1,5 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
+import { Image } from '../../upload/dto/image.dto';
 
 @ObjectType()
 export class TokenPackage {
@@ -22,6 +23,9 @@ export class TokenPackage {
 
   @Field()
   isActive: boolean;
+
+  @Field(() => Image, { nullable: true })
+  image?: Image;
 
   @Field()
   createdAt: Date;

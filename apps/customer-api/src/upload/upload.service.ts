@@ -9,7 +9,12 @@ import { createPresignedPost } from '@aws-sdk/s3-presigned-post';
 import { PrismaService } from '@charonium/prisma';
 import crypto from 'crypto';
 import { v4 as uuid } from 'uuid';
-import { CONFIG, ERROR_MESSAGES, writeDataToFile } from '@charonium/common';
+import {
+  CONFIG,
+  ERROR_MESSAGES,
+  ImageType,
+  writeDataToFile,
+} from '@charonium/common';
 import { UploadInput } from './dto/upload.input';
 import { SaveImageInput } from './dto/save-image.input';
 import { Image } from './dto/image.dto';
@@ -38,7 +43,9 @@ export class UploadService {
       .update(`${customerId}_${Date.now()}_${uuid()}`)
       .digest('hex');
 
-    const key = `${uploadInput.category}/${hash}.${uploadInput.fileExtension}`;
+    const key = `${uploadInput.type.toLowerCase()}/${hash}.${
+      uploadInput.fileExtension
+    }`;
 
     // Write the output to a text file
     // writeDataToFile(`${this.constructor.name}/key.txt`, key);
@@ -83,7 +90,9 @@ export class UploadService {
         .update(`${customerId}_${Date.now()}_${uuid()}`)
         .digest('hex');
 
-      const key = `${uploadInput.category}/${hash}.${uploadInput.fileExtension}`;
+      const key = `${uploadInput.type.toLowerCase()}/${hash}.${
+        uploadInput.fileExtension
+      }`;
 
       // Write the output to a text file
       // writeDataToFile(`${this.constructor.name}/key.txt`, key);
@@ -131,10 +140,19 @@ export class UploadService {
     //   `${this.constructor.name}/save-image.txt`,
     //   saveImageInput.path
     // );
+    const imageData: SaveImageInput = {
+      path: saveImageInput.path,
+      type: saveImageInput.type,
+    };
+
+    if (saveImageInput.type === ImageType.CUSTOMER) {
+      imageData.customerId = saveImageInput.customerId;
+    } else if (saveImageInput.type === ImageType.PACKAGE) {
+      imageData.packageId = saveImageInput.packageId;
+    }
+
     return this.prismaService.image.create({
-      data: {
-        path: saveImageInput.path,
-      },
+      data: imageData,
     });
   }
 }

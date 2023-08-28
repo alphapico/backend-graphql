@@ -5,6 +5,9 @@ import { CustomerService } from './customer.service';
 import { ResetPasswordInput } from './dto/reset-password.input';
 import { EmailInput } from './dto/email.input';
 import { RegisterAdminInput } from './dto/register-admin.input';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { UseGuards } from '@nestjs/common';
+import { CurrentUser, IJwtPayload } from '@charonium/common';
 
 @Resolver(() => Customer)
 export class CustomerResolver {
@@ -44,6 +47,12 @@ export class CustomerResolver {
   @Mutation(() => Boolean)
   async resendAdminRegistrationEmail(): Promise<boolean> {
     return this.customerService.resendAdminRegistrationEmail();
+  }
+
+  @Query(() => Customer)
+  @UseGuards(JwtAuthGuard)
+  async me(@CurrentUser() user: IJwtPayload): Promise<Customer> {
+    return this.customerService.getCustomer(user.sub);
   }
 
   @Query(() => String)

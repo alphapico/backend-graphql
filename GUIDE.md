@@ -139,7 +139,36 @@ export const CONFIG = {
 
 <br />
 
-## 2. Development guide
+## 2. Coinbase
+
+### Obtain the Coinbase API Key
+
+1. Once logged in, click on your profile icon at the top right corner.
+2. Select "Settings" from the dropdown.
+3. Navigate to the "Security" tab.
+4. Click on "Create New API Key".
+5. You might be asked to verify your identity. Follow the instructions if prompted.
+6. You'll be shown an API key .The value is your `COINBASE_API_KEY``
+
+### Obtain the Coinbase Webhook Secret
+
+1. In the Coinbase dashboard, navigate to the "Settings" section.
+2. Go to the "Notifications" tab.
+3. Scroll down to the "Webhook subscriptions" section.
+4. Click on "Add an endpoint".
+5. In the "URL" field, enter the URL where you want to receive the webhook notifications. The "URL" you enter must be valid HTTPS URL and not `localhost`.
+
+   ```bash
+   # add webhook to https://beta.commerce.coinbase.com/settings/notifications
+   https://<BACKEND_URL>/coinbase/webhook
+   ```
+
+6. Click on "Create Endpoint".
+7. Once created, you'll see a "Secret" column next to your webhook URL. This is your `COINBASE_WEBHOOK_SECRET`. You can also click "Show shared secret" to see `COINBASE_WEBHOOK_SECRET`.
+
+<br />
+
+## 3. Development guide
 
 The code is modular, testable and easily extendable. It's following concept like DDD, OOP, SOLID and Clean Code.
 
@@ -151,10 +180,12 @@ The code is modular, testable and easily extendable. It's following concept like
    npm run dev:db:migrate
    ```
    Give suitable name for migration file, e:g `add_table_customer`. The command will create migration file and deploy migration file to the database.
-3. Peek at the database content with this command
+3. Peek at the database content with this command:
+
    ```bash
    npm run dev:db:studio
    ```
+
 4. For professional PostgreSQL client, install `PgAdmin`
 
 ### NestJS Module, Service and Resolver
@@ -365,7 +396,7 @@ If you would like to receive user's details like customer ID and customer Email,
 
 <br />
 
-## 3. Testing API
+## 4. Testing API
 
 ### Writing end-to-end test code
 
