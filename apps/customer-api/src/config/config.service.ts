@@ -100,6 +100,9 @@ export class ConfigService {
   async getTokenPackage(packageId: number): Promise<TokenPackage | null> {
     const tokenPackage = await this.prisma.tokenPackage.findUnique({
       where: { packageId: packageId },
+      include: {
+        image: true,
+      },
     });
 
     if (!tokenPackage || tokenPackage.deletedAt) {
@@ -114,6 +117,9 @@ export class ConfigService {
   async getAllTokenPackages(): Promise<TokenPackage[]> {
     const tokenPackages = await this.prisma.tokenPackage.findMany({
       where: { deletedAt: null },
+      include: {
+        image: true,
+      },
     });
 
     // Convert the integer format back to user-friendly decimal format for each package
@@ -129,6 +135,9 @@ export class ConfigService {
   ): Promise<TokenPackage[]> {
     const tokenPackages = await this.prisma.tokenPackage.findMany({
       where: { isActive: isActive, deletedAt: null },
+      include: {
+        image: true,
+      },
     });
 
     // Convert the integer format back to user-friendly decimal format for each package

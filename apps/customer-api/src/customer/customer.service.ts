@@ -288,4 +288,15 @@ export class CustomerService {
 
     return true;
   }
+
+  async getCustomer(customerId: number) {
+    const customer = await this.prisma.customer.findUnique({
+      where: { customerId },
+      include: {
+        image: true,
+      },
+    });
+
+    return customer;
+  }
 }

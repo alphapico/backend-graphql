@@ -92,6 +92,7 @@ type Customer {
   customerStatus: CustomerStatus!
   email: String!
   emailStatus: EmailStatus!
+  image: Image
   name: String!
   referees: [Customer!]
   referralCode: String
@@ -134,8 +135,16 @@ type FieldRecord {
 
 type Image {
   createdAt: DateTime!
+  customerId: Int
   imageId: Int!
+  packageId: Int
   path: String!
+  type: ImageType!
+}
+
+enum ImageType {
+  CUSTOMER
+  PACKAGE
 }
 
 """
@@ -276,6 +285,7 @@ type Query {
   getTokenPrice: TokenPrice
   hello: String!
   isCommissionTransferred(commissionId: Int!): Boolean!
+  me: Customer!
   protectedAdminMethod: JwtPayload!
   protectedMethod: JwtPayload!
 }
@@ -314,7 +324,10 @@ input ResetPasswordInput {
 }
 
 input SaveImageInput {
+  customerId: Int
+  packageId: Int
   path: String!
+  type: ImageType!
 }
 
 type TokenPackage {
@@ -322,6 +335,7 @@ type TokenPackage {
   currency: String!
   deletedAt: DateTime
   description: String
+  image: Image
   isActive: Boolean!
   name: String!
   packageId: Int!
@@ -370,8 +384,8 @@ enum UnresolvedReason {
 }
 
 input UploadInput {
-  category: String!
   fileExtension: String!
+  type: ImageType!
 }
 
 type VerifyEmailResult {

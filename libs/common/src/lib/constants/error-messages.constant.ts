@@ -34,6 +34,8 @@ export const ERROR_MESSAGES = {
     IS_STRING: '$property must be a string',
     IS_EMAIL: '$property must be an email',
     IS_URL: '$property must be a URL',
+    IS_INT: '$property must be an integer',
+    INVALID_IMAGE_TYPE: 'type must be a valid ImageType',
     IS_NOT_EMPTY: '$property should not be empty',
     IS_VALID_CURRENCY_FORMAT: 'Invalid currency format',
     IS_SUPPORTED_CURRENCY: `currency must be one of the following: ${supportedCurrencyList}`,

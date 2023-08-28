@@ -8,6 +8,7 @@ import { SaveImageInput } from './dto/save-image.input';
 import { Image } from './dto/image.dto';
 import { PresignedUrl } from './dto/presigned-url.dto';
 import { PresignedPost } from './dto/presigned-post.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Resolver('Upload')
 export class UploadResolver {
@@ -23,7 +24,7 @@ export class UploadResolver {
   }
 
   @Mutation(() => PresignedUrl)
-  @UseGuards(AdminGuard)
+  @UseGuards(JwtAuthGuard)
   async generatePresignedUrl(
     @Args({ name: 'uploadInput', type: () => UploadInput })
     uploadInput: UploadInput,
@@ -43,7 +44,7 @@ export class UploadResolver {
   }
 
   @Mutation(() => Image)
-  @UseGuards(AdminGuard)
+  @UseGuards(JwtAuthGuard)
   async saveUploadedImage(
     @Args('saveImageInput', { type: () => SaveImageInput })
     saveImageInput: SaveImageInput

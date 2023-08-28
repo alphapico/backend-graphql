@@ -468,7 +468,7 @@ query ProtectedAdminMethod {
 
 ### Generate Presigned URL
 
-`Restricted to Admin only`
+`Restricted to User and Admin`
 
 ```tsx
 mutation GeneratePresignedUrl($uploadInput: UploadInput!) {
@@ -481,9 +481,15 @@ mutation GeneratePresignedUrl($uploadInput: UploadInput!) {
 // Example input
 {
   "uploadInput" : {
-    "category" : "test", // This will be folder path in S3 bucket, category can be anything relevant
-    "fileExtension" : "jpg" // can be either 'jpg', 'jpeg', 'png', 'gif', 'webp'
+    "type" : "PACKAGE", // This will be folder path in S3 bucket
+    "fileExtension" : "jpg" // can be either 'jpg', 'jpeg', 'png', 'gif' or 'webp'
   }
+}
+
+// so far we define type as
+export enum ImageType {
+  CUSTOMER = "CUSTOMER",
+  PACKAGE = "PACKAGE",
 }
 
 
@@ -504,7 +510,7 @@ mutation GeneratePresignedUrl($uploadInput: UploadInput!) {
 | UnauthorizedException        | UNAUTHENTICATED       | 401         | Unauthorized                                                            |
 | BadRequestException          | BAD_REQUEST           | 400         | Invalid file extension                                                  |
 | InternalServerErrorException | INTERNAL_SERVER_ERROR | 500         | Failed to generate pre-signed URL                                       |
-| BadRequestException          | BAD_REQUEST           | 400         | ["category must be a string", "category should not be empty"]           |
+| BadRequestException          | BAD_REQUEST           | 400         | ["type must be a valid ImageType"]                                      |
 | BadRequestException          | BAD_REQUEST           | 400         | ["fileExtension must be a string", "fileExtension should not be empty"] |
 |                              | BAD_USER_INPUT        |             |                                                                         |
 
@@ -512,13 +518,15 @@ mutation GeneratePresignedUrl($uploadInput: UploadInput!) {
 
 `Restricted to Admin only`
 
-After Frontend uploading image to S3 bucket, save the path with this format `https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${key-from-generatePresignedUrl}` . You can see example in `upload.spec.ts` in end-to-end test folder
+After Frontend uploading image to S3 bucket, save the path using the following format `https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${key-from-generatePresignedUrl-mutation}` . You can find an example in the `upload.spec.ts` file located in the end-to-end test folder.
 
 ```tsx
 mutation SaveUploadedImage($saveImageInput: SaveImageInput!) {
       saveUploadedImage(saveImageInput: $saveImageInput) {
         imageId
         path
+        customerId
+        packageId
         createdAt
       }
     }
@@ -526,7 +534,9 @@ mutation SaveUploadedImage($saveImageInput: SaveImageInput!) {
 // Example input
 {
   "saveImageInput" : {
-    "path" : `https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${key-from-generatePresignedUrl}`
+    "path" : `https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${key-from-generatePresignedUrl}`,
+    "type" : ImageType.PACKAGE, // or "PACKAGE". Look at the defintion of ImageType,
+    "packageId" : 2 // It can be etiher packageId or customerId
   }
 }
 
@@ -539,6 +549,9 @@ mutation SaveUploadedImage($saveImageInput: SaveImageInput!) {
 | ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource                                    |
 | UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized                                          |
 | BadRequestException   | BAD_REQUEST     | 400         | ["path must be a string", "path should not be empty"] |
+| BadRequestException   | BAD_REQUEST     | 400         | ["type must be a valid ImageType"]                    |
+| BadRequestException   | BAD_REQUEST     | 400         | ["customerId must be an integer"]                     |
+| BadRequestException   | BAD_REQUEST     | 400         | ["packageId must be an integer"]                      |
 |                       | BAD_USER_INPUT  |             |                                                       |
 
 <br />

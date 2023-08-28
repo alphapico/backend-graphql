@@ -42,13 +42,26 @@ if link expired or forget password, since you can set password also here
 
 ## 2. Upload Image
 
-#### a. Admin upload image
+#### a. Customer or Admin upload their own image
 
-![UploadToS3](https://github.com/Tequnity/charonium/assets/128450164/25d225c8-e4dd-4584-a6d2-4bf3e46c3737)
+![Upload-Customer-Image,png](https://github.com/Tequnity/charonium/assets/128450164/b446cd14-49d1-4085-bab7-a04d3093bae3)
 
-- At step 2, Frontend should pass the `category` and `fileExtension` to `mutation generatePresignedUrl`. See the example `ERROR.md`
-- At step 3, use the pre-signed URL to upload to S3 bucket
-- After Frontend uploading image to S3 bucket, save the path in step 6 with this format `https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${key-from-generatePresignedUrl}` . You can see example in `upload.spec.ts` in end-to-end test folder
+- Customer want to upload image (We consider Customer have already registered).
+- At step 2, Frontend requests a presigned URL from the backend by providing the `type` (`ImageType.CUSTOMER` or `"CUSTOMER"`) and `fileExtension` ('jpg', 'jpeg', 'png', 'gif' or 'webp') to `mutation generatePresignedUrl`. See the example `ERROR.md`.
+- At step 3, Backend generates a presigned URL and returns it to the frontend.
+- At step 4, Frontend uploads the image directly to the S3 bucket using the presigned URL.
+- Once the upload is successful, at step 6, Frontend informs Backend to save the image details (`path`, `type` and `customerId`). The `path` will be in the format `https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${key-from-generatePresignedUrl}`.
+- You can see example in `upload.spec.ts` in end-to-end test folder.
+
+#### b. Admin upload Token Package's image
+
+![Upload-Package-Image](https://github.com/Tequnity/charonium/assets/128450164/11a9e909-4120-4706-b713-845a1b822bf3)
+
+- Admin want to upload image.
+- At step 2, Frontend requests a presigned URL from the backend by providing the `type` (`ImageType.PACKAGE` or `"PACKAGE"`) and `fileExtension` ('jpg', 'jpeg', 'png', 'gif' or 'webp') to `mutation generatePresignedUrl`.
+- At step 3, Backend generates a presigned URL and returns it to the frontend.
+- At step 4, Frontend uploads the image directly to the S3 bucket using the presigned URL.
+- Once the upload is successful, at step 6, Frontend informs Backend to save the image details (`path`, `type` and `packageId`).
 
 <br />
 
