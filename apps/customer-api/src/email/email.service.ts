@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { SES, SendEmailCommandInput } from '@aws-sdk/client-ses';
-import { Customer } from '../customer/dto/customer.dto';
+// import { Customer } from '../customer/dto/customer.dto';
 import * as Handlebars from 'handlebars';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -12,6 +12,7 @@ import {
   SUCCESS_MESSAGES,
 } from '@charonium/common';
 import {
+  Customer,
   EmailStatus,
   CustomerStatus,
   LogStatus,

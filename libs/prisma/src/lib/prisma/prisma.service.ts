@@ -3,8 +3,32 @@ import { PrismaClient } from '@prisma/client';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
+  constructor() {
+    super({
+      log:
+        process.env.NODE_ENV === 'development'
+          ? ['query', 'info', 'warn', 'error']
+          : [],
+    });
+  }
+
   async onModuleInit() {
     await this.connectWithRetry(20, 2, 10000);
+
+    // Add middleware for logging
+    if (process.env.NODE_ENV === 'development') {
+      this.$use(async (params, next) => {
+        const before = Date.now();
+        const result = await next(params);
+        const after = Date.now();
+        console.log(
+          `Query: ${params.model}.${params.action}`,
+          `Duration: ${after - before}ms`,
+          `Data: ${JSON.stringify(params.args, null, 2)}`
+        );
+        return result;
+      });
+    }
   }
 
   private async connectWithRetry(
@@ -15,6 +39,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
     for (let i = 0; i < attempts; i++) {
       try {
         await this.$connect();
+        // should put this on file during production
         console.log('Connected to the database successfully');
         break;
       } catch (err) {

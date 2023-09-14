@@ -429,7 +429,7 @@ export class CommissionService {
   ) {
     const fields = graphqlFields(info);
 
-    console.log({ fields });
+    // console.log({ fields });
 
     const include: any = {};
 

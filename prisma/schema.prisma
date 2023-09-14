@@ -61,6 +61,22 @@ enum ImageType {
   PACKAGE
 }
 
+enum CryptoType {
+  DAI //Dai
+  USDC // USD Coin
+  PUSDC // USDC on Polygon
+  PWETH // Wrapped Ether on Polygon
+  USDT // Tether
+  APE // ApeCoin
+  BTC // Bitcoin
+  PMATIC // MATIC on Polygon
+  DOGE // Dogecoin
+  ETH // Ethereum
+  LTC // Litecoin
+  SHIB // Shiba Inu
+  BCH // Bitcoin Cash
+}
+
 model Customer {
   customerId         Int            @id @default(autoincrement())
   name               String
@@ -74,7 +90,7 @@ model Customer {
   referrer           Customer?      @relation("CustomerReferral", fields: [referralCustomerId], references: [customerId])
   referees           Customer[]     @relation("CustomerReferral")
   tokenVersion       Int            @default(0)
-  charge             Charge[]  
+  charges            Charge[]  
   commissions        Commission[]
   wallets            Wallet[]       
   image              Image?
@@ -83,14 +99,14 @@ model Customer {
 }
 
 model Wallet {
-  walletId       Int       @id @default(autoincrement())
+  walletId       Int          @id @default(autoincrement())
   customerId     Int
-  customer       Customer  @relation(fields: [customerId], references: [customerId], onDelete: Cascade)
-  address        String    // Wallet address
-  cryptoType     String    // Type of cryptocurrency (e.g., BTC, ETH)
-  isDefault      Boolean   @default(false) // Field to track if this wallet is the default one
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime? @updatedAt
+  customer       Customer     @relation(fields: [customerId], references: [customerId], onDelete: Cascade)
+  address        String       // Wallet address
+  cryptoType     CryptoType    @default(ETH) // Type of cryptocurrency (e.g., BTC, ETH)
+  isDefault      Boolean       @default(false) // Field to track if this wallet is the default one
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime?     @updatedAt
 }
 
 model Config {

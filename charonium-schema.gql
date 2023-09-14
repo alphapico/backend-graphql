@@ -86,7 +86,32 @@ type CommissionResult {
   nextPageCursor: Int
 }
 
+input CreateWalletInput {
+  address: String!
+  cryptoType: CryptoType!
+  customerId: Float!
+  isDefault: Boolean
+}
+
+enum CryptoType {
+  APE
+  BCH
+  BTC
+  DAI
+  DOGE
+  ETH
+  LTC
+  PMATIC
+  PUSDC
+  PWETH
+  SHIB
+  USDC
+  USDT
+}
+
 type Customer {
+  charges: [Charge]!
+  commissions: [Commission]!
   createdAt: DateTime
   customerId: Int!
   customerStatus: CustomerStatus!
@@ -99,6 +124,12 @@ type Customer {
   referralCustomerId: Int
   referrer: Customer
   updatedAt: DateTime
+  wallets: [Wallet]!
+}
+
+type CustomerResult {
+  data: [Customer]!
+  nextPageCursor: Int
 }
 
 enum CustomerRole {
@@ -168,6 +199,7 @@ input LoginInput {
 
 type Mutation {
   createTokenPackage(input: TokenPackageCreateInput!): TokenPackage!
+  createWallet(input: CreateWalletInput!): Wallet!
   deleteTokenPackage(packageId: Int!): TokenPackage!
   editTokenPackage(input: TokenPackageUpdateInput!, packageId: Int!): TokenPackage!
   forgetPassword(input: EmailInput!): Boolean!
@@ -184,9 +216,11 @@ type Mutation {
   resendEmailVerification(input: EmailInput!): Boolean!
   resetPassword(input: ResetPasswordInput!): Boolean!
   saveUploadedImage(saveImageInput: SaveImageInput!): Image!
+  setDefaultWallet(input: SetDefaultWalletInput!): Wallet!
   setOrEditTokenPrice(input: TokenPriceCreateInput!): TokenPrice!
   toggleTokenPackageStatus(packageId: Int!): TokenPackage!
   updateCommissionTransferStatus(commissionId: Int!): CommissionBase!
+  updateWallet(input: UpdateWalletInput!): Wallet!
   verifyEmail(token: String!): VerifyEmailResult!
 }
 
@@ -278,11 +312,14 @@ type Query {
   getCharges(code: String, cursor: Int, customerId: Int, limit: Int): ChargeResult!
   getCommissions(cursor: Int, customerId: Int, isTransferred: Boolean, limit: Int): CommissionResult!
   getCommissionsForCustomer(cursor: Int, isTransferred: Boolean, limit: Int): CommissionResult!
+  getCustomers(cursor: Int, customerRole: CustomerRole, customerStatus: CustomerStatus, emailStatus: EmailStatus, limit: Int! = 10): CustomerResult!
   getPurchaseActivities(cursor: Int, customerId: Int, limit: Int! = 10, paymentStatus: PaymentStatus, purchaseConfirmed: Boolean): PurchaseActivityResult!
   getPurchaseActivitiesForCustomer(cursor: Int, limit: Int! = 10, paymentStatus: PaymentStatus, purchaseConfirmed: Boolean): PurchaseActivityResult!
   getReferralMap(input: ReferralInput!): [ReferralMap!]!
   getTokenPackage(packageId: Int!): TokenPackage
   getTokenPrice: TokenPrice
+  getWalletByCustomerIdAndDefault(customerId: Int!): Wallet
+  getWalletsByCustomerId(customerId: Int!): [Wallet!]!
   hello: String!
   isCommissionTransferred(commissionId: Int!): Boolean!
   me: Customer!
@@ -328,6 +365,11 @@ input SaveImageInput {
   packageId: Int
   path: String!
   type: ImageType!
+}
+
+input SetDefaultWalletInput {
+  customerId: Float!
+  walletId: Float!
 }
 
 type TokenPackage {
@@ -383,6 +425,14 @@ enum UnresolvedReason {
   UNDERPAID
 }
 
+input UpdateWalletInput {
+  address: String
+  cryptoType: CryptoType
+  customerId: Float!
+  isDefault: Boolean
+  walletId: Float!
+}
+
 input UploadInput {
   fileExtension: String!
   type: ImageType!
@@ -391,4 +441,14 @@ input UploadInput {
 type VerifyEmailResult {
   message: String
   success: Boolean
+}
+
+type Wallet {
+  address: String!
+  createdAt: DateTime!
+  cryptoType: CryptoType!
+  customerId: Int!
+  isDefault: Boolean!
+  updatedAt: DateTime
+  walletId: Int!
 }

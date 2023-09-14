@@ -5,14 +5,35 @@ import {
   connectToDatabase,
   disconnectFromDatabase,
 } from '../support/test-utils';
-import { ERROR_MESSAGES } from '@charonium/common';
+import { CONFIG, CustomerRole, ERROR_MESSAGES } from '@charonium/common';
 import { INPUT } from '@charonium/common';
+import {
+  createAndVerifyAdmin,
+  registerAndLogin,
+} from './utils/auth-test.utils';
+import { JwtModule, JwtService } from '@nestjs/jwt';
+import { PrismaModule, PrismaService } from '@charonium/prisma';
+import { Test } from '@nestjs/testing';
 
 describe('Customer', () => {
-  // console.log('Running Customer tests');
+  let jwtService: JwtService;
+  let prismaService: PrismaService;
 
   beforeAll(async () => {
     await connectToDatabase();
+
+    const moduleRef = await Test.createTestingModule({
+      imports: [
+        JwtModule.register({
+          secret: process.env.JWT_SECRET,
+          signOptions: { expiresIn: CONFIG.ACCESS_TOKEN_EXPIRATION },
+        }),
+        PrismaModule,
+      ],
+    }).compile();
+
+    jwtService = moduleRef.get<JwtService>(JwtService);
+    prismaService = moduleRef.get<PrismaService>(PrismaService);
   });
 
   beforeEach(async () => {
@@ -45,6 +66,260 @@ describe('Customer', () => {
       }
     }
   `;
+
+  const getCustomersQuery = gql`
+    query GetCustomers(
+      $cursor: Int
+      $limit: Int
+      $customerStatus: CustomerStatus
+      $emailStatus: EmailStatus
+      $customerRole: CustomerRole
+    ) {
+      getCustomers(
+        cursor: $cursor
+        limit: $limit
+        customerStatus: $customerStatus
+        emailStatus: $emailStatus
+        customerRole: $customerRole
+      ) {
+        data {
+          customerId
+          name
+          email
+          emailStatus
+          customerStatus
+          referralCode
+          referralCustomerId
+          referrer {
+            customerId
+            name
+            email
+            emailStatus
+            customerStatus
+            referralCode
+            referralCustomerId
+          }
+          referees {
+            customerId
+            name
+            email
+            emailStatus
+            customerStatus
+            referralCode
+            referralCustomerId
+          }
+          charges {
+            chargeId
+            code
+            name
+            description
+            pricingType
+            addresses
+            pricing
+            exchangeRates
+            localExchangeRates
+            hostedUrl
+            cancelUrl
+            redirectUrl
+            feeRate
+            expiresAt
+            paymentThreshold
+            createdAt
+            updatedAt
+          }
+          commissions {
+            commissionId
+            customerId
+            chargeId
+            tier
+            commissionRate
+            amount
+            currency
+            isTransferred
+            createdAt
+            updatedAt
+          }
+          wallets {
+            walletId
+            customerId
+            address
+            cryptoType
+            isDefault
+          }
+          image {
+            imageId
+            path
+            type
+            customerId
+            packageId
+            createdAt
+          }
+          createdAt
+          updatedAt
+        }
+        nextPageCursor
+      }
+    }
+  `;
+
+  const meQuery = gql`
+    query Me {
+      me {
+        customerId
+        name
+        email
+        emailStatus
+        customerStatus
+        referralCode
+        referralCustomerId
+        referrer {
+          customerId
+          name
+          email
+          emailStatus
+          customerStatus
+          referralCode
+          referralCustomerId
+        }
+        referees {
+          customerId
+          name
+          email
+          emailStatus
+          customerStatus
+          referralCode
+          referralCustomerId
+        }
+        charges {
+          chargeId
+          code
+          name
+          description
+          pricingType
+          addresses
+          pricing
+          exchangeRates
+          localExchangeRates
+          hostedUrl
+          cancelUrl
+          redirectUrl
+          feeRate
+          expiresAt
+          paymentThreshold
+          createdAt
+          updatedAt
+        }
+        commissions {
+          commissionId
+          customerId
+          chargeId
+          tier
+          commissionRate
+          amount
+          currency
+          isTransferred
+          createdAt
+          updatedAt
+        }
+        wallets {
+          walletId
+          customerId
+          address
+          cryptoType
+          isDefault
+        }
+        image {
+          imageId
+          path
+          type
+          customerId
+          packageId
+          createdAt
+        }
+        createdAt
+        updatedAt
+      }
+    }
+  `;
+
+  interface Image {
+    imageId: string;
+    path: string;
+    type: string;
+    customerId: string;
+    packageId: string;
+    createdAt: string;
+  }
+
+  interface Wallet {
+    walletId: string;
+    customerId: string;
+    address: string;
+    cryptoType: string;
+    isDefault: boolean;
+  }
+
+  interface Commission {
+    commissionId: string;
+    customerId: string;
+    chargeId: string;
+    tier: string;
+    commissionRate: number;
+    amount: number;
+    currency: string;
+    isTransferred: boolean;
+    createdAt: string;
+    updatedAt: string;
+  }
+
+  interface Charge {
+    chargeId: string;
+    code: string;
+    name: string;
+    description: string;
+    pricingType: string;
+    addresses: string[];
+    pricing: string;
+    exchangeRates: Record<string, number>;
+    localExchangeRates: Record<string, number>;
+    hostedUrl: string;
+    cancelUrl: string;
+    redirectUrl: string;
+    feeRate: number;
+    expiresAt: string;
+    paymentThreshold: number;
+    createdAt: string;
+    updatedAt: string;
+  }
+
+  interface Customer {
+    customerId: string;
+    name: string;
+    email: string;
+    emailStatus: string;
+    customerStatus: string;
+    referralCode: string;
+    referralCustomerId: string;
+    referrer: Customer;
+    referees: Customer[];
+    charges: Charge[];
+    commissions: Commission[];
+    wallets: Wallet[];
+    image: Image;
+    createdAt: string;
+    updatedAt: string;
+  }
+
+  interface GetCustomersResponse {
+    getCustomers: {
+      data: Customer[];
+      nextPageCursor: string;
+    };
+  }
+
+  interface MeResponse {
+    me: Customer;
+  }
 
   it('should register a new customer without referral code', async () => {
     const input = {
@@ -298,5 +573,59 @@ describe('Customer', () => {
         ])
       );
     }
+  });
+
+  it('user should be able to fetch their own data', async () => {
+    const user = {
+      name: 'Jane Smith Suise',
+      email: 'jane.smith.suise@gmail.com',
+      password: 'password67890',
+    };
+
+    // User login and get GraphQL client with user access token
+    const { graphQLClientWithAccessToken } = await registerAndLogin(
+      graphQLClient,
+      user
+    );
+
+    const meResponse = await graphQLClientWithAccessToken.request<MeResponse>(
+      meQuery
+    );
+
+    // Assertions based on the expected response
+    expect(meResponse).toHaveProperty('me');
+    expect(meResponse.me.name).toBe(user.name);
+    expect(meResponse.me.email).toBe(user.email);
+  });
+
+  it('admin should be able to fetch customers', async () => {
+    const user = {
+      name: 'John Doe',
+      email: 'john.doe@gmail.com',
+      password: 'password12345',
+    };
+
+    await registerAndLogin(graphQLClient, user);
+
+    // Admin login and get GraphQL client with admin access token
+    const { graphQLClientWithAdminAccessToken } = await createAndVerifyAdmin(
+      graphQLClient,
+      jwtService,
+      prismaService
+    );
+
+    const getCustomersResponse =
+      await graphQLClientWithAdminAccessToken.request<GetCustomersResponse>(
+        getCustomersQuery,
+        {
+          customerRole: CustomerRole.USER,
+        }
+      );
+
+    // Assertions based on the expected response
+    expect(getCustomersResponse).toHaveProperty('getCustomers');
+    expect(getCustomersResponse.getCustomers.data).toBeInstanceOf(Array);
+    // Length only 1 since we filter by customerRole
+    expect(getCustomersResponse.getCustomers.data.length).toBe(1);
   });
 });

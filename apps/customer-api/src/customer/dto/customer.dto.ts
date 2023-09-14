@@ -7,6 +7,10 @@ import {
   EmailStatus as PrismaEmailStatus,
 } from '@prisma/client';
 import { Image } from '../../upload/dto/image.dto';
+import { Charge } from '../../commission/dto/charge.dto';
+import { Commission } from '../../commission/dto/commission.dto';
+import { Wallet } from '../../wallet/dto/wallet.dto';
+import { PaginationMixin } from '../../commission/dto/pagination.mixin';
 
 type CustomerOmitted = Omit<
   PrismaCustomer,
@@ -52,6 +56,15 @@ export class Customer implements CustomerPartial {
   @Field(() => [Customer], { nullable: true })
   referees?: Customer[];
 
+  @Field(() => [Charge], { nullable: 'items' })
+  charges: Charge[];
+
+  @Field(() => [Commission], { nullable: 'items' })
+  commissions: Commission[];
+
+  @Field(() => [Wallet], { nullable: 'items' })
+  wallets: Wallet[];
+
   @Field(() => Image, { nullable: true })
   image?: Image;
 
@@ -61,3 +74,6 @@ export class Customer implements CustomerPartial {
   @Field({ nullable: true })
   updatedAt?: Date;
 }
+
+@ObjectType()
+export class CustomerResult extends PaginationMixin(Customer) {}

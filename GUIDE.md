@@ -148,7 +148,7 @@ export const CONFIG = {
 3. Navigate to the "Security" tab.
 4. Click on "Create New API Key".
 5. You might be asked to verify your identity. Follow the instructions if prompted.
-6. You'll be shown an API key .The value is your `COINBASE_API_KEY``
+6. You'll be shown an API key .The value is your `COINBASE_API_KEY`.
 
 ### Obtain the Coinbase Webhook Secret
 

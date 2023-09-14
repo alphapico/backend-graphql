@@ -160,6 +160,9 @@ export class ReferralService {
           referralCustomerId: row.referralCustomerId,
           createdAt: row.createdAt,
           updatedAt: row.updatedAt,
+          charges: [],
+          commissions: [],
+          wallets: [],
         };
         continue;
       }
@@ -175,6 +178,9 @@ export class ReferralService {
           referralCustomerId: row.referralCustomerId,
           createdAt: row.createdAt,
           updatedAt: row.updatedAt,
+          charges: [],
+          commissions: [],
+          wallets: [],
         };
       }
 

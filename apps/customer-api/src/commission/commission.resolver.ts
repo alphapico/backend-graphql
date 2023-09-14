@@ -27,7 +27,7 @@ export class CommissionResolver {
     paymentStatus?: PaymentStatus,
     @Args('customerId', { type: () => Int, nullable: true }) customerId?: number
   ): Promise<PurchaseActivityResult> {
-    const result = await this.commissionService.getPurchaseActivities(
+    return this.commissionService.getPurchaseActivities(
       info,
       cursor,
       limit,
@@ -35,7 +35,6 @@ export class CommissionResolver {
       paymentStatus,
       customerId
     );
-    return result;
   }
 
   @Query(() => PurchaseActivityResult, {
@@ -52,7 +51,7 @@ export class CommissionResolver {
     @Args('paymentStatus', { type: () => PaymentStatus, nullable: true })
     paymentStatus?: PaymentStatus
   ): Promise<PurchaseActivityResult> {
-    const result = await this.commissionService.getPurchaseActivities(
+    return this.commissionService.getPurchaseActivities(
       info,
       cursor,
       limit,
@@ -60,7 +59,6 @@ export class CommissionResolver {
       paymentStatus,
       user.sub
     );
-    return result;
   }
 
   @Query(() => CommissionResult, {
