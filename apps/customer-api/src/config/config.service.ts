@@ -147,4 +147,26 @@ export class ConfigService {
 
     return tokenPackages;
   }
+
+  async setReferralViewLevel(depth: number): Promise<boolean> {
+    const existingConfig = await this.prisma.config.findFirst();
+
+    if (existingConfig) {
+      await this.prisma.config.update({
+        where: { configId: existingConfig.configId },
+        data: { referralViewLevel: depth },
+      });
+    } else {
+      await this.prisma.config.create({
+        data: { referralViewLevel: depth },
+      });
+    }
+
+    return true;
+  }
+
+  async getReferralViewLevel(): Promise<number | null> {
+    const config = await this.prisma.config.findFirst();
+    return config?.referralViewLevel || null;
+  }
 }

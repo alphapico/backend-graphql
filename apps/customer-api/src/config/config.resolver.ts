@@ -76,4 +76,10 @@ export class ConfigResolver {
   ): Promise<TokenPackage[]> {
     return this.configService.getAllTokenPackagesByStatus(isActive);
   }
+
+  @Mutation(() => Boolean)
+  @UseGuards(AdminGuard) // Ensure only authenticated users can access
+  async setReferralViewLevel(@Args('depth') depth: number): Promise<boolean> {
+    return this.configService.setReferralViewLevel(depth);
+  }
 }

@@ -16,10 +16,14 @@ import {
 } from '@charonium/common';
 // import * as fs from 'fs';
 import { writeDataToFile } from '@charonium/common';
+import { ConfigService } from '../config/config.service';
 
 @Injectable()
 export class ReferralService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly configService: ConfigService
+  ) {}
 
   async getReferralMap(
     referrerId: number,
@@ -28,7 +32,7 @@ export class ReferralService {
     await this.validateInputs(referrerId, startLevel);
 
     // allow admin to set depth
-    const depth = 3;
+    const depth = (await this.configService.getReferralViewLevel()) || 3;
 
     const result = await this.executeQuery(referrerId, depth);
     // Write the output to a text file

@@ -225,6 +225,7 @@ type Mutation {
   saveUploadedImage(saveImageInput: SaveImageInput!): Image!
   setDefaultWallet(input: SetDefaultWalletInput!): Wallet!
   setOrEditTokenPrice(input: TokenPriceCreateInput!): TokenPrice!
+  setReferralViewLevel(depth: Float!): Boolean!
   suspendCustomer(customerId: Int!): String!
   toggleTokenPackageStatus(packageId: Int!): TokenPackage!
   updateCommissionTransferStatus(commissionId: Int!): CommissionBase!
