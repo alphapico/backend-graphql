@@ -34,6 +34,8 @@ export const ERROR_MESSAGES = {
   ETH_WALLET_REQUIRED: 'You must have at least one ETH wallet',
   INVALID_ETH_ADDRESS: 'Invalid ETH address',
   OPERATION_NOT_ALLOWED: 'Operation not allowed',
+  TOKEN_IS_NOT_FRESH: 'Token is not fresh',
+  INVALID_OLD_PASSWORD: 'Invalid old password',
   VAL: {
     IS_STRING: '$property must be a string',
     IS_EMAIL: '$property must be an email',

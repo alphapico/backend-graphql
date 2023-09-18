@@ -67,23 +67,24 @@ export class AuthService {
   }
 
   async verifyRefreshToken(token: string): Promise<IJwtPayload> {
+    let payload: IJwtPayload;
     try {
-      const payload = this.refreshTokenJwtService.verify(token);
-
-      const customer = await this.customerService.findByCustomerId(payload.sub);
-
-      if (!customer) {
-        throw new UnauthorizedException(ERROR_MESSAGES.CUSTOMER_NOT_FOUND);
-      }
-
-      if (customer.customerStatus === CustomerStatus.SUSPENDED) {
-        throw new UnauthorizedException(ERROR_MESSAGES.CUSTOMER_SUSPENDED);
-      }
-
-      return payload;
+      payload = this.refreshTokenJwtService.verify(token);
     } catch (error) {
       throw new UnauthorizedException(ERROR_MESSAGES.INVALID_REFRESH_TOKEN);
     }
+
+    const customer = await this.customerService.findByCustomerId(payload.sub);
+
+    if (!customer) {
+      throw new UnauthorizedException(ERROR_MESSAGES.CUSTOMER_NOT_FOUND);
+    }
+
+    if (customer.customerStatus === CustomerStatus.SUSPENDED) {
+      throw new UnauthorizedException(ERROR_MESSAGES.CUSTOMER_SUSPENDED);
+    }
+
+    return payload;
   }
 
   async verifyEmailToken(token: string): Promise<IJwtPayload> {
@@ -104,6 +105,26 @@ export class AuthService {
 
   async createEmailToken(payload: IJwtPayload): Promise<string> {
     return this.emailTokenJwtService.sign(payload);
+  }
+
+  async suspendCustomer(customerId: number) {
+    const customer = await this.customerService.findByCustomerId(customerId);
+    if (!customer) {
+      throw new NotFoundException(ERROR_MESSAGES.CUSTOMER_NOT_FOUND);
+    }
+
+    customer.customerStatus = CustomerStatus.SUSPENDED;
+    this.customerService.updateCustomerStatus(customer);
+  }
+
+  async reinstateCustomer(customerId: number) {
+    const customer = await this.customerService.findByCustomerId(customerId);
+    if (!customer) {
+      throw new NotFoundException(ERROR_MESSAGES.CUSTOMER_NOT_FOUND);
+    }
+
+    customer.customerStatus = CustomerStatus.ACTIVE;
+    this.customerService.updateCustomerStatus(customer);
   }
 
   logout(@Res() res: Response): void {

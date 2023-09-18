@@ -2,6 +2,11 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+input ChangePasswordInput {
+  newPassword: String!
+  oldPassword: String!
+}
+
 type Charge {
   addresses: JSON
   cancelUrl: String
@@ -198,6 +203,7 @@ input LoginInput {
 }
 
 type Mutation {
+  changePassword(input: ChangePasswordInput!): Boolean!
   createTokenPackage(input: TokenPackageCreateInput!): TokenPackage!
   createWallet(input: CreateWalletInput!): Wallet!
   deleteTokenPackage(packageId: Int!): TokenPackage!
@@ -212,12 +218,14 @@ type Mutation {
   refreshTokens: String!
   register(input: RegisterInput!): Customer!
   registerAdmin(input: RegisterAdminInput!): Boolean!
+  reinstateCustomer(customerId: Int!): String!
   resendAdminRegistrationEmail: Boolean!
   resendEmailVerification(input: EmailInput!): Boolean!
   resetPassword(input: ResetPasswordInput!): Boolean!
   saveUploadedImage(saveImageInput: SaveImageInput!): Image!
   setDefaultWallet(input: SetDefaultWalletInput!): Wallet!
   setOrEditTokenPrice(input: TokenPriceCreateInput!): TokenPrice!
+  suspendCustomer(customerId: Int!): String!
   toggleTokenPackageStatus(packageId: Int!): TokenPackage!
   updateCommissionTransferStatus(commissionId: Int!): CommissionBase!
   updateWallet(input: UpdateWalletInput!): Wallet!
@@ -324,6 +332,7 @@ type Query {
   isCommissionTransferred(commissionId: Int!): Boolean!
   me: Customer!
   protectedAdminMethod: JwtPayload!
+  protectedFreshTokenMethod: JwtPayload!
   protectedMethod: JwtPayload!
 }
 

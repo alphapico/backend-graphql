@@ -10,13 +10,18 @@ import {
   ERROR_MESSAGES,
   SUCCESS_MESSAGES,
   CONFIG,
+  CustomerStatus,
 } from '@charonium/common';
 import { JwtService, JwtModule } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 import * as jwt from 'jsonwebtoken';
 import { Customer, CustomerRole } from '@prisma/client';
 import { PrismaModule, PrismaService } from '@charonium/prisma';
-import { createAndVerifyCustomer } from './utils/auth-test.utils';
+import {
+  createAndVerifyAdmin,
+  createAndVerifyCustomer,
+  waitForCondition,
+} from './utils/auth-test.utils';
 
 describe('Auth', () => {
   // console.log('Running Auth tests');
@@ -125,6 +130,25 @@ describe('Auth', () => {
       }
     }
   `;
+
+  const protectedFreshTokenMethodQuery = gql`
+    query ProtectedFreshTokenMethod {
+      protectedFreshTokenMethod {
+        sub
+        name
+        email
+        role
+      }
+    }
+  `;
+
+  interface ReinstateResponse {
+    reinstateCustomer: string;
+  }
+
+  interface RefreshTokensResponse {
+    refreshTokens: string;
+  }
 
   it('should login successfully', async () => {
     // First, register a user for testing
@@ -842,6 +866,298 @@ describe('Auth', () => {
     expect(protectedAdminMethodResponse.protectedAdminMethod).toEqual(
       adminPayload
     );
+  });
+
+  it('should not allow suspended customer to refresh tokens', async () => {
+    // 1. Register a customer
+    const registerInput = {
+      name: 'John Doe',
+      email: 'john.doe@gmail.com',
+      password: 'password12345',
+    };
+
+    const { verifiedEmailResponse } = await createAndVerifyCustomer(
+      graphQLClient,
+      registerInput
+    );
+
+    expect(verifiedEmailResponse.verifyEmail.success).toBe(true);
+    expect(verifiedEmailResponse.verifyEmail.message).toBe(
+      SUCCESS_MESSAGES.CUSTOMER_IS_VERIFIED
+    );
+
+    // 2. Login as the customer
+    const loginInput = {
+      email: 'john.doe@gmail.com',
+      password: 'password12345',
+    };
+
+    const loginResponse = await graphQLClient.rawRequest(loginMutation, {
+      input: loginInput,
+    });
+
+    const cookiesString = loginResponse.headers.get('set-cookie');
+    const cookies = cookiesString.split(', ');
+    const refreshTokenHeader = cookies.find((cookie: string) =>
+      cookie.startsWith('refresh_token=')
+    );
+
+    if (!refreshTokenHeader) {
+      throw new Error('Refresh token not found in the response headers');
+    }
+
+    const refreshToken = refreshTokenHeader
+      .replace('refresh_token=', '')
+      .split(';')[0];
+
+    const graphQLClientWithCustomerTokens = new GraphQLClient(httpUrl, {
+      credentials: 'include',
+      headers: {
+        cookie: `refresh_token=${refreshToken}`,
+      },
+    });
+
+    // 3. Login as an admin
+    const { graphQLClientWithAdminAccessToken } = await createAndVerifyAdmin(
+      graphQLClient,
+      jwtService,
+      prismaService
+    );
+
+    // 4. Suspend the customer using the admin's access token
+    const suspendCustomerMutation = gql`
+      mutation SuspendCustomer($customerId: Int!) {
+        suspendCustomer(customerId: $customerId)
+      }
+    `;
+
+    const customer: Customer = await prismaService.customer.findUnique({
+      where: { email: 'john.doe@gmail.com' },
+    });
+
+    await graphQLClientWithAdminAccessToken.request(suspendCustomerMutation, {
+      customerId: customer.customerId,
+    });
+
+    // 5. Try to refresh the customer's tokens and expect an error
+    try {
+      await graphQLClientWithCustomerTokens.request(refreshTokenMutation);
+    } catch (error) {
+      expect(error.response.errors[0].message).toBe(
+        ERROR_MESSAGES.CUSTOMER_SUSPENDED
+      );
+    }
+  });
+
+  it('should allow admin to reinstate a suspended customer', async () => {
+    // 1. Register a customer
+    const registerInput = {
+      name: 'John Reinstate',
+      email: 'john.reinstate@gmail.com',
+      password: 'password12345',
+    };
+
+    const { verifiedEmailResponse } = await createAndVerifyCustomer(
+      graphQLClient,
+      registerInput
+    );
+
+    expect(verifiedEmailResponse.verifyEmail.success).toBe(true);
+    expect(verifiedEmailResponse.verifyEmail.message).toBe(
+      SUCCESS_MESSAGES.CUSTOMER_IS_VERIFIED
+    );
+
+    // 2. Login as the customer
+    const loginInput = {
+      email: 'john.reinstate@gmail.com',
+      password: 'password12345',
+    };
+
+    const loginResponse = await graphQLClient.rawRequest(loginMutation, {
+      input: loginInput,
+    });
+
+    const cookiesString = loginResponse.headers.get('set-cookie');
+    const cookies = cookiesString.split(', ');
+    const refreshTokenHeader = cookies.find((cookie: string) =>
+      cookie.startsWith('refresh_token=')
+    );
+
+    if (!refreshTokenHeader) {
+      throw new Error('Refresh token not found in the response headers');
+    }
+
+    const refreshToken = refreshTokenHeader
+      .replace('refresh_token=', '')
+      .split(';')[0];
+
+    const graphQLClientWithCustomerTokens = new GraphQLClient(httpUrl, {
+      credentials: 'include',
+      headers: {
+        cookie: `refresh_token=${refreshToken}`,
+      },
+    });
+
+    // 3. Login as an admin
+    const { graphQLClientWithAdminAccessToken } = await createAndVerifyAdmin(
+      graphQLClient,
+      jwtService,
+      prismaService
+    );
+
+    // 4. Suspend the customer using the admin's access token
+    const suspendCustomerMutation = gql`
+      mutation SuspendCustomer($customerId: Int!) {
+        suspendCustomer(customerId: $customerId)
+      }
+    `;
+
+    const customer: Customer = await prismaService.customer.findUnique({
+      where: { email: 'john.reinstate@gmail.com' },
+    });
+
+    await graphQLClientWithAdminAccessToken.request(suspendCustomerMutation, {
+      customerId: customer.customerId,
+    });
+
+    // 5. Try to refresh the customer's tokens and expect an error
+    try {
+      await graphQLClientWithCustomerTokens.request(refreshTokenMutation);
+    } catch (error) {
+      expect(error.response.errors[0].message).toBe(
+        ERROR_MESSAGES.CUSTOMER_SUSPENDED
+      );
+    }
+
+    const reinstateCustomerMutation = gql`
+      mutation ReinstateCustomer($customerId: Int!) {
+        reinstateCustomer(customerId: $customerId)
+      }
+    `;
+
+    // 6. Reinstate the customer using the admin's access token
+    const reinstateResponse: ReinstateResponse =
+      await graphQLClientWithAdminAccessToken.request(
+        reinstateCustomerMutation,
+        {
+          customerId: customer.customerId,
+        }
+      );
+
+    expect(reinstateResponse.reinstateCustomer).toBe(
+      SUCCESS_MESSAGES.REINSTATE_CUSTOMER_SUCCESS
+    );
+
+    // Wait for 1 seconds to let the database update the customer status
+    // await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // wait for condition
+    await waitForCondition(async () => {
+      const customer = await prismaService.customer.findUnique({
+        where: { email: 'john.reinstate@gmail.com' },
+      });
+      return customer.customerStatus === CustomerStatus.ACTIVE;
+    });
+
+    // 7. Try to refresh the customer's tokens again (should succeed this time)
+    const refreshTokensResponse: RefreshTokensResponse =
+      await graphQLClientWithCustomerTokens.request(refreshTokenMutation);
+
+    expect(refreshTokensResponse.refreshTokens).toBe(
+      SUCCESS_MESSAGES.REFRESH_TOKEN_SUCCESS
+    );
+  });
+
+  it('should allow access with a fresh token', async () => {
+    // Use the same logic to get a valid access token as in your previous tests
+    const registerInput = {
+      name: 'John Fresh',
+      email: 'john.fresh@gmail.com',
+      password: 'password12345',
+    };
+
+    await createAndVerifyCustomer(graphQLClient, registerInput);
+
+    const loginInput = {
+      email: 'john.fresh@gmail.com',
+      password: 'password12345',
+    };
+
+    const loginResponse = await graphQLClient.rawRequest(loginMutation, {
+      input: loginInput,
+    });
+
+    const cookiesString = loginResponse.headers.get('set-cookie');
+    const accessTokenHeader = cookiesString
+      .split(', ')
+      .find((cookie: string) => cookie.startsWith('access_token='));
+
+    const accessToken = accessTokenHeader
+      .replace('access_token=', '')
+      .split(';')[0];
+
+    const graphQLClientWithFreshToken = new GraphQLClient(httpUrl, {
+      credentials: 'include',
+      headers: {
+        cookie: `access_token=${accessToken}`,
+      },
+    });
+
+    const response: { protectedFreshTokenMethod: IJwtPayload } =
+      await graphQLClientWithFreshToken.request(protectedFreshTokenMethodQuery);
+
+    expect(response.protectedFreshTokenMethod.email).toEqual(
+      'john.fresh@gmail.com'
+    );
+  });
+
+  it('should deny access with a non-fresh token', async () => {
+    // Use the same logic to get a valid access token as in your previous tests
+    const registerInput = {
+      name: 'John NotSoFresh',
+      email: 'john.notsofresh@gmail.com',
+      password: 'password12345',
+    };
+
+    await createAndVerifyCustomer(graphQLClient, registerInput);
+
+    const loginInput = {
+      email: 'john.notsofresh@gmail.com',
+      password: 'password12345',
+    };
+
+    const loginResponse = await graphQLClient.rawRequest(loginMutation, {
+      input: loginInput,
+    });
+
+    const cookiesString = loginResponse.headers.get('set-cookie');
+    const accessTokenHeader = cookiesString
+      .split(', ')
+      .find((cookie: string) => cookie.startsWith('access_token='));
+
+    const accessToken = accessTokenHeader
+      .replace('access_token=', '')
+      .split(';')[0];
+
+    // Wait for 3 seconds to make the token non-fresh
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
+    const graphQLClientWithNonFreshToken = new GraphQLClient(httpUrl, {
+      credentials: 'include',
+      headers: {
+        cookie: `access_token=${accessToken}`,
+      },
+    });
+
+    try {
+      await graphQLClientWithNonFreshToken.request(
+        protectedFreshTokenMethodQuery
+      );
+    } catch (error) {
+      expect(error.response.errors[0].message).toEqual(
+        ERROR_MESSAGES.TOKEN_IS_NOT_FRESH
+      );
+    }
   });
 
   // it('should allow admin user to reset their password and still able to access protected-admin method', async () => {

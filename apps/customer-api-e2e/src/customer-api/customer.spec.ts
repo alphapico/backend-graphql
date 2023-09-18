@@ -5,7 +5,12 @@ import {
   connectToDatabase,
   disconnectFromDatabase,
 } from '../support/test-utils';
-import { CONFIG, CustomerRole, ERROR_MESSAGES } from '@charonium/common';
+import {
+  CONFIG,
+  CustomerRole,
+  ERROR_MESSAGES,
+  SUCCESS_MESSAGES,
+} from '@charonium/common';
 import { INPUT } from '@charonium/common';
 import {
   createAndVerifyAdmin,
@@ -64,6 +69,12 @@ describe('Customer', () => {
         name
         referralCode
       }
+    }
+  `;
+
+  const loginMutation = gql`
+    mutation Login($input: LoginInput!) {
+      login(input: $input)
     }
   `;
 
@@ -319,6 +330,14 @@ describe('Customer', () => {
 
   interface MeResponse {
     me: Customer;
+  }
+
+  interface ChangePasswordResponse {
+    changePassword: boolean;
+  }
+
+  interface LoginResponse {
+    login: boolean;
   }
 
   it('should register a new customer without referral code', async () => {
@@ -627,5 +646,65 @@ describe('Customer', () => {
     expect(getCustomersResponse.getCustomers.data).toBeInstanceOf(Array);
     // Length only 1 since we filter by customerRole
     expect(getCustomersResponse.getCustomers.data.length).toBe(1);
+  });
+
+  it('should allow a customer to change their password', async () => {
+    // 1. Register a new customer
+    const registerInput = {
+      name: 'Jane ChangePass',
+      email: 'jane.changepass@gmail.com',
+      password: 'initialPassword123',
+    };
+
+    const { graphQLClientWithAccessToken } = await registerAndLogin(
+      graphQLClient,
+      registerInput
+    );
+
+    // 3. Use the access token to change the password
+    const changePasswordInput = {
+      oldPassword: 'initialPassword123',
+      newPassword: 'newPassword456',
+    };
+
+    const changePasswordMutation = gql`
+      mutation ChangePassword($input: ChangePasswordInput!) {
+        changePassword(input: $input)
+      }
+    `;
+
+    const changePasswordResponse: ChangePasswordResponse =
+      await graphQLClientWithAccessToken.request(changePasswordMutation, {
+        input: changePasswordInput,
+      });
+
+    expect(changePasswordResponse.changePassword).toBe(true);
+
+    // 4. Attempt to login with the old password (this should fail)
+    try {
+      await graphQLClient.request(loginMutation, {
+        input: {
+          email: 'jane.changepass@gmail.com',
+          password: 'initialPassword123',
+        },
+      });
+    } catch (error) {
+      expect(error.response.errors[0].message).toBe(
+        ERROR_MESSAGES.INVALID_INPUT_PASSWORD
+      );
+    }
+
+    // 5. Login with the new password (this should succeed)
+    const newLoginResponse: LoginResponse = await graphQLClient.request(
+      loginMutation,
+      {
+        input: {
+          email: 'jane.changepass@gmail.com',
+          password: 'newPassword456',
+        },
+      }
+    );
+
+    expect(newLoginResponse.login).toEqual(SUCCESS_MESSAGES.LOGIN_SUCCESS);
   });
 });

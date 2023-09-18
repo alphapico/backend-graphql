@@ -207,3 +207,18 @@ export async function createAndVerifyAdmin(
 
   return { graphQLClientWithAdminAccessToken };
 }
+
+export const waitForCondition = async (
+  conditionFn: () => Promise<boolean>,
+  timeout = 2000,
+  interval = 100
+) => {
+  const startTime = Date.now();
+  while (Date.now() - startTime < timeout) {
+    if (await conditionFn()) {
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, interval));
+  }
+  throw new Error('Condition not met within timeout');
+};

@@ -286,7 +286,6 @@ mutation RefreshTokens {
 | UnauthorizedException | UNAUTHENTICATED | 401         | Invalid refresh token |
 | UnauthorizedException | UNAUTHENTICATED | 401         | Customer not found    |
 | UnauthorizedException | UNAUTHENTICATED | 401         | Customer is suspended |
-| UnauthorizedException | UNAUTHENTICATED | 401         | Invalid refresh token |
 
 <br />
 

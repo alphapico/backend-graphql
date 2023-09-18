@@ -15,6 +15,8 @@ import {
   IJwtPayload,
 } from '@charonium/common';
 import { AdminGuard } from '../auth/admin.guard';
+import { FreshTokenGuard } from '../auth/fresh-token.guard';
+import { ChangePasswordInput } from './dto/change-password.input';
 
 @Resolver(() => Customer)
 export class CustomerResolver {
@@ -60,6 +62,15 @@ export class CustomerResolver {
   @Mutation(() => Boolean)
   async resendAdminRegistrationEmail(): Promise<boolean> {
     return this.customerService.resendAdminRegistrationEmail();
+  }
+
+  @Mutation(() => Boolean)
+  @UseGuards(FreshTokenGuard)
+  async changePassword(
+    @CurrentUser() user: IJwtPayload,
+    @Args('input') input: ChangePasswordInput
+  ): Promise<boolean> {
+    return this.customerService.changePassword(user.sub, input);
   }
 
   @Query(() => CustomerResult)

@@ -34,6 +34,7 @@ import { AuthService } from '../auth/auth.service';
 import { EmailService } from '../email/email.service';
 import { RegisterAdminInput } from './dto/register-admin.input';
 import { LogService } from '../log/log.service';
+import { ChangePasswordInput } from './dto/change-password.input';
 @Injectable()
 export class CustomerService {
   private cache: NodeCache;
@@ -55,6 +56,19 @@ export class CustomerService {
   async findByCustomerId(customerId: number): Promise<PrismaCustomer | null> {
     return this.prisma.customer.findUnique({
       where: { customerId },
+    });
+  }
+
+  async updateCustomerStatus(
+    customer: PrismaCustomer
+  ): Promise<PrismaCustomer> {
+    return this.prisma.customer.update({
+      where: {
+        customerId: customer.customerId,
+      },
+      data: {
+        customerStatus: customer.customerStatus,
+      },
     });
   }
 
@@ -287,6 +301,35 @@ export class CustomerService {
     });
 
     await this.emailService.sendWelcomeEmail(updatedAdmin, true);
+
+    return true;
+  }
+
+  async changePassword(
+    customerId: number,
+    input: ChangePasswordInput
+  ): Promise<boolean> {
+    const customer = await this.prisma.customer.findUnique({
+      where: { customerId },
+    });
+
+    if (!customer) {
+      throw new BadRequestException(ERROR_MESSAGES.CUSTOMER_NOT_FOUND);
+    }
+
+    const valid = await argon2.verify(customer.password, input.oldPassword);
+    if (!valid) {
+      throw new BadRequestException(ERROR_MESSAGES.INVALID_OLD_PASSWORD);
+    }
+
+    const hashedPassword = await argon2.hash(input.newPassword);
+
+    await this.prisma.customer.update({
+      where: { customerId },
+      data: {
+        password: hashedPassword,
+      },
+    });
 
     return true;
   }
