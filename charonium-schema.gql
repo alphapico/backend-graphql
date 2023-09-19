@@ -86,9 +86,35 @@ type CommissionBase {
   updatedAt: DateTime
 }
 
+type CommissionRate {
+  commissionRate: Float!
+  tier: Int!
+}
+
 type CommissionResult {
   data: [Commission]!
   nextPageCursor: Int
+}
+
+type CommissionTier {
+  commissionRate: Float!
+  commissionTierId: Int!
+  createdAt: DateTime!
+  tier: Int!
+  updatedAt: DateTime
+}
+
+type Config {
+  configId: Int!
+  createdAt: DateTime!
+  isReferralCodeEnabled: Boolean!
+  referralViewLevel: Int!
+  updatedAt: DateTime
+}
+
+input CreateCommissionTierInput {
+  commissionRate: Float!
+  tier: Int!
 }
 
 input CreateWalletInput {
@@ -204,8 +230,10 @@ input LoginInput {
 
 type Mutation {
   changePassword(input: ChangePasswordInput!): Boolean!
+  createCommissionTier(input: CreateCommissionTierInput!): CommissionTier!
   createTokenPackage(input: TokenPackageCreateInput!): TokenPackage!
   createWallet(input: CreateWalletInput!): Wallet!
+  deleteCommissionTier(tier: Int!): CommissionTier!
   deleteTokenPackage(packageId: Int!): TokenPackage!
   editTokenPackage(input: TokenPackageUpdateInput!, packageId: Int!): TokenPackage!
   forgetPassword(input: EmailInput!): Boolean!
@@ -218,16 +246,18 @@ type Mutation {
   refreshTokens: String!
   register(input: RegisterInput!): Customer!
   registerAdmin(input: RegisterAdminInput!): Boolean!
-  reinstateCustomer(customerId: Int!): String!
+  reinstateCustomer(customerId: Int!): Customer!
   resendAdminRegistrationEmail: Boolean!
   resendEmailVerification(input: EmailInput!): Boolean!
   resetPassword(input: ResetPasswordInput!): Boolean!
   saveUploadedImage(saveImageInput: SaveImageInput!): Image!
   setDefaultWallet(input: SetDefaultWalletInput!): Wallet!
   setOrEditTokenPrice(input: TokenPriceCreateInput!): TokenPrice!
-  setReferralViewLevel(depth: Float!): Boolean!
-  suspendCustomer(customerId: Int!): String!
+  setReferralCodeEnabledStatus(status: Boolean!): Config!
+  setReferralViewLevel(depth: Int!): Config!
+  suspendCustomer(customerId: Int!): Customer!
   toggleTokenPackageStatus(packageId: Int!): TokenPackage!
+  updateCommissionTier(input: UpdateCommissionTierInput!): CommissionTier!
   updateCommissionTransferStatus(commissionId: Int!): CommissionBase!
   updateWallet(input: UpdateWalletInput!): Wallet!
   verifyEmail(token: String!): VerifyEmailResult!
@@ -316,6 +346,7 @@ input PurchaseTokensInput {
 }
 
 type Query {
+  getAllCommissionRates: [CommissionRate!]!
   getAllTokenPackages: [TokenPackage]!
   getAllTokenPackagesByStatus(isActive: Boolean!): [TokenPackage]!
   getCharges(code: String, cursor: Int, customerId: Int, limit: Int): ChargeResult!
@@ -433,6 +464,11 @@ enum UnresolvedReason {
   OTHER
   OVERPAID
   UNDERPAID
+}
+
+input UpdateCommissionTierInput {
+  commissionRate: Float
+  tier: Int
 }
 
 input UpdateWalletInput {

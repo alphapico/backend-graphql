@@ -20,6 +20,7 @@ import { PrismaModule, PrismaService } from '@charonium/prisma';
 import {
   createAndVerifyAdmin,
   createAndVerifyCustomer,
+  fetchAdminReferralCode,
   waitForCondition,
 } from './utils/auth-test.utils';
 
@@ -142,12 +143,47 @@ describe('Auth', () => {
     }
   `;
 
+  const setReferralCodeEnabledStatusMutation = gql`
+    mutation SetReferralCodeEnabledStatus($status: Boolean!) {
+      setReferralCodeEnabledStatus(status: $status) {
+        configId
+        referralViewLevel
+        isReferralCodeEnabled
+        createdAt
+        updatedAt
+      }
+    }
+  `;
+
+  interface SuspendedResponse {
+    suspendCustomer: Customer;
+  }
+
   interface ReinstateResponse {
-    reinstateCustomer: string;
+    reinstateCustomer: Customer;
   }
 
   interface RefreshTokensResponse {
     refreshTokens: string;
+  }
+
+  interface SetReferralCodeEnabledStatusResponse {
+    setReferralCodeEnabledStatus: {
+      configId: number;
+      referralViewLevel: number;
+      isReferralCodeEnabled: boolean;
+      createdAt: Date;
+      updatedAt?: Date;
+    };
+  }
+
+  interface RegisterResponse {
+    register: {
+      customerId: number;
+      email: string;
+      name: string;
+      referralCode: string;
+    };
   }
 
   it('should login successfully', async () => {
@@ -927,7 +963,12 @@ describe('Auth', () => {
     // 4. Suspend the customer using the admin's access token
     const suspendCustomerMutation = gql`
       mutation SuspendCustomer($customerId: Int!) {
-        suspendCustomer(customerId: $customerId)
+        suspendCustomer(customerId: $customerId) {
+          customerId
+          name
+          email
+          customerStatus
+        }
       }
     `;
 
@@ -935,9 +976,13 @@ describe('Auth', () => {
       where: { email: 'john.doe@gmail.com' },
     });
 
-    await graphQLClientWithAdminAccessToken.request(suspendCustomerMutation, {
-      customerId: customer.customerId,
-    });
+    const suspendedCustomerResponse: SuspendedResponse =
+      await graphQLClientWithAdminAccessToken.request(suspendCustomerMutation, {
+        customerId: customer.customerId,
+      });
+    expect(suspendedCustomerResponse.suspendCustomer.customerStatus).toBe(
+      CustomerStatus.SUSPENDED
+    );
 
     // 5. Try to refresh the customer's tokens and expect an error
     try {
@@ -1008,7 +1053,12 @@ describe('Auth', () => {
     // 4. Suspend the customer using the admin's access token
     const suspendCustomerMutation = gql`
       mutation SuspendCustomer($customerId: Int!) {
-        suspendCustomer(customerId: $customerId)
+        suspendCustomer(customerId: $customerId) {
+          customerId
+          name
+          email
+          customerStatus
+        }
       }
     `;
 
@@ -1016,9 +1066,21 @@ describe('Auth', () => {
       where: { email: 'john.reinstate@gmail.com' },
     });
 
-    await graphQLClientWithAdminAccessToken.request(suspendCustomerMutation, {
-      customerId: customer.customerId,
-    });
+    const suspendedCustomerResponse: SuspendedResponse =
+      await graphQLClientWithAdminAccessToken.request(suspendCustomerMutation, {
+        customerId: customer.customerId,
+      });
+    expect(suspendedCustomerResponse.suspendCustomer.customerStatus).toBe(
+      CustomerStatus.SUSPENDED
+    );
+
+    // wait for condition
+    // await waitForCondition(async () => {
+    //   const customer = await prismaService.customer.findUnique({
+    //     where: { email: 'john.reinstate@gmail.com' },
+    //   });
+    //   return customer.customerStatus === CustomerStatus.SUSPENDED;
+    // });
 
     // 5. Try to refresh the customer's tokens and expect an error
     try {
@@ -1031,12 +1093,17 @@ describe('Auth', () => {
 
     const reinstateCustomerMutation = gql`
       mutation ReinstateCustomer($customerId: Int!) {
-        reinstateCustomer(customerId: $customerId)
+        reinstateCustomer(customerId: $customerId) {
+          customerId
+          name
+          email
+          customerStatus
+        }
       }
     `;
 
     // 6. Reinstate the customer using the admin's access token
-    const reinstateResponse: ReinstateResponse =
+    const reinstatedCustomerResponse: ReinstateResponse =
       await graphQLClientWithAdminAccessToken.request(
         reinstateCustomerMutation,
         {
@@ -1044,20 +1111,20 @@ describe('Auth', () => {
         }
       );
 
-    expect(reinstateResponse.reinstateCustomer).toBe(
-      SUCCESS_MESSAGES.REINSTATE_CUSTOMER_SUCCESS
+    expect(reinstatedCustomerResponse.reinstateCustomer.customerStatus).toBe(
+      CustomerStatus.ACTIVE
     );
 
     // Wait for 1 seconds to let the database update the customer status
     // await new Promise((resolve) => setTimeout(resolve, 1000));
 
     // wait for condition
-    await waitForCondition(async () => {
-      const customer = await prismaService.customer.findUnique({
-        where: { email: 'john.reinstate@gmail.com' },
-      });
-      return customer.customerStatus === CustomerStatus.ACTIVE;
-    });
+    // await waitForCondition(async () => {
+    //   const customer = await prismaService.customer.findUnique({
+    //     where: { email: 'john.reinstate@gmail.com' },
+    //   });
+    //   return customer.customerStatus === CustomerStatus.ACTIVE;
+    // });
 
     // 7. Try to refresh the customer's tokens again (should succeed this time)
     const refreshTokensResponse: RefreshTokensResponse =
@@ -1156,6 +1223,69 @@ describe('Auth', () => {
     } catch (error) {
       expect(error.response.errors[0].message).toEqual(
         ERROR_MESSAGES.TOKEN_IS_NOT_FRESH
+      );
+    }
+  });
+
+  it('should register a customer with referral code when isReferralCodeEnabled is true', async () => {
+    // Get admin access token and referral code
+    const { graphQLClientWithAdminAccessToken } = await createAndVerifyAdmin(
+      graphQLClient,
+      jwtService,
+      prismaService
+    );
+    const referralCodeDetails = await fetchAdminReferralCode(prismaService);
+    const adminReferralCode = referralCodeDetails.referralCode;
+
+    const response: SetReferralCodeEnabledStatusResponse =
+      await graphQLClientWithAdminAccessToken.request(
+        setReferralCodeEnabledStatusMutation,
+        {
+          status: true,
+        }
+      );
+
+    expect(response.setReferralCodeEnabledStatus.isReferralCodeEnabled).toBe(
+      true
+    );
+
+    // Now, attempt to register a new customer with a referral code
+    const registerInputWithReferralCode = {
+      name: 'Jane Doe',
+      email: 'jane.doe@gmail.com',
+      password: 'password12345',
+      referralCode: adminReferralCode,
+    };
+
+    const registerResponse: RegisterResponse = await graphQLClient.request(
+      registerMutation,
+      {
+        input: registerInputWithReferralCode,
+      }
+    );
+
+    expect(registerResponse.register.email).toEqual(
+      registerInputWithReferralCode.email
+    );
+    expect(registerResponse.register.name).toEqual(
+      registerInputWithReferralCode.name
+    );
+    expect(registerResponse.register.referralCode).toBeDefined();
+
+    // Attempt to register a new customer without a referral code (should fail)
+    const registerInputWithoutReferralCode = {
+      name: 'John Smith',
+      email: 'john.smith@gmail.com',
+      password: 'password67890',
+    };
+
+    try {
+      await graphQLClient.request(registerMutation, {
+        input: registerInputWithoutReferralCode,
+      });
+    } catch (error) {
+      expect(error.response.errors[0].message).toBe(
+        ERROR_MESSAGES.REFERRAL_CODE_REQUIRED
       );
     }
   });

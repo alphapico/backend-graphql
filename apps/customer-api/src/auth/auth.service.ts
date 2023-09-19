@@ -17,7 +17,7 @@ import {
 } from '@charonium/common';
 import * as argon2 from 'argon2';
 import { Response } from 'express';
-import { CustomerStatus, EmailStatus } from '@prisma/client';
+import { Customer, CustomerStatus, EmailStatus } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -107,24 +107,24 @@ export class AuthService {
     return this.emailTokenJwtService.sign(payload);
   }
 
-  async suspendCustomer(customerId: number) {
+  async suspendCustomer(customerId: number): Promise<Customer> {
     const customer = await this.customerService.findByCustomerId(customerId);
     if (!customer) {
       throw new NotFoundException(ERROR_MESSAGES.CUSTOMER_NOT_FOUND);
     }
 
     customer.customerStatus = CustomerStatus.SUSPENDED;
-    this.customerService.updateCustomerStatus(customer);
+    return this.customerService.updateCustomerStatus(customer);
   }
 
-  async reinstateCustomer(customerId: number) {
+  async reinstateCustomer(customerId: number): Promise<Customer> {
     const customer = await this.customerService.findByCustomerId(customerId);
     if (!customer) {
       throw new NotFoundException(ERROR_MESSAGES.CUSTOMER_NOT_FOUND);
     }
 
     customer.customerStatus = CustomerStatus.ACTIVE;
-    this.customerService.updateCustomerStatus(customer);
+    return this.customerService.updateCustomerStatus(customer);
   }
 
   logout(@Res() res: Response): void {

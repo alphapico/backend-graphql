@@ -6,10 +6,16 @@ import { ReferralCodeUtil } from '@charonium/common';
 import { EmailModule } from '../email/email.module';
 import { AuthModule } from '../auth/auth.module';
 import { LogModule } from '../log/log.module';
+import { ConfigService } from '../config/config.service';
 
 @Module({
   imports: [EmailModule, forwardRef(() => AuthModule), PrismaModule, LogModule],
-  providers: [CustomerResolver, CustomerService, ReferralCodeUtil],
+  providers: [
+    CustomerResolver,
+    CustomerService,
+    ReferralCodeUtil,
+    ConfigService,
+  ],
   exports: [CustomerService],
 })
 export class CustomerModule {}

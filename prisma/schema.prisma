@@ -110,10 +110,11 @@ model Wallet {
 }
 
 model Config {
-  configId            Int       @id @default(autoincrement())
-  referralViewLevel   Int       @default(3)
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime? @updatedAt
+  configId              Int       @id @default(autoincrement())
+  referralViewLevel     Int       @default(3)
+  isReferralCodeEnabled Boolean   @default(true)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime? @updatedAt
 }
 
 model Log {
@@ -185,7 +186,7 @@ model Payment {
 model CommissionTier {
   commissionTierId     Int        @id @default(autoincrement())
   tier                 Int        @unique
-  commission           Decimal    @db.Decimal(4,4) //allow value from 0.0000 to 0.9999 (0% to 99.99%) 
+  commissionRate       Decimal    @db.Decimal(4,4) //allow value from 0.0000 to 0.9999 (0% to 99.99%) 
   createdAt            DateTime   @default(now())
   updatedAt            DateTime?  @updatedAt
 }

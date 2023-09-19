@@ -205,7 +205,23 @@ export async function createAndVerifyAdmin(
     },
   });
 
-  return { graphQLClientWithAdminAccessToken };
+  return {
+    graphQLClientWithAdminAccessToken,
+  };
+}
+
+export async function fetchAdminReferralCode(
+  prismaService: PrismaService
+): Promise<{ referralCode: string }> {
+  const adminDetails: Customer = await prismaService.customer.findUnique({
+    where: { email: process.env.ADMIN_EMAIL },
+  });
+
+  if (!adminDetails) {
+    throw new Error('Admin details not found in the database');
+  }
+
+  return { referralCode: adminDetails.referralCode };
 }
 
 export const waitForCondition = async (

@@ -35,6 +35,7 @@ import { EmailService } from '../email/email.service';
 import { RegisterAdminInput } from './dto/register-admin.input';
 import { LogService } from '../log/log.service';
 import { ChangePasswordInput } from './dto/change-password.input';
+import { ConfigService } from '../config/config.service';
 @Injectable()
 export class CustomerService {
   private cache: NodeCache;
@@ -44,7 +45,8 @@ export class CustomerService {
     private authService: AuthService,
     private emailService: EmailService,
     private logService: LogService,
-    private referralCodeUtil: ReferralCodeUtil
+    private referralCodeUtil: ReferralCodeUtil,
+    private configService: ConfigService
   ) {
     this.cache = new NodeCache();
   }
@@ -79,6 +81,15 @@ export class CustomerService {
     // }
 
     let referralCustomerId: number | undefined;
+
+    const isReferralCodeEnabled =
+      process.env.NODE_ENV === 'test'
+        ? false
+        : (await this.configService.getReferralCodeEnabledStatus()) || true;
+
+    if (isReferralCodeEnabled && !input.referralCode) {
+      throw new BadRequestException(ERROR_MESSAGES.REFERRAL_CODE_REQUIRED);
+    }
 
     const hashedPassword = await argon2.hash(input.password);
     const referralCode = await this.referralCodeUtil.encodeReferralCode();

@@ -4,6 +4,7 @@ import { TokenPriceCreateInput } from './dto/token-price-create.input';
 import { TokenPackage, TokenPrice } from '@prisma/client';
 import { TokenPackageCreateInput } from './dto/token-package-create.input';
 import { TokenPackageUpdateInput } from './dto/token-package-update.input';
+import { Config } from './dto/config.dto';
 
 @Injectable()
 export class ConfigService {
@@ -148,25 +149,49 @@ export class ConfigService {
     return tokenPackages;
   }
 
-  async setReferralViewLevel(depth: number): Promise<boolean> {
+  async setReferralViewLevel(depth: number): Promise<Config> {
+    let updatedConfig: Config;
     const existingConfig = await this.prisma.config.findFirst();
 
     if (existingConfig) {
-      await this.prisma.config.update({
+      updatedConfig = await this.prisma.config.update({
         where: { configId: existingConfig.configId },
         data: { referralViewLevel: depth },
       });
     } else {
-      await this.prisma.config.create({
+      updatedConfig = await this.prisma.config.create({
         data: { referralViewLevel: depth },
       });
     }
 
-    return true;
+    return updatedConfig;
   }
 
   async getReferralViewLevel(): Promise<number | null> {
     const config = await this.prisma.config.findFirst();
     return config?.referralViewLevel || null;
+  }
+
+  async setReferralCodeEnabledStatus(status: boolean): Promise<Config> {
+    let updatedConfig: Config;
+    const existingConfig = await this.prisma.config.findFirst();
+
+    if (existingConfig) {
+      updatedConfig = await this.prisma.config.update({
+        where: { configId: existingConfig.configId },
+        data: { isReferralCodeEnabled: status },
+      });
+    } else {
+      updatedConfig = await this.prisma.config.create({
+        data: { isReferralCodeEnabled: status },
+      });
+    }
+
+    return updatedConfig;
+  }
+
+  async getReferralCodeEnabledStatus(): Promise<boolean | null> {
+    const config = await this.prisma.config.findFirst();
+    return config?.isReferralCodeEnabled || null;
   }
 }

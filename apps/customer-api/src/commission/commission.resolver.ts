@@ -8,6 +8,12 @@ import { AdminGuard } from '../auth/admin.guard';
 import { CurrentUser, IJwtPayload, PaymentStatus } from '@charonium/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ChargeResult } from './dto/charge.dto';
+import {
+  CommissionRate,
+  CommissionTier,
+  CreateCommissionTierInput,
+  UpdateCommissionTierInput,
+} from './dto/commission-tier.dto';
 
 @Resolver()
 export class CommissionResolver {
@@ -136,5 +142,51 @@ export class CommissionResolver {
       customerId,
       code
     );
+  }
+
+  @Mutation(() => CommissionTier)
+  @UseGuards(AdminGuard)
+  async createCommissionTier(
+    @Args('input') input: CreateCommissionTierInput
+  ): Promise<CommissionTier> {
+    return this.commissionService.createCommissionTier(
+      input.tier,
+      input.commissionRate
+    );
+  }
+
+  @Mutation(() => CommissionTier)
+  @UseGuards(AdminGuard)
+  async updateCommissionTier(
+    @Args('input') input: UpdateCommissionTierInput
+  ): Promise<CommissionTier> {
+    return this.commissionService.updateCommissionTier(
+      input.tier,
+      input.commissionRate
+    );
+  }
+
+  @Mutation(() => CommissionTier)
+  @UseGuards(AdminGuard)
+  async deleteCommissionTier(
+    @Args('tier', { type: () => Int }) tier: number
+  ): Promise<CommissionTier> {
+    return this.commissionService.deleteCommissionTier(tier);
+  }
+
+  @Query(() => [CommissionRate])
+  @UseGuards(AdminGuard)
+  async getAllCommissionRates(): Promise<CommissionRate[]> {
+    const ratesMap = await this.commissionService.getAllCommissionRates();
+    const ratesArray: CommissionRate[] = [];
+
+    for (const [tier, commissionRate] of Object.entries(ratesMap)) {
+      ratesArray.push({
+        tier: parseInt(tier),
+        commissionRate: commissionRate,
+      });
+    }
+
+    return ratesArray;
   }
 }

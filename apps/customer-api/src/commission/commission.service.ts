@@ -5,7 +5,11 @@ import {
   handlePrismaError,
 } from '@charonium/common';
 import { PrismaService } from '@charonium/prisma';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   Charge,
   Commission as PrismaCommission,
@@ -19,6 +23,7 @@ import {
 } from '@prisma/client';
 import { CommissionResult } from './dto/commission.dto';
 import graphqlFields from 'graphql-fields';
+import { CommissionTier } from './dto/commission-tier.dto';
 
 @Injectable()
 export class CommissionService {
@@ -150,15 +155,19 @@ export class CommissionService {
     await this.prisma.$transaction([createCommissions, confirmPurchase]);
   }
 
-  private async getAllCommissionRates(): Promise<{ [key: number]: number }> {
-    const commissionTiers = await this.prisma.commissionTier.findMany();
-    const rates: { [key: number]: number } = {};
+  async getAllCommissionRates(): Promise<{ [key: number]: number }> {
+    const commissionTiers = await this.prisma.commissionTier.findMany({
+      orderBy: {
+        tier: 'asc',
+      },
+    });
+    const commissionRates: { [key: number]: number } = {};
 
     for (const tier of commissionTiers) {
-      rates[tier.tier] = parseFloat(tier.commission.toString());
+      commissionRates[tier.tier] = parseFloat(tier.commissionRate.toString());
     }
 
-    return rates;
+    return commissionRates;
   }
 
   async isPurchaseConfirmed(chargeCode: string): Promise<boolean> {
@@ -176,6 +185,74 @@ export class CommissionService {
     }
 
     return true;
+  }
+
+  async createCommissionTier(
+    tier: number,
+    commissionRate: number
+  ): Promise<CommissionTier> {
+    try {
+      const commissionTier = await this.prisma.commissionTier.create({
+        data: {
+          tier,
+          commissionRate,
+        },
+      });
+      return {
+        ...commissionTier,
+        commissionRate: parseFloat(commissionTier.commissionRate.toFixed(4)),
+      };
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException(
+          ERROR_MESSAGES.COMMISSION_TIER_ALREADY_EXISTS
+        );
+      }
+      throw error;
+    }
+  }
+
+  async updateCommissionTier(
+    tier: number,
+    commissionRate: number
+  ): Promise<CommissionTier> {
+    const existingTier = await this.prisma.commissionTier.findUnique({
+      where: { tier },
+    });
+
+    if (!existingTier) {
+      throw new NotFoundException(ERROR_MESSAGES.COMMISSION_TIER_NOT_FOUND);
+    }
+
+    const commissionTier = await this.prisma.commissionTier.update({
+      where: { tier },
+      data: { commissionRate },
+    });
+    return {
+      ...commissionTier,
+      commissionRate: parseFloat(commissionTier.commissionRate.toFixed(4)),
+    };
+  }
+
+  async deleteCommissionTier(tier: number): Promise<CommissionTier> {
+    const existingTier = await this.prisma.commissionTier.findUnique({
+      where: { tier },
+    });
+
+    if (!existingTier) {
+      throw new NotFoundException(ERROR_MESSAGES.COMMISSION_TIER_NOT_FOUND);
+    }
+
+    const commissionTier = await this.prisma.commissionTier.delete({
+      where: { tier },
+    });
+    return {
+      ...commissionTier,
+      commissionRate: parseFloat(commissionTier.commissionRate.toFixed(4)),
+    };
   }
 
   async getPurchaseActivities(

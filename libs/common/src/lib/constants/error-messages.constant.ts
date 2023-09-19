@@ -36,6 +36,9 @@ export const ERROR_MESSAGES = {
   OPERATION_NOT_ALLOWED: 'Operation not allowed',
   TOKEN_IS_NOT_FRESH: 'Token is not fresh',
   INVALID_OLD_PASSWORD: 'Invalid old password',
+  REFERRAL_CODE_REQUIRED: 'Referral code is required',
+  COMMISSION_TIER_NOT_FOUND: 'Commission Tier not found',
+  COMMISSION_TIER_ALREADY_EXISTS: 'Commission Tier already exists',
   VAL: {
     IS_STRING: '$property must be a string',
     IS_EMAIL: '$property must be an email',

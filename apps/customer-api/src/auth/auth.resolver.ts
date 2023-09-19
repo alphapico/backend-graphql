@@ -13,6 +13,7 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 import { AdminGuard } from './admin.guard';
 import { JwtPayload } from './dto/jwt-payload.dto';
 import { FreshTokenGuard } from './fresh-token.guard';
+import { Customer } from '../customer/dto/customer.dto';
 
 @Resolver()
 export class AuthResolver {
@@ -57,22 +58,32 @@ export class AuthResolver {
     return SUCCESS_MESSAGES.REFRESH_TOKEN_SUCCESS;
   }
 
-  @Mutation(() => String)
+  @Mutation(() => Customer)
   @UseGuards(AdminGuard)
   async suspendCustomer(
     @Args('customerId', { type: () => Int }) customerId: number
-  ): Promise<string> {
-    this.authService.suspendCustomer(customerId);
-    return SUCCESS_MESSAGES.SUSPEND_CUSTOMER_SUCCESS;
+  ): Promise<Customer> {
+    const customer = await this.authService.suspendCustomer(customerId);
+    return {
+      ...customer,
+      charges: [],
+      commissions: [],
+      wallets: [],
+    };
   }
 
-  @Mutation(() => String)
+  @Mutation(() => Customer)
   @UseGuards(AdminGuard)
   async reinstateCustomer(
     @Args('customerId', { type: () => Int }) customerId: number
-  ): Promise<string> {
-    this.authService.reinstateCustomer(customerId);
-    return SUCCESS_MESSAGES.REINSTATE_CUSTOMER_SUCCESS;
+  ): Promise<Customer> {
+    const customer = await this.authService.reinstateCustomer(customerId);
+    return {
+      ...customer,
+      charges: [],
+      commissions: [],
+      wallets: [],
+    };
   }
 
   @Mutation(() => String)
