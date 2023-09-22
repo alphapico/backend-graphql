@@ -83,6 +83,8 @@ export const CONFIG = {
   REFRESH_TOKEN_EXPIRATION: '1d',
   EMAIL_TOKEN_EXPIRATION: '1h',
 
+  TOKEN_FRESHNESS_DURATION: 600, // 10 minutes
+
   COINBASE_SUPPORTED_FIAT: ['USD', 'GBP', 'EUR'],
 };
 ```
@@ -257,6 +259,8 @@ export const SUCCESS_MESSAGES = {
   LOGIN_SUCCESS: 'Login successful',
   LOGOUT_SUCCESS: 'Logout successful',
   REFRESH_TOKEN_SUCCESS: 'Refresh token successful',
+  SUSPEND_CUSTOMER_SUCCESS: 'Suspend customer successful',
+  REINSTATE_CUSTOMER_SUCCESS: 'Reinstate customer successful',
   EMAIL_VERIFICATION_SENT: 'Email verification sent',
   EMAIL_PASSWORD_RESET_SENT: 'Email password reset sent',
   EMAIL_ADMIN_REGISTRATION_SENT: 'Email admin registration sent',
@@ -276,6 +280,8 @@ export const SUCCESS_MESSAGES = {
 Any relevant error messages can be placed inside the `<common lib path>/constants/error-messages.constant.ts`
 
 ```tsx
+import { supportedCurrencyList } from './config.constant';
+
 export const ERROR_MESSAGES = {
   INVALID_REFERRAL_CODE: 'Invalid referral code',
   EMAIL_ALREADY_EXISTS: 'Email already exists',
@@ -306,10 +312,22 @@ export const ERROR_MESSAGES = {
   FAILED_HANDLING_CHARGE_EVENT: 'Failed handling charge event',
   AMOUNT_NOT_FOUND: 'Amount not found',
   CURRENCY_NOT_FOUND: 'Currency not found',
+  WALLET_NOT_FOUND: 'Wallet not found',
+  ETH_WALLET_REQUIRED: 'You must have at least one ETH wallet',
+  INVALID_ETH_ADDRESS: 'Invalid ETH address',
+  OPERATION_NOT_ALLOWED: 'Operation not allowed',
+  TOKEN_IS_NOT_FRESH: 'Token is not fresh',
+  INVALID_OLD_PASSWORD: 'Invalid old password',
+  REFERRAL_CODE_REQUIRED: 'Referral code is required',
+  COMMISSION_TIER_NOT_FOUND: 'Commission Tier not found',
+  COMMISSION_TIER_ALREADY_EXISTS: 'Commission Tier already exists',
   VAL: {
     IS_STRING: '$property must be a string',
     IS_EMAIL: '$property must be an email',
     IS_URL: '$property must be a URL',
+    IS_INT: '$property must be an integer',
+    INVALID_IMAGE_TYPE: 'type must be a valid ImageType',
+    INVALID_CRYPTO_TYPE: 'type must be a valid CryptoType',
     IS_NOT_EMPTY: '$property should not be empty',
     IS_VALID_CURRENCY_FORMAT: 'Invalid currency format',
     IS_SUPPORTED_CURRENCY: `currency must be one of the following: ${supportedCurrencyList}`,
@@ -354,13 +372,15 @@ For additional exception methods, check the `ERROR.md` file for more information
 If you would like to protect your endpoints resolver, just add `@UseGuards()` to the resolver method:
 
 ```tsx
-// For Normal User
+// JwtAuthGuard
+// For Normal User and Admin
 @Query(() => your_return_type)
   @UseGuards(JwtAuthGuard)
   async YourProtectedMethod(): Promise<your_return_type> {
     ...
   }
 
+// AdminGuard
 // For Admin
 @Query(() => your_return_type)
   @UseGuards(AdminGuard)
@@ -368,6 +388,18 @@ If you would like to protect your endpoints resolver, just add `@UseGuards()` to
   ): Promise<your_return_type> {
     ...
   }
+
+// FreshTokenGuard
+// For critically sensitive operations, such as changing the password,
+// the user may need to re-login if the access token is older than 10 minutes.
+// Apply to both User and Admin
+@Query(() => your_return_type)
+  @UseGuards(FreshTokenGuard)
+  async protectedFreshTokenMethod(
+  ): Promise<your_return_type> {
+    ...
+  }
+
 
 ```
 

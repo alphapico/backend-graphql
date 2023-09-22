@@ -362,6 +362,9 @@ export class CustomerService {
     if (fields.wallets) {
       include.wallets = true;
     }
+    if (fields.data.purchaseActivities) {
+      include.purchaseActivities = true;
+    }
     if (fields.referrer) {
       include.referrer = true;
     }
@@ -404,7 +407,8 @@ export class CustomerService {
     limit = 10,
     customerStatus?: CustomerStatus,
     emailStatus?: EmailStatus,
-    customerRole?: CustomerRole
+    customerRole?: CustomerRole,
+    customerId?: number
   ): Promise<CustomerResult> {
     const fields = graphqlFields(info);
     console.log(fields);
@@ -422,6 +426,9 @@ export class CustomerService {
       }
       if (fields.data.wallets) {
         include.wallets = true;
+      }
+      if (fields.data.purchaseActivities) {
+        include.purchaseActivities = true;
       }
       if (fields.data.referrer) {
         include.referrer = true;
@@ -443,6 +450,10 @@ export class CustomerService {
 
     if (customerRole) {
       whereClause.customerRole = customerRole;
+    }
+
+    if (customerId) {
+      whereClause.customerId = customerId;
     }
 
     // Check if the include object is empty

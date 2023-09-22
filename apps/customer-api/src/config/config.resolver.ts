@@ -93,4 +93,10 @@ export class ConfigResolver {
   ): Promise<Config> {
     return this.configService.setReferralCodeEnabledStatus(status);
   }
+
+  @Query(() => Config, { nullable: true })
+  @UseGuards(AdminGuard)
+  async getConfig(): Promise<Config> {
+    return this.configService.getConfig();
+  }
 }

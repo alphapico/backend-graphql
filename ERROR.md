@@ -97,10 +97,22 @@ export const ERROR_MESSAGES = {
   FAILED_HANDLING_CHARGE_EVENT: 'Failed handling charge event',
   AMOUNT_NOT_FOUND: 'Amount not found',
   CURRENCY_NOT_FOUND: 'Currency not found',
+  WALLET_NOT_FOUND: 'Wallet not found',
+  ETH_WALLET_REQUIRED: 'You must have at least one ETH wallet',
+  INVALID_ETH_ADDRESS: 'Invalid ETH address',
+  OPERATION_NOT_ALLOWED: 'Operation not allowed',
+  TOKEN_IS_NOT_FRESH: 'Token is not fresh',
+  INVALID_OLD_PASSWORD: 'Invalid old password',
+  REFERRAL_CODE_REQUIRED: 'Referral code is required',
+  COMMISSION_TIER_NOT_FOUND: 'Commission Tier not found',
+  COMMISSION_TIER_ALREADY_EXISTS: 'Commission Tier already exists',
   VAL: {
     IS_STRING: '$property must be a string',
     IS_EMAIL: '$property must be an email',
     IS_URL: '$property must be a URL',
+    IS_INT: '$property must be an integer',
+    INVALID_IMAGE_TYPE: 'type must be a valid ImageType',
+    INVALID_CRYPTO_TYPE: 'type must be a valid CryptoType',
     IS_NOT_EMPTY: '$property should not be empty',
     IS_VALID_CURRENCY_FORMAT: 'Invalid currency format',
     IS_SUPPORTED_CURRENCY: `currency must be one of the following: ${supportedCurrencyList}`,
@@ -152,6 +164,8 @@ export const SUCCESS_MESSAGES = {
   LOGIN_SUCCESS: 'Login successful',
   LOGOUT_SUCCESS: 'Logout successful',
   REFRESH_TOKEN_SUCCESS: 'Refresh token successful',
+  SUSPEND_CUSTOMER_SUCCESS: 'Suspend customer successful',
+  REINSTATE_CUSTOMER_SUCCESS: 'Reinstate customer successful',
   EMAIL_VERIFICATION_SENT: 'Email verification sent',
   EMAIL_PASSWORD_RESET_SENT: 'Email password reset sent',
   EMAIL_ADMIN_REGISTRATION_SENT: 'Email admin registration sent',
@@ -172,6 +186,8 @@ export const SUCCESS_MESSAGES = {
 
 ### Register
 
+If the Admin sets the `isReferralCodeEnabled` flag in the `Config` table, the error message `"Referral code is required"` will appear if the Customer does not provide the `referralCode` during registration. `referralCode` is optional if Admin unsets the `isReferralCodeEnabled` flag.
+
 ```tsx
 mutation Register($input: RegisterInput!) {
   register(input: $input){
@@ -190,7 +206,8 @@ mutation Register($input: RegisterInput!) {
   "input": {
     "email": "johndoe@gmail.com",
     "name": "John Doe",
-    "password": "secured-password"
+    "password": "secured-password",
+    "referralCode" : "JKMUJZEU"
   }
 }
 
@@ -203,6 +220,7 @@ mutation Register($input: RegisterInput!) {
 | BadRequestException | BAD_REQUEST           | 400         | [ "email must be an email" ]                                                                                                                                      |
 | BadRequestException | BAD_REQUEST           | 400         | [ "password must be longer than or equal to 8 characters", "password must be shorter than or equal to 100 characters" ]                                           |
 |                     | BAD_USER_INPUT        |             |                                                                                                                                                                   |
+| BadRequestException | BAD_REQUEST           | 400         | Referral code is required                                                                                                                                         |
 | BadRequestException | BAD_REQUEST           | 400         | Invalid referral code                                                                                                                                             |
 | ConflictException   | INTERNAL_SERVER_ERROR | 409         | Email already exists                                                                                                                                              |
 
@@ -259,7 +277,122 @@ mutation Login($input: LoginInput!) {
 
 <br />
 
+## Me
+
+`Restricted to User and Admin`
+
+A user can query their own data
+
+```tsx
+query Me {
+      me {
+        customerId
+        name
+        email
+        emailStatus
+        customerStatus
+        referralCode
+        referralCustomerId
+        referrer {
+          customerId
+          name
+          email
+          emailStatus
+          customerStatus
+          referralCode
+          referralCustomerId
+        }
+        referees {
+          customerId
+          name
+          email
+          emailStatus
+          customerStatus
+          referralCode
+          referralCustomerId
+        }
+        charges {
+          chargeId
+          code
+          name
+          description
+          pricingType
+          addresses
+          pricing
+          exchangeRates
+          localExchangeRates
+          hostedUrl
+          cancelUrl
+          redirectUrl
+          feeRate
+          expiresAt
+          paymentThreshold
+          createdAt
+          updatedAt
+        }
+        commissions {
+          commissionId
+          customerId
+          chargeId
+          tier
+          commissionRate
+          amount
+          currency
+          isTransferred
+          createdAt
+          updatedAt
+        }
+        wallets {
+          walletId
+          customerId
+          address
+          cryptoType
+          isDefault
+        }
+        purchaseActivities{
+            purchaseActivityId
+            purchaseCode
+            customerId
+            chargeId
+            packageId
+            tokenPriceId
+            tokenAmount
+            price
+            amount
+            currency
+            purchaseConfirmed
+            paymentStatus
+            createdAt
+            updatedAt
+        }
+        image {
+          imageId
+          path
+          type
+          customerId
+          packageId
+          createdAt
+        }
+        createdAt
+        updatedAt
+      }
+    }
+
+// response with Customer
+
+
+```
+
+| Exception             | Code                  | Status Code | Message            |
+| --------------------- | --------------------- | ----------- | ------------------ |
+| UnauthorizedException | UNAUTHENTICATED       | 401         | Unauthorized       |
+| NotFoundException     | INTERNAL_SERVER_ERROR | 404         | Customer not found |
+
+<br />
+
 ### Logout
+
+`Restricted to User and Admin`
 
 ```tsx
 mutation Logout {
@@ -341,6 +474,38 @@ mutation ResetPassword($input: ResetPasswordInput!) {
 
 <br />
 
+### Change Password
+
+`Restricted to User and Admin. Fresh Access Token is required`
+
+For enhanced security, certain actions require a fresh authentication token. If you've been logged in for more than 10 minutes, you'll need to re-login to proceed with these specific actions.
+
+```tsx
+mutation ChangePassword($input: ChangePasswordInput!) {
+      changePassword(input: $input)
+    }
+
+// Example input
+{ "input": {
+      "oldPassword": "initialPassword123",
+      "newPassword": "newPassword456",
+    }
+}
+
+// Response with Boolean true if success
+```
+
+| Exception             | Code            | Status Code | Message                                                                                                                                                                                        |
+| --------------------- | --------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized                                                                                                                                                                                   |
+| BadRequestException   | BAD_REQUEST     | 400         | ["oldPassword must be a string", "oldPassword should not be empty", "oldPassword must be longer than or equal to 8 characters", "oldPassword must be shorter than or equal to 100 characters"] |
+| BadRequestException   | BAD_REQUEST     | 400         | ["newPassword must be a string", "newPassword should not be empty", "newPassword must be longer than or equal to 8 characters", "newPassword must be shorter than or equal to 100 characters"] |
+| BadRequestException   | BAD_REQUEST     | 400         | Customer not found                                                                                                                                                                             |
+| BadRequestException   | BAD_REQUEST     | 400         | Invalid old password                                                                                                                                                                           |
+|                       | BAD_USER_INPUT  |             |                                                                                                                                                                                                |
+
+<br />
+
 ### Testing Protected Method
 
 `Restricted to User and Admin`
@@ -350,6 +515,29 @@ You need to login to access this protected method
 ```tsx
 query ProtectedMethod {
       protectedMethod {
+        sub
+        email
+        role
+      }
+    }
+// Response with JwtPayload {sub: 23, email: user@example.com, role: "USER" }
+```
+
+| Exception             | Code            | Status Code | Message      |
+| --------------------- | --------------- | ----------- | ------------ |
+| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized |
+
+<br />
+
+### Testing Fresh Token Protected Method
+
+`Restricted to User and Admin. Fresh Access Token is required`
+
+For enhanced security, certain actions require a fresh authentication token. If you've been logged in for more than 10 minutes, you'll need to re-login to proceed with these specific actions.
+
+```tsx
+query ProtectedFreshTokenMethod {
+      protectedFreshTokenMethod {
         sub
         email
         role
@@ -463,6 +651,360 @@ query ProtectedAdminMethod {
 
 <br />
 
+### Suspend User
+
+`Restricted to Admin only`
+
+```tsx
+mutation SuspendCustomer($customerId: Int!) {
+        suspendCustomer(customerId: $customerId) {
+          customerId
+          name
+          email
+          customerStatus
+          referralCode
+          referralCustomerId
+        }
+      }
+
+// Example input
+{
+  "customerId": 123,
+}
+
+// response with Customer
+
+```
+
+| Exception             | Code            | Status Code | Message            |
+| --------------------- | --------------- | ----------- | ------------------ |
+| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |
+| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |
+| BadRequestException   | BAD_REQUEST     | 400         | Customer not found |
+|                       | BAD_USER_INPUT  |             |                    |
+
+<br />
+
+### Reinstate User
+
+`Restricted to Admin only`
+
+```tsx
+mutation ReinstateCustomer($customerId: Int!) {
+        reinstateCustomer(customerId: $customerId) {
+          customerId
+          name
+          email
+          customerStatus
+          referralCode
+          referralCustomerId
+        }
+      }
+
+// Example input
+{
+  "customerId": 123,
+}
+
+// response with Customer
+
+```
+
+| Exception             | Code            | Status Code | Message            |
+| --------------------- | --------------- | ----------- | ------------------ |
+| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |
+| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |
+| BadRequestException   | BAD_REQUEST     | 400         | Customer not found |
+|                       | BAD_USER_INPUT  |             |                    |
+
+<br />
+
+### Set Referral Map View Level
+
+`Restricted to Admin only`
+
+```tsx
+mutation SetReferralViewLevel($depth: Int!) {
+      setReferralViewLevel(depth: $depth) {
+        configId
+        referralViewLevel
+        isReferralCodeEnabled
+        createdAt
+        updatedAt
+      }
+    }
+
+// Example input
+{ "depth" : 3 }
+
+// response with Config
+```
+
+| Exception             | Code            | Status Code | Message            |
+| --------------------- | --------------- | ----------- | ------------------ |
+| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |
+| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |
+
+<br />
+
+### Set isReferralCodeEnabled Status
+
+`Restricted to Admin only`
+
+```tsx
+mutation SetReferralCodeEnabledStatus($status: Boolean!) {
+      setReferralCodeEnabledStatus(status: $status) {
+        configId
+        referralViewLevel
+        isReferralCodeEnabled
+        createdAt
+        updatedAt
+      }
+    }
+
+// Example input
+{ "status" : true }
+
+// response with Config
+```
+
+| Exception             | Code            | Status Code | Message            |
+| --------------------- | --------------- | ----------- | ------------------ |
+| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |
+| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |
+
+<br />
+
+### Get Config
+
+`Restricted to Admin only`
+
+```tsx
+query GetConfig{
+	getConfig{
+    configId
+    referralViewLevel
+    isReferralCodeEnabled
+    createdAt
+    updatedAt
+  }
+}
+
+// response with Config
+```
+
+| Exception             | Code            | Status Code | Message            |
+| --------------------- | --------------- | ----------- | ------------------ |
+| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |
+| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |
+
+<br />
+
+### Get Customers
+
+`Restricted to Admin only`
+
+```tsx
+query GetCustomers(
+      $cursor: Int
+      $limit: Int
+      $customerStatus: CustomerStatus
+      $emailStatus: EmailStatus
+      $customerRole: CustomerRole
+      $customerId: Int
+    ) {
+      getCustomers(
+        cursor: $cursor
+        limit: $limit
+        customerStatus: $customerStatus
+        emailStatus: $emailStatus
+        customerRole: $customerRole
+        customerId: $customerId
+      ) {
+        data {
+          customerId
+          name
+          email
+          emailStatus
+          customerStatus
+          referralCode
+          referralCustomerId
+          referrer {
+            customerId
+            name
+            email
+            emailStatus
+            customerStatus
+            referralCode
+            referralCustomerId
+          }
+          referees {
+            customerId
+            name
+            email
+            emailStatus
+            customerStatus
+            referralCode
+            referralCustomerId
+          }
+          charges {
+            chargeId
+            code
+            name
+            description
+            pricingType
+            addresses
+            pricing
+            exchangeRates
+            localExchangeRates
+            hostedUrl
+            cancelUrl
+            redirectUrl
+            feeRate
+            expiresAt
+            paymentThreshold
+            createdAt
+            updatedAt
+          }
+          commissions {
+            commissionId
+            customerId
+            chargeId
+            tier
+            commissionRate
+            amount
+            currency
+            isTransferred
+            createdAt
+            updatedAt
+          }
+          wallets {
+            walletId
+            customerId
+            address
+            cryptoType
+            isDefault
+          }
+          purchaseActivities{
+            purchaseActivityId
+            purchaseCode
+            customerId
+            chargeId
+            packageId
+            tokenPriceId
+            tokenAmount
+            price
+            amount
+            currency
+            purchaseConfirmed
+            paymentStatus
+            createdAt
+            updatedAt
+          }
+          image {
+            imageId
+            path
+            type
+            customerId
+            packageId
+            createdAt
+          }
+          createdAt
+          updatedAt
+        }
+        nextPageCursor
+      }
+    }
+
+// Example input
+{
+  "cursor": 18, // Optional, ID from Cursor, sent null for the first time
+  "limit": 10, // Optional, how many data you want per fetch
+  "customerStatus": "ACTIVE", // Optional, CustomerStatus
+  "emailStatus": "VERIFIED", // Optional, EmailStatus
+  "customerRole": "USER", //Optional, CustomerRole
+  "customerId": 4 //Optional
+}
+
+// response with CustomerResult
+{
+  "data": {
+    "getCustomers": {
+      "data": [
+        {
+          "customerId": 4,
+          "name": "Admin",
+          "email": "admin@example.com",
+          "emailStatus": "VERIFIED",
+          "customerStatus": "ACTIVE",
+          "referralCode": "57J0OTSR",
+          "referralCustomerId": null,
+          "referrer": null,
+          "referees": [
+            {
+              "customerId": 5,
+              "name": "Dan Stack",
+              "email": "danstack@gmail.com",
+              "emailStatus": "VERIFIED",
+              "customerStatus": "ACTIVE",
+              "referralCode": "JKMUJZEU",
+              "referralCustomerId": 4
+            }
+          ],
+          "charges": [],
+          "commissions": [],
+          "wallets": [],
+          "image": null,
+          "createdAt": "2023-07-26T10:51:45.465Z",
+          "updatedAt": "2023-08-17T13:48:46.576Z"
+        },
+        {
+          "customerId": 5,
+          "name": "Dan Stack",
+          "email": "danstack@gmail.com",
+          "emailStatus": "VERIFIED",
+          "customerStatus": "ACTIVE",
+          "referralCode": "JKMUJZEU",
+          "referralCustomerId": 4,
+          "referrer": {
+            "customerId": 4,
+            "name": "Admin",
+            "email": "admin@example.com",
+            "emailStatus": "VERIFIED",
+            "customerStatus": "ACTIVE",
+            "referralCode": "57J0OTSR",
+            "referralCustomerId": null
+          },
+          "referees": [],
+          "charges": [],
+          "commissions": [],
+          "wallets": [
+            {
+              "walletId": 1,
+              "customerId": 5,
+              "address": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+              "cryptoType": "ETH",
+              "isDefault": true
+            }
+          ],
+          "image": null,
+          "createdAt": "2023-07-26T11:19:01.234Z",
+          "updatedAt": "2023-08-17T13:11:35.512Z"
+        }
+      ],
+      "nextPageCursor": null
+    }
+  }
+}
+```
+
+| Exception             | Code            | Status Code | Message            |
+| --------------------- | --------------- | ----------- | ------------------ |
+| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |
+| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |
+
+<br />
+
 ## 3. Upload Image
 
 ### Generate Presigned URL
@@ -557,7 +1099,11 @@ mutation SaveUploadedImage($saveImageInput: SaveImageInput!) {
 
 ## 4. Referrer and Referees
 
-### Get Referral Map (Restricted to User and Admin)
+### Get Referral Map
+
+`Restricted to User and Admin`
+
+The depth of the referral map view is determined by the `referralViewLevel` setting configured by the admin
 
 ```tsx
 query GetReferralMap($input: ReferralInput!) {
@@ -1009,6 +1555,8 @@ query GetPurchaseActivities($cursor: Int, $limit: Int, $purchaseConfirmed: Boole
   getPurchaseActivities(cursor: $cursor, limit: $limit, purchaseConfirmed: $purchaseConfirmed, paymentStatus: $paymentStatus, customerId: $customerId) {
     data {
       purchaseActivityId
+      purchaseCode
+      customerId
       chargeId
       packageId
       tokenPriceId
@@ -1587,7 +2135,132 @@ query GetCharges($cursor: Int, $limit: Int, $customerId: Int, $code: String) {
 }
 ```
 
+<br />
+
 ## 8. Commissions
+
+### Create Commission Tier
+
+`Restricted to Admin only`
+
+```tsx
+mutation CreateCommissionTier($input: CreateCommissionTierInput!) {
+      createCommissionTier(input: $input) {
+        commissionTierId
+        tier
+        commissionRate
+        createdAt
+        updatedAt
+      }
+    }
+
+// Example input
+{
+	"input" : {
+      "tier": 1,
+      "commissionRate": 0.1 //the number should be within 0 to 0.9999, to 1 (0% to 99.99%, to 100%)
+    }
+}
+
+// response with CommissionTier
+```
+
+| Exception             | Code                  | Status Code | Message                        |
+| --------------------- | --------------------- | ----------- | ------------------------------ |
+| UnauthorizedException | UNAUTHENTICATED       | 401         | Unauthorized                   |
+| ForbiddenException    | FORBIDDEN             | 403         | Forbidden Resource             |
+| ConflictException     | INTERNAL_SERVER_ERROR | 409         | Commission Tier already exists |
+|                       | BAD_USER_INPUT        |             |                                |
+
+<br />
+
+### Update Commissions Tier
+
+`Restricted to Admin only`
+
+```tsx
+mutation UpdateCommissionTier($input: UpdateCommissionTierInput!) {
+      updateCommissionTier(input: $input) {
+        commissionTierId
+        tier
+        commissionRate
+        createdAt
+        updatedAt
+      }
+    }
+
+// Example input
+{
+	"input" : {
+      "tier": 1,
+      "commissionRate": 0.105
+    }
+}
+
+// response with CommissionTier
+```
+
+| Exception             | Code                  | Status Code | Message                   |
+| --------------------- | --------------------- | ----------- | ------------------------- |
+| UnauthorizedException | UNAUTHENTICATED       | 401         | Unauthorized              |
+| ForbiddenException    | FORBIDDEN             | 403         | Forbidden Resource        |
+| NotFoundException     | INTERNAL_SERVER_ERROR | 404         | Commission Tier not found |
+|                       | BAD_USER_INPUT        |             |                           |
+
+<br />
+
+### Delete Commissions Tier
+
+`Restricted to Admin only`
+
+```tsx
+mutation DeleteCommissionTier($tier: Int!) {
+      deleteCommissionTier(tier: $tier) {
+        commissionTierId
+        tier
+        commissionRate
+        createdAt
+        updatedAt
+      }
+    }
+
+// Example input
+{
+	"tier": 1
+}
+
+// response with CommissionTier
+```
+
+| Exception             | Code                  | Status Code | Message                   |
+| --------------------- | --------------------- | ----------- | ------------------------- |
+| UnauthorizedException | UNAUTHENTICATED       | 401         | Unauthorized              |
+| ForbiddenException    | FORBIDDEN             | 403         | Forbidden Resource        |
+| NotFoundException     | INTERNAL_SERVER_ERROR | 404         | Commission Tier not found |
+|                       | BAD_USER_INPUT        |             |                           |
+
+<br />
+
+### Get All Commissions Rates
+
+`Restricted to User and Admin`
+
+```tsx
+query GetAllCommissionRates {
+      getAllCommissionRates {
+        tier
+        commissionRate
+      }
+    }
+
+// response with  CommissionRate[]
+```
+
+| Exception             | Code            | Status Code | Message      |
+| --------------------- | --------------- | ----------- | ------------ |
+| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized |
+
+<br />
 
 ### Get Commissions
 
@@ -1615,7 +2288,7 @@ query GetCommissions($cursor: Int, $limit: Int, $customerId: Int, $isTransferred
         name
         email
         customerStatus
-        createdAt
+        createdAt9
         updatedAt
       }
       charge {
@@ -1786,3 +2459,165 @@ query IsCommissionTransferred($commissionId: Int!) {
 | ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |
 | UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |
 |                       | BAD_USER_INPUT  |             |                    |
+
+<br />
+
+## 9. Wallet
+
+### Create Wallet
+
+`Restricted to User and Admin`
+
+```tsx
+mutation CreateWallet($input: CreateWalletInput!) {
+      createWallet(input: $input) {
+        walletId
+        customerId
+        address
+        cryptoType
+        isDefault
+      }
+    }
+
+// Example input
+{
+  "input" : {
+    "customerId": 123,
+    "address": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+    "cryptoType": "ETH", // CryptoType
+  },
+}
+
+// response with Wallet
+```
+
+| Exception             | Code            | Status Code | Message                                                       |
+| --------------------- | --------------- | ----------- | ------------------------------------------------------------- |
+| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized                                                  |
+| BadRequestException   | BAD_REQUEST     | 400         | [ "customerId should not be empty" ]                          |
+| BadRequestException   | BAD_REQUEST     | 400         | [ "address should not be empty", "address must be a string" ] |
+| BadRequestException   | BAD_REQUEST     | 400         | [ "type must be a valid CryptoType" ]                         |
+| BadRequestException   | BAD_REQUEST     | 400         | Operation not allowed                                         |
+| BadRequestException   | BAD_REQUEST     | 400         | You must have at least one ETH wallet                         |
+| BadRequestException   | BAD_REQUEST     | 400         | Invalid ETH address                                           |
+|                       | BAD_USER_INPUT  |             |                                                               |
+
+<br />
+
+### Update Wallet
+
+`Restricted to User and Admin`
+
+```tsx
+mutation UpdateWallet($input: UpdateWalletInput!) {
+      updateWallet(input: $input) {
+        walletId
+        customerId
+        address
+        cryptoType
+        isDefault
+      }
+    }
+
+// Example input
+{
+  "input" : {
+    "customerId": 123,
+    "walletId" : 3,
+    "address": "0x5aeda56215b167893e80b4fe645ba6d5bab767de",
+    "cryptoType": "ETH", // CryptoType
+  },
+}
+
+// response with Wallet
+
+```
+
+| Exception             | Code                  | Status Code | Message                               |
+| --------------------- | --------------------- | ----------- | ------------------------------------- |
+| UnauthorizedException | UNAUTHENTICATED       | 401         | Unauthorized                          |
+| BadRequestException   | BAD_REQUEST           | 400         | [ "customerId should not be empty" ]  |
+| BadRequestException   | BAD_REQUEST           | 400         | [ "walletId should not be empty" ]    |
+| BadRequestException   | BAD_REQUEST           | 400         | [ "address must be a string" ]        |
+| BadRequestException   | BAD_REQUEST           | 400         | [ "type must be a valid CryptoType" ] |
+| BadRequestException   | BAD_REQUEST           | 400         | Operation not allowed                 |
+| NotFoundException     | INTERNAL_SERVER_ERROR | 404         | Wallet not found                      |
+| BadRequestException   | BAD_REQUEST           | 400         | You must have at least one ETH wallet |
+| BadRequestException   | BAD_REQUEST           | 400         | Invalid ETH address                   |
+|                       | BAD_USER_INPUT        |             |                                       |
+
+<br />
+
+### Set Default Wallet
+
+`Restricted to User and Admin`
+
+```tsx
+mutation SetDefaultWallet($input: SetDefaultWalletInput!) {
+      setDefaultWallet(input: $input) {
+        walletId
+        customerId
+        address
+        cryptoType
+        isDefault
+      }
+    }
+
+// Example input
+{
+  "input" : {
+    "customerId": 123,
+    "walletId" : 4
+  },
+}
+
+// response with Wallet
+```
+
+| Exception             | Code                  | Status Code | Message                              |
+| --------------------- | --------------------- | ----------- | ------------------------------------ |
+| UnauthorizedException | UNAUTHENTICATED       | 401         | Unauthorized                         |
+| BadRequestException   | BAD_REQUEST           | 400         | [ "customerId should not be empty" ] |
+| BadRequestException   | BAD_REQUEST           | 400         | [ "walletId should not be empty" ]   |
+| BadRequestException   | BAD_REQUEST           | 400         | Operation not allowed                |
+| NotFoundException     | INTERNAL_SERVER_ERROR | 404         | Wallet not found                     |
+|                       | BAD_USER_INPUT        |             |                                      |
+
+<br />
+
+### Delete Wallet
+
+`Restricted to User and Admin`
+
+```tsx
+mutation DeleteWallet($input: UpdateWalletInput!) {
+      deleteWallet(input: $input) {
+        walletId
+        customerId
+        address
+        cryptoType
+        isDefault
+      }
+    }
+
+// Example input
+{
+  "input" : {
+    "customerId": 123,
+    "walletId" : 3
+  },
+}
+
+// response with Wallet
+
+```
+
+| Exception             | Code                  | Status Code | Message                               |
+| --------------------- | --------------------- | ----------- | ------------------------------------- |
+| UnauthorizedException | UNAUTHENTICATED       | 401         | Unauthorized                          |
+| BadRequestException   | BAD_REQUEST           | 400         | [ "customerId should not be empty" ]  |
+| BadRequestException   | BAD_REQUEST           | 400         | [ "walletId should not be empty" ]    |
+| BadRequestException   | BAD_REQUEST           | 400         | Operation not allowed                 |
+| NotFoundException     | INTERNAL_SERVER_ERROR | 404         | Wallet not found                      |
+| BadRequestException   | BAD_REQUEST           | 400         | You must have at least one ETH wallet |
+|                       | BAD_USER_INPUT        |             |                                       |

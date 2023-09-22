@@ -38,6 +38,28 @@ if link expired or forget password, since you can set password also here
 
 - At step 4, Admin verification link looks like this: `${FRONTEND_DOMAIN}/register-admin?token=${token}` . Frontend need to capture the token at send the token to Backend during step 5
 
+### Sequence Diagram
+
+#### a. User login and accessing protected resource
+
+![login_access_protected_resource](https://github.com/Tequnity/charonium/assets/128450164/eadccef7-f8e3-4d44-af66-2620cdba0f91)
+
+#### b. Refresh Expired Access Token
+
+![expired_token](https://github.com/Tequnity/charonium/assets/128450164/60294652-d217-4a81-8f6f-66f0a47bbb17)
+
+#### c. Suspended Customer
+
+![Suspended-customer](https://github.com/Tequnity/charonium/assets/128450164/1eb87218-71de-4a39-92a8-eee2f4a5062e)
+
+#### d. Fresh Token Guard
+
+A "fresh" access token is a concept used in some authentication systems to differentiate between newly issued access tokens and those that have been alive for a while. The idea is to limit certain sensitive operations to only be available when using a fresh token. This can add an extra layer of security.
+
+For instance, changing a password or email might require a fresh token, ensuring that even if an attacker has an old token, they can't perform these sensitive operations without re-authenticating and obtaining a fresh token.
+
+![fresh-token-guard](https://github.com/Tequnity/charonium/assets/128450164/de943199-0395-446a-a378-ee7801b8a9fe)
+
 <br />
 
 ## 2. Upload Image

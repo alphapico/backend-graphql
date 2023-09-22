@@ -78,6 +78,7 @@ export class CoinbaseController {
                   await this.commissionService.isPurchaseConfirmed(charge.code);
                 if (!isPurchaseConfirmed) {
                   // Calculate commission and Purchase ECR-20 token
+                  // Set purchaseConfirmed = True
                   await this.commissionService.calculateCommission(charge.code);
                 }
               }

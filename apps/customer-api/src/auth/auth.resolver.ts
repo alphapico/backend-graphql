@@ -69,6 +69,7 @@ export class AuthResolver {
       charges: [],
       commissions: [],
       wallets: [],
+      purchaseActivities: [],
     };
   }
 
@@ -83,10 +84,12 @@ export class AuthResolver {
       charges: [],
       commissions: [],
       wallets: [],
+      purchaseActivities: [],
     };
   }
 
   @Mutation(() => String)
+  @UseGuards(JwtAuthGuard)
   async logout(@Context('res') res: Response): Promise<string> {
     this.authService.logout(res);
     return SUCCESS_MESSAGES.LOGOUT_SUCCESS;

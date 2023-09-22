@@ -145,14 +145,29 @@ export class UploadService {
       type: saveImageInput.type,
     };
 
+    let existingImage: Image | null = null;
+
     if (saveImageInput.type === ImageType.CUSTOMER) {
       imageData.customerId = saveImageInput.customerId;
+      existingImage = await this.prismaService.image.findUnique({
+        where: { customerId: imageData.customerId },
+      });
     } else if (saveImageInput.type === ImageType.PACKAGE) {
       imageData.packageId = saveImageInput.packageId;
+      existingImage = await this.prismaService.image.findUnique({
+        where: { packageId: imageData.packageId },
+      });
     }
 
-    return this.prismaService.image.create({
-      data: imageData,
-    });
+    if (existingImage) {
+      return this.prismaService.image.update({
+        where: { imageId: existingImage.imageId },
+        data: imageData,
+      });
+    } else {
+      return this.prismaService.image.create({
+        data: imageData,
+      });
+    }
   }
 }

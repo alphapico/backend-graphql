@@ -90,6 +90,7 @@ model Customer {
   referrer           Customer?      @relation("CustomerReferral", fields: [referralCustomerId], references: [customerId])
   referees           Customer[]     @relation("CustomerReferral")
   tokenVersion       Int            @default(0)
+  purchaseActivities PurchaseActivity[]  
   charges            Charge[]  
   commissions        Commission[]
   wallets            Wallet[]       
@@ -210,7 +211,7 @@ model TokenPrice {
   tokenPriceId      Int      @id @default(autoincrement())
   currency          String   // Currency code (e.g., "USD", "BTC")
   price             Int    // Price of one ECR-20 token in the specified currency
-  purchaseActivity  PurchaseActivity?
+  purchaseActivity  PurchaseActivity[]
   createdAt         DateTime @default(now())
   updatedAt         DateTime? @updatedAt
 }
@@ -223,7 +224,7 @@ model TokenPackage {
   price             Int     // Price of the package in a specific currency (e.g., USD)
   currency          String    // Currency code (e.g., "USD", "BTC")
   isActive          Boolean   // Whether the package is currently available for purchase
-  purchaseActivity  PurchaseActivity?
+  purchaseActivity  PurchaseActivity[]
   image             Image?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime? @updatedAt
@@ -232,11 +233,14 @@ model TokenPackage {
 
 model PurchaseActivity {
   purchaseActivityId    Int           @id @default(autoincrement())
+  purchaseCode          String        @unique
   chargeId              Int?          @unique
   charge                Charge?       @relation(fields: [chargeId], references: [chargeId], onDelete: SetNull)
-  packageId             Int?          @unique
+  customerId            Int?
+  customer              Customer?     @relation(fields: [customerId], references: [customerId], onDelete: SetNull)
+  packageId             Int?          
   package               TokenPackage? @relation(fields: [packageId], references: [packageId], onDelete: SetNull)
-  tokenPriceId          Int?          @unique
+  tokenPriceId          Int?          
   tokenPrice            TokenPrice?   @relation(fields: [tokenPriceId], references: [tokenPriceId], onDelete: SetNull)
 	price                 Int           // Price per unit or per package     
   tokenAmount           Float

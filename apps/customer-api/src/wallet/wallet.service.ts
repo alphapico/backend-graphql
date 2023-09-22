@@ -56,7 +56,7 @@ export class WalletService {
   }
 
   async updateWallet(input: UpdateWalletInput) {
-    const { walletId, ...updateData } = input;
+    const { walletId, customerId, ...updateData } = input;
 
     const existingWallet = await this.prisma.wallet.findUnique({
       where: { walletId },
@@ -64,6 +64,10 @@ export class WalletService {
 
     if (!existingWallet) {
       throw new NotFoundException(ERROR_MESSAGES.WALLET_NOT_FOUND);
+    }
+
+    if (existingWallet.customerId !== customerId) {
+      throw new BadRequestException(ERROR_MESSAGES.OPERATION_NOT_ALLOWED);
     }
 
     const otherWallets = await this.prisma.wallet.findMany({
@@ -101,6 +105,18 @@ export class WalletService {
   }
 
   async setDefaultWallet(customerId: number, walletId: number) {
+    const existingWallet = await this.prisma.wallet.findUnique({
+      where: { walletId },
+    });
+
+    if (!existingWallet) {
+      throw new NotFoundException(ERROR_MESSAGES.WALLET_NOT_FOUND);
+    }
+
+    if (existingWallet.customerId !== customerId) {
+      throw new BadRequestException(ERROR_MESSAGES.OPERATION_NOT_ALLOWED);
+    }
+
     await this.prisma.wallet.updateMany({
       where: { customerId },
       data: { isDefault: false },
@@ -109,6 +125,39 @@ export class WalletService {
     return this.prisma.wallet.update({
       where: { walletId },
       data: { isDefault: true },
+    });
+  }
+
+  async deleteWallet(customerId: number, walletId: number) {
+    const existingWallet = await this.prisma.wallet.findUnique({
+      where: { walletId },
+    });
+
+    if (!existingWallet) {
+      throw new NotFoundException(ERROR_MESSAGES.WALLET_NOT_FOUND);
+    }
+
+    if (existingWallet.customerId !== customerId) {
+      throw new BadRequestException(ERROR_MESSAGES.OPERATION_NOT_ALLOWED);
+    }
+
+    const otherWallets = await this.prisma.wallet.findMany({
+      where: {
+        customerId: existingWallet.customerId,
+        NOT: { walletId: existingWallet.walletId },
+      },
+    });
+
+    const hasOtherEthWallet = otherWallets.some(
+      (wallet) => wallet.cryptoType === CryptoType.ETH
+    );
+
+    if (existingWallet.cryptoType === CryptoType.ETH && !hasOtherEthWallet) {
+      throw new BadRequestException(ERROR_MESSAGES.ETH_WALLET_REQUIRED);
+    }
+
+    return this.prisma.wallet.delete({
+      where: { walletId },
     });
   }
 }

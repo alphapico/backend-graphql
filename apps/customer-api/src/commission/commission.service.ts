@@ -309,9 +309,7 @@ export class CommissionService {
     }
 
     if (customerId) {
-      whereFilter.charge = {
-        customerId: customerId,
-      };
+      whereFilter.customerId = customerId;
     }
 
     // Check if the include object is empty

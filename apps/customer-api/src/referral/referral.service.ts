@@ -167,6 +167,7 @@ export class ReferralService {
           charges: [],
           commissions: [],
           wallets: [],
+          purchaseActivities: [],
         };
         continue;
       }
@@ -185,6 +186,7 @@ export class ReferralService {
           charges: [],
           commissions: [],
           wallets: [],
+          purchaseActivities: [],
         };
       }
 

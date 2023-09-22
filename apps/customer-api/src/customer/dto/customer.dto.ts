@@ -11,6 +11,7 @@ import { Charge } from '../../commission/dto/charge.dto';
 import { Commission } from '../../commission/dto/commission.dto';
 import { Wallet } from '../../wallet/dto/wallet.dto';
 import { PaginationMixin } from '../../commission/dto/pagination.mixin';
+import { PurchaseActivity } from '../../commission/dto/purchase-activity.dto';
 
 type CustomerOmitted = Omit<
   PrismaCustomer,
@@ -55,6 +56,9 @@ export class Customer implements CustomerPartial {
 
   @Field(() => [Customer], { nullable: true })
   referees?: Customer[];
+
+  @Field(() => [PurchaseActivity], { nullable: 'items' })
+  purchaseActivities: PurchaseActivity[];
 
   @Field(() => [Charge], { nullable: 'items' })
   charges: Charge[];

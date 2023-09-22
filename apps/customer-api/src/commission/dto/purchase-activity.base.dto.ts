@@ -8,8 +8,14 @@ export class PurchaseActivityBase {
   @Field(() => Int)
   purchaseActivityId: number;
 
+  @Field()
+  purchaseCode: string;
+
   @Field(() => Int, { nullable: true })
   chargeId?: number;
+
+  @Field(() => Int, { nullable: true })
+  customerId?: number;
 
   @Field(() => Int, { nullable: true })
   packageId?: number;

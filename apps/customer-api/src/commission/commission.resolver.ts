@@ -175,7 +175,7 @@ export class CommissionResolver {
   }
 
   @Query(() => [CommissionRate])
-  @UseGuards(AdminGuard)
+  @UseGuards(JwtAuthGuard)
   async getAllCommissionRates(): Promise<CommissionRate[]> {
     const ratesMap = await this.commissionService.getAllCommissionRates();
     const ratesArray: CommissionRate[] = [];

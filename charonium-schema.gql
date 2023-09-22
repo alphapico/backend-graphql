@@ -150,6 +150,7 @@ type Customer {
   emailStatus: EmailStatus!
   image: Image
   name: String!
+  purchaseActivities: [PurchaseActivity]!
   referees: [Customer!]
   referralCode: String
   referralCustomerId: Int
@@ -180,6 +181,11 @@ enum CustomerStatus {
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
+
+input DeleteWalletInput {
+  customerId: Float!
+  walletId: Float!
+}
 
 input EmailInput {
   email: String!
@@ -235,6 +241,7 @@ type Mutation {
   createWallet(input: CreateWalletInput!): Wallet!
   deleteCommissionTier(tier: Int!): CommissionTier!
   deleteTokenPackage(packageId: Int!): TokenPackage!
+  deleteWallet(input: DeleteWalletInput!): Wallet!
   editTokenPackage(input: TokenPackageUpdateInput!, packageId: Int!): TokenPackage!
   forgetPassword(input: EmailInput!): Boolean!
   generatePresignedPost(uploadInput: UploadInput!): PresignedPost!
@@ -306,11 +313,13 @@ type PurchaseActivity {
   chargeId: Int
   createdAt: DateTime!
   currency: String!
+  customerId: Int
   package: TokenPackage
   packageId: Int
   paymentStatus: PaymentStatus!
   price: Float!
   purchaseActivityId: Int!
+  purchaseCode: String!
   purchaseConfirmed: Boolean!
   tokenAmount: Float
   tokenPrice: TokenPrice
@@ -323,10 +332,12 @@ type PurchaseActivityBase {
   chargeId: Int
   createdAt: DateTime!
   currency: String!
+  customerId: Int
   packageId: Int
   paymentStatus: PaymentStatus!
   price: Float!
   purchaseActivityId: Int!
+  purchaseCode: String!
   purchaseConfirmed: Boolean!
   tokenAmount: Float
   tokenPriceId: Int
@@ -352,7 +363,8 @@ type Query {
   getCharges(code: String, cursor: Int, customerId: Int, limit: Int): ChargeResult!
   getCommissions(cursor: Int, customerId: Int, isTransferred: Boolean, limit: Int): CommissionResult!
   getCommissionsForCustomer(cursor: Int, isTransferred: Boolean, limit: Int): CommissionResult!
-  getCustomers(cursor: Int, customerRole: CustomerRole, customerStatus: CustomerStatus, emailStatus: EmailStatus, limit: Int! = 10): CustomerResult!
+  getConfig: Config
+  getCustomers(cursor: Int, customerId: Int, customerRole: CustomerRole, customerStatus: CustomerStatus, emailStatus: EmailStatus, limit: Int! = 10): CustomerResult!
   getPurchaseActivities(cursor: Int, customerId: Int, limit: Int! = 10, paymentStatus: PaymentStatus, purchaseConfirmed: Boolean): PurchaseActivityResult!
   getPurchaseActivitiesForCustomer(cursor: Int, limit: Int! = 10, paymentStatus: PaymentStatus, purchaseConfirmed: Boolean): PurchaseActivityResult!
   getReferralMap(input: ReferralInput!): [ReferralMap!]!

@@ -78,6 +78,15 @@ describe('WalletModule', () => {
     }
   `;
 
+  const deleteWalletMutation = gql`
+    mutation DeleteWallet($input: DeleteWalletInput!) {
+      deleteWallet(input: $input) {
+        walletId
+        address
+      }
+    }
+  `;
+
   const getWalletsByCustomerIdQuery = gql`
     query GetWalletsByCustomerId($customerId: Int!) {
       getWalletsByCustomerId(customerId: $customerId) {
@@ -124,6 +133,10 @@ describe('WalletModule', () => {
       customerId: number;
       isDefault: boolean;
     };
+  }
+
+  interface DeleteWalletResponse {
+    deleteWallet: WalletResponse;
   }
 
   interface GetWalletByCustomerIdResponse {
@@ -357,5 +370,65 @@ describe('WalletModule', () => {
     expect(
       defaultWalletResponse.getWalletByCustomerIdAndDefault.isDefault
     ).toBe(true);
+  });
+
+  it('user should be able to delete a wallet', async () => {
+    const user = {
+      name: 'John Doe',
+      email: 'john.doe@gmail.com',
+      password: 'password12345',
+    };
+    const { graphQLClientWithAccessToken, customerId } = await registerAndLogin(
+      graphQLClient,
+      user
+    );
+
+    // Create two wallets for the user
+    const createFirstWalletResponse: CreateWalletResponse =
+      await graphQLClientWithAccessToken.request(createWalletMutation, {
+        input: {
+          customerId: customerId,
+          address: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e',
+          cryptoType: CryptoType.ETH,
+        },
+      });
+
+    const createSecondWalletResponse: CreateWalletResponse =
+      await graphQLClientWithAccessToken.request(createWalletMutation, {
+        input: {
+          customerId: customerId,
+          address: '0x5aeda56215b167893e80b4fe645ba6d5bab767de',
+          cryptoType: CryptoType.ETH,
+        },
+      });
+
+    const firstWalletId = createFirstWalletResponse.createWallet.walletId;
+    const secondWalletId = createSecondWalletResponse.createWallet.walletId;
+
+    // Delete the first wallet using the user account
+    const deleteWalletResponse: DeleteWalletResponse =
+      await graphQLClientWithAccessToken.request(deleteWalletMutation, {
+        input: {
+          customerId: customerId,
+          walletId: firstWalletId,
+        },
+      });
+
+    expect(deleteWalletResponse).toHaveProperty('deleteWallet');
+    expect(deleteWalletResponse.deleteWallet.walletId).toBe(firstWalletId);
+
+    // Verify that the first wallet has been deleted but the second wallet still exists
+    const getWalletsResponse: GetWalletByCustomerIdResponse =
+      await graphQLClientWithAccessToken.request(getWalletsByCustomerIdQuery, {
+        customerId: customerId,
+      });
+
+    expect(getWalletsResponse.getWalletsByCustomerId).not.toContainEqual(
+      expect.objectContaining({ walletId: firstWalletId })
+    );
+
+    expect(getWalletsResponse.getWalletsByCustomerId).toContainEqual(
+      expect.objectContaining({ walletId: secondWalletId })
+    );
   });
 });

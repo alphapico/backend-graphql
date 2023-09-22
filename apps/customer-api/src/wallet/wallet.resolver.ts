@@ -12,6 +12,7 @@ import {
 } from '@charonium/common';
 import { BadRequestException, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { DeleteWalletInput } from './dto/delete-wallet.input';
 
 @Resolver(() => Wallet)
 export class WalletResolver {
@@ -83,5 +84,18 @@ export class WalletResolver {
       input.customerId,
       input.walletId
     );
+  }
+
+  @Mutation(() => Wallet)
+  @UseGuards(JwtAuthGuard)
+  async deleteWallet(
+    @CurrentUser() user: IJwtPayload,
+    @Args('input') input: DeleteWalletInput
+  ) {
+    if (user.role !== CustomerRole.ADMIN && user.sub !== input.customerId) {
+      throw new BadRequestException(ERROR_MESSAGES.OPERATION_NOT_ALLOWED);
+    }
+
+    return this.walletService.deleteWallet(input.customerId, input.walletId);
   }
 }

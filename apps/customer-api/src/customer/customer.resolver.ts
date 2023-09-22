@@ -30,6 +30,7 @@ export class CustomerResolver {
       charges: [],
       commissions: [],
       wallets: [],
+      purchaseActivities: [],
     };
   }
 
@@ -84,7 +85,9 @@ export class CustomerResolver {
     @Args('emailStatus', { type: () => EmailStatus, nullable: true })
     emailStatus?: EmailStatus,
     @Args('customerRole', { type: () => CustomerRole, nullable: true })
-    customerRole?: CustomerRole
+    customerRole?: CustomerRole,
+    @Args('customerId', { type: () => Int, nullable: true })
+    customerId?: number
   ): Promise<CustomerResult> {
     return this.customerService.getCustomers(
       info,
@@ -92,7 +95,8 @@ export class CustomerResolver {
       limit,
       customerStatus,
       emailStatus,
-      customerRole
+      customerRole,
+      customerId
     );
   }
 

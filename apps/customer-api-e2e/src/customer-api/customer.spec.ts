@@ -79,6 +79,12 @@ describe('Customer', () => {
     }
   `;
 
+  const changePasswordMutation = gql`
+    mutation ChangePassword($input: ChangePasswordInput!) {
+      changePassword(input: $input)
+    }
+  `;
+
   const getCustomersQuery = gql`
     query GetCustomers(
       $cursor: Int
@@ -600,12 +606,6 @@ describe('Customer', () => {
       newPassword: 'newPassword456',
     };
 
-    const changePasswordMutation = gql`
-      mutation ChangePassword($input: ChangePasswordInput!) {
-        changePassword(input: $input)
-      }
-    `;
-
     const changePasswordResponse: ChangePasswordResponse =
       await graphQLClientWithAccessToken.request(changePasswordMutation, {
         input: changePasswordInput,
@@ -640,4 +640,53 @@ describe('Customer', () => {
 
     expect(newLoginResponse.login).toEqual(SUCCESS_MESSAGES.LOGIN_SUCCESS);
   });
+
+  // it('should allow an admin to change their password', async () => {
+  //   // 1. Create and verify an admin
+  //   const { graphQLClientWithAdminAccessToken } = await createAndVerifyAdmin(
+  //     graphQLClient,
+  //     jwtService,
+  //     prismaService
+  //   );
+
+  //   // 2. Use the access token to change the password
+  //   const changePasswordInput = {
+  //     oldPassword: 'admin_password12345', // Assuming this is the initial password set during admin creation
+  //     newPassword: 'newAdminPassword456',
+  //   };
+
+  //   const changePasswordResponse: ChangePasswordResponse =
+  //     await graphQLClientWithAdminAccessToken.request(changePasswordMutation, {
+  //       input: changePasswordInput,
+  //     });
+
+  //   expect(changePasswordResponse.changePassword).toBe(true);
+
+  //   // 3. Attempt to login with the old password (this should fail)
+  //   try {
+  //     await graphQLClient.request(loginMutation, {
+  //       input: {
+  //         email: process.env.ADMIN_EMAIL, // Assuming this is the email set during admin creation
+  //         password: 'admin_password12345',
+  //       },
+  //     });
+  //   } catch (error) {
+  //     expect(error.response.errors[0].message).toBe(
+  //       ERROR_MESSAGES.INVALID_INPUT_PASSWORD
+  //     );
+  //   }
+
+  //   // 4. Login with the new password (this should succeed)
+  //   const newLoginResponse: LoginResponse = await graphQLClient.request(
+  //     loginMutation,
+  //     {
+  //       input: {
+  //         email: process.env.ADMIN_EMAIL,
+  //         password: 'newAdminPassword456',
+  //       },
+  //     }
+  //   );
+
+  //   expect(newLoginResponse.login).toEqual(SUCCESS_MESSAGES.LOGIN_SUCCESS);
+  // });
 });

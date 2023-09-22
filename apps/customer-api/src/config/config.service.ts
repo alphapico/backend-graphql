@@ -194,4 +194,8 @@ export class ConfigService {
     const config = await this.prisma.config.findFirst();
     return config?.isReferralCodeEnabled || null;
   }
+
+  async getConfig(): Promise<Config> {
+    return this.prisma.config.findFirst();
+  }
 }
