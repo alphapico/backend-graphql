@@ -362,7 +362,7 @@ export class CustomerService {
     if (fields.wallets) {
       include.wallets = true;
     }
-    if (fields.data.purchaseActivities) {
+    if (fields.purchaseActivities) {
       include.purchaseActivities = true;
     }
     if (fields.referrer) {

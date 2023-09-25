@@ -13,6 +13,7 @@ export const registerMutation = gql`
       email
       name
       referralCode
+      referralCustomerId
     }
   }
 `;
@@ -44,6 +45,7 @@ interface IRegisterResponse {
     email: string;
     name: string;
     referralCode: string;
+    referralCustomerId: number;
   };
 }
 

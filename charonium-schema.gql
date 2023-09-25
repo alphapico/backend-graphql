@@ -235,6 +235,7 @@ input LoginInput {
 }
 
 type Mutation {
+  calculateCommission(chargeCode: String!): Int!
   changePassword(input: ChangePasswordInput!): Boolean!
   createCommissionTier(input: CreateCommissionTierInput!): CommissionTier!
   createTokenPackage(input: TokenPackageCreateInput!): TokenPackage!
@@ -358,6 +359,7 @@ input PurchaseTokensInput {
 
 type Query {
   getAllCommissionRates: [CommissionRate!]!
+  getAllReferrers(referralCustomerId: Int, tier: Int!): [ReferrerResult!]!
   getAllTokenPackages: [TokenPackage]!
   getAllTokenPackagesByStatus(isActive: Boolean!): [TokenPackage]!
   getCharges(code: String, cursor: Int, customerId: Int, limit: Int): ChargeResult!
@@ -393,6 +395,14 @@ input ReferralInput {
 type ReferralMap {
   level: String!
   referralEntries: [ReferralEntry!]!
+}
+
+type ReferrerResult {
+  customerId: Int!
+  customerStatus: CustomerStatus!
+  name: String
+  referralCustomerId: Int
+  tier: Int!
 }
 
 input RegisterAdminInput {

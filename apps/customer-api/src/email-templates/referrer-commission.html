@@ -25,23 +25,21 @@
     >
       <div style="text-align: center; margin-bottom: 20px">
         <img
-          src="https://charonium-media.s3.eu-central-1.amazonaws.com/store_b40de351e3.png"
-          alt="Charonium"
+          src="https://your-company-logo-url.com"
+          alt="Your Company"
           style="width: 150px"
         />
       </div>
       <div style="text-align: center; margin-bottom: 30px">
         <h1 style="font-size: 24px; color: #333333; margin-bottom: 20px">
-          Unknown Payment Issue
+          Congratulations on Earning a Commission!
         </h1>
-        <p style="color: #333333">Dear Admin,</p>
-        <p style="color: #333333">
-          The customer, {{{customerName}}}, , with the email address
-          {{{customerEmail}}}, has encountered an unknown issue with their
-          payment for STYX tokens.
-        </p>
-        <p style="color: #333333">
-          <strong>Transaction Details:</strong>
+        <p>Dear {{{referrerName}}},</p>
+        <p>We are pleased to inform you that you have earned a commission!</p>
+        <p>
+          This commission was earned because your downline, {{{refereeName}}},
+          made a purchase of STYX tokens. Here are the details of their
+          purchase:
         </p>
         <table
           style="width: 100%; border-collapse: collapse; margin-bottom: 20px"
@@ -56,36 +54,37 @@
           </tr>
           <tr>
             <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
-              Customer Name
+              Referee's Name
             </td>
             <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
-              {{{customerName}}}
-            </td>
-          </tr>
-          <tr>
-            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
-              Customer Email
-            </td>
-            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
-              {{{customerEmail}}}
+              {{{refereeName}}}
             </td>
           </tr>
           <tr>
             <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
-              Charge Code
+              Total Amount
             </td>
             <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
-              {{{chargeCode}}}
+              {{{totalAmount}}} {{{currency}}}
+            </td>
+          </tr>
+          <tr>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              Date of Purchase
+            </td>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              {{{dateOfPurchase}}}
             </td>
           </tr>
         </table>
-
-        <p style="color: #333333">
-          Please review the transaction and investigate the issue. Please
-          resolve manually.
+        <p style="font-size: 18px; font-weight: bold">
+          Your commission amount based on this purchase is:
+          <span style="color: #007bff"
+            >{{{commissionAmount}}} {{{currency}}}</span
+          >.
         </p>
-        <p style="color: #333333">
-          Thank you for your prompt attention to this matter.
+        <p>
+          Thank you for referring customers to our platform and helping us grow!
         </p>
       </div>
       <div style="text-align: center; font-size: 14px; color: #999999">

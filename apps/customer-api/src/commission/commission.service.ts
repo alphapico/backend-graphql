@@ -2,6 +2,7 @@ import {
   Commission,
   ERROR_MESSAGES,
   PurchaseActivityRecord,
+  ReferrerResults,
   handlePrismaError,
 } from '@charonium/common';
 import { PrismaService } from '@charonium/prisma';
@@ -57,6 +58,7 @@ export class CommissionService {
         commissionData,
         charge.purchaseActivity.purchaseActivityId
       );
+      return charge.chargeId;
     } catch (error) {
       handlePrismaError(error);
     }
@@ -93,48 +95,65 @@ export class CommissionService {
     const commissionData: Commission[] = [];
     const customer = charge.customer;
 
-    // Record the token amount for the customer itself
-    // commissionData.push({
-    //   customerId: customer.customerId,
-    //   chargeId: charge.chargeId,
-    //   tier: 0, // Tier 0 for the customer itself
-    //   commissionRate: 1, // 100% of the token amount
-    //   amount: amount,
-    //   currency: currency,
-    // });
+    const commissionRates = await this.getAllCommissionRates();
+    const maxTier = Math.max(...Object.keys(commissionRates).map(Number));
+
+    const referrers = await this.getAllReferrers(
+      customer.referralCustomerId,
+      maxTier
+    );
 
     // Calculate commission for the referrers
-    let referrer = await this.prisma.customer.findUnique({
-      where: { customerId: customer.referralCustomerId },
-    });
     let tier = 1;
-    const commissionRates = await this.getAllCommissionRates();
-    while (referrer) {
-      if (referrer.customerStatus !== CustomerStatus.SUSPENDED) {
-        const commissionRate = commissionRates[tier] || 0;
-        // Calculate the commission amount
-        const commissionDecimal = amount * commissionRate;
-        // Round the result to get an integer value
-        const commissionAmount = Math.floor(commissionDecimal);
 
-        // Collect commission data
-        commissionData.push({
-          customerId: referrer.customerId,
-          chargeId: charge.chargeId,
-          tier: tier,
-          commissionRate: commissionRate,
-          amount: commissionAmount,
-          currency: currency,
-        });
+    for (const referrer of referrers) {
+      if (referrer.customerStatus === CustomerStatus.ACTIVE) {
+        const commissionRate = commissionRates[tier] || 0;
+        if (commissionRate > 0) {
+          // Calculate the commission amount
+          const commissionDecimal = amount * commissionRate;
+          // Round the result to get an integer value
+          const commissionAmount = Math.floor(commissionDecimal);
+
+          // Collect commission data
+          commissionData.push({
+            customerId: referrer.customerId,
+            chargeId: charge.chargeId,
+            tier: tier,
+            commissionRate: commissionRate,
+            amount: commissionAmount,
+            currency: currency,
+          });
+        }
       }
 
-      referrer = await this.prisma.customer.findUnique({
-        where: { customerId: referrer.referralCustomerId },
-      });
       tier++;
     }
 
     return commissionData;
+  }
+
+  async getAllReferrers(
+    referralCustomerId: number,
+    maxTier: number
+  ): Promise<ReferrerResults> {
+    const query = Prisma.sql`
+    WITH RECURSIVE referrers AS (
+        SELECT "customerId", "name", "referralCustomerId", "customerStatus", 1 as "tier"
+        FROM "Customer"
+        WHERE "customerId" = ${referralCustomerId}
+
+        UNION ALL
+
+        SELECT c."customerId", c."name", c."referralCustomerId", c."customerStatus", r."tier" + 1
+        FROM "Customer" c
+        JOIN referrers r ON c."customerId" = r."referralCustomerId"
+        WHERE r."tier" < ${maxTier}
+    )
+    SELECT * FROM referrers
+    `;
+
+    return await this.prisma.$queryRaw(query);
   }
 
   private async performTransaction(
@@ -423,6 +442,15 @@ export class CommissionService {
     });
 
     return commission?.isTransferred || false;
+  }
+
+  async getReferrerCommissionByCharge(chargeId: number) {
+    const commissions = await this.prisma.commission.findMany({
+      where: { chargeId },
+      include: { customer: true },
+    });
+
+    return commissions;
   }
 
   async getCommissions(

@@ -559,4 +559,27 @@ export class CoinbaseService {
 
     return result;
   }
+
+  async getPurchaseActivityByChargeCode(chargeCode: string) {
+    const charge = await this.prismaService.charge.findUnique({
+      where: { code: chargeCode },
+      include: {
+        purchaseActivity: {
+          include: {
+            customer: true,
+            package: true,
+            tokenPrice: true,
+          },
+        },
+      },
+    });
+
+    if (!charge.purchaseActivity) {
+      throw new NotFoundException(
+        ERROR_MESSAGES.PURCHASE_ACTIVITY_BY_CHARGE_NOT_FOUND
+      );
+    }
+
+    return charge.purchaseActivity;
+  }
 }

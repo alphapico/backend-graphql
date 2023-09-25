@@ -39,6 +39,8 @@ export const ERROR_MESSAGES = {
   REFERRAL_CODE_REQUIRED: 'Referral code is required',
   COMMISSION_TIER_NOT_FOUND: 'Commission Tier not found',
   COMMISSION_TIER_ALREADY_EXISTS: 'Commission Tier already exists',
+  PURCHASE_ACTIVITY_BY_CHARGE_NOT_FOUND:
+    'Purchase Activity by given Charge Code not found',
   VAL: {
     IS_STRING: '$property must be a string',
     IS_EMAIL: '$property must be an email',
@@ -68,6 +70,10 @@ export const ERROR_MESSAGES = {
     FAILED_TO_SEND_ADMIN_REGISTRATION:
       'Failed to send email admin registration',
     FAILED_TO_SEND_WELCOME: 'Failed to send email welcome',
+    FAILED_TO_SEND_PURCHASE_CONFIRMATION:
+      'Failed to send purchase confirmation email',
+    FAILED_TO_SEND_REFERRER_COMMISSION:
+      'Failed to send referrer commission email',
     FAILED_TO_SEND_UNRESOLVED_UNDERPAID:
       'Failed to send Unresolved (Underpaid) email',
     FAILED_TO_SEND_ADMIN_UNRESOLVED_UNDERPAID:

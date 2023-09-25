@@ -9,6 +9,8 @@ export const SUCCESS_MESSAGES = {
   EMAIL_ADMIN_REGISTRATION_SENT: 'Email admin registration sent',
   CUSTOMER_IS_VERIFIED: 'Customer is successfully verified',
   EMAIL_WELCOME_SENT: 'Email welcome sent',
+  EMAIL_PURCHASE_CONFIRMATION_SENT: 'Email purchase confirmation sent',
+  EMAIL_REFFEREER_COMMISSION_SENT: 'Email referrer commission sent',
   EMAIL_UNRESOLVED_UNDERPAID_SENT: 'Email Unresolved (Underpaid) sent',
   EMAIL_ADMIN_UNRESOLVED_UNDERPAID_SENT:
     'Email Unresolved (Underpaid) sent to Admin',

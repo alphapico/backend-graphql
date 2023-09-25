@@ -1,11 +1,16 @@
 import { Body, Controller, Post, Headers } from '@nestjs/common';
 import { CoinbaseService } from './coinbase.service';
 import { ExtChargeResource, writeDataToFile } from '@charonium/common';
-import { PaymentStatus, UnresolvedReason } from '@prisma/client';
+import {
+  CustomerStatus,
+  PaymentStatus,
+  UnresolvedReason,
+} from '@prisma/client';
 import { EmailService } from '../../email/email.service';
 import { currencyPrecision } from '@charonium/common';
 import { CommissionService } from '../../commission/commission.service';
 import { StatusCodes } from 'http-status-codes';
+import { format } from 'date-fns';
 
 @Controller('coinbase')
 export class CoinbaseController {
@@ -79,7 +84,78 @@ export class CoinbaseController {
                 if (!isPurchaseConfirmed) {
                   // Calculate commission and Purchase ECR-20 token
                   // Set purchaseConfirmed = True
-                  await this.commissionService.calculateCommission(charge.code);
+                  const chargeId =
+                    await this.commissionService.calculateCommission(
+                      charge.code
+                    );
+
+                  const purchaseActivity =
+                    await this.coinbaseService.getPurchaseActivityByChargeCode(
+                      charge.code
+                    );
+
+                  // Get the precision for the currency
+                  const currency = purchaseActivity.currency;
+                  const precision = currencyPrecision[currency] || 2;
+
+                  const data = {
+                    customerName: purchaseActivity.customer.name,
+                    purchaseCode: purchaseActivity.purchaseCode,
+                    packageName: purchaseActivity.package?.name,
+                    tokenPrice: purchaseActivity.tokenPrice?.price
+                      ? (purchaseActivity.tokenPrice.price / 100).toFixed(
+                          precision
+                        )
+                      : '0.00',
+                    tokenAmount: purchaseActivity.tokenAmount,
+                    totalAmount: purchaseActivity.amount
+                      ? (purchaseActivity.amount / 100).toFixed(precision)
+                      : '0.00',
+                    currency: currency,
+                    dateOfPurchase: format(
+                      purchaseActivity.createdAt,
+                      'MMMM dd, yyyy'
+                    ),
+                  };
+
+                  await this.emailService.sendPurchaseConfirmationEmail(
+                    purchaseActivity.customer,
+                    data
+                  );
+
+                  // Send email to referrer about the earning's commission
+                  const commissions =
+                    await this.commissionService.getReferrerCommissionByCharge(
+                      chargeId
+                    );
+
+                  for (const commission of commissions) {
+                    const referrer = commission.customer;
+                    if (
+                      referrer &&
+                      referrer.customerStatus !== CustomerStatus.SUSPENDED
+                    ) {
+                      const emailData = {
+                        referrerName: referrer.name,
+                        refereeName: purchaseActivity.customer.name,
+                        totalAmount: purchaseActivity.amount
+                          ? (purchaseActivity.amount / 100).toFixed(precision)
+                          : '0.00',
+                        currency: currency,
+                        dateOfPurchase: format(
+                          purchaseActivity.createdAt,
+                          'MMMM dd, yyyy'
+                        ),
+                        commissionAmount: commission.amount
+                          ? (commission.amount / 100).toFixed(precision)
+                          : '0.00',
+                      };
+                      await this.emailService.sendReferrerCommissionEmail(
+                        referrer,
+                        emailData
+                      );
+                    }
+                  }
                 }
               }
               break;

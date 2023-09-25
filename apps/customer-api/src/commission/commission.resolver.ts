@@ -14,6 +14,7 @@ import {
   CreateCommissionTierInput,
   UpdateCommissionTierInput,
 } from './dto/commission-tier.dto';
+import { ReferrerResult } from './dto/referrer-result.dto';
 
 @Resolver()
 export class CommissionResolver {
@@ -188,5 +189,25 @@ export class CommissionResolver {
     }
 
     return ratesArray;
+  }
+
+  @Query(() => [ReferrerResult])
+  @UseGuards(AdminGuard)
+  async getAllReferrers(
+    @Args('referralCustomerId', { type: () => Int, nullable: true })
+    referralCustomerId: number,
+    @Args('tier', { type: () => Int })
+    tier: number
+  ): Promise<ReferrerResult[]> {
+    return this.commissionService.getAllReferrers(referralCustomerId, tier);
+  }
+
+  @Mutation(() => Int)
+  @UseGuards(AdminGuard)
+  async calculateCommission(
+    @Args('chargeCode')
+    chargeCode: string
+  ): Promise<number> {
+    return this.commissionService.calculateCommission(chargeCode);
   }
 }

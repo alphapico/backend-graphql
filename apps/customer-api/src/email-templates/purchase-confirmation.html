@@ -25,24 +25,19 @@
     >
       <div style="text-align: center; margin-bottom: 20px">
         <img
-          src="https://charonium-media.s3.eu-central-1.amazonaws.com/store_b40de351e3.png"
-          alt="Charonium"
+          src="https://your-company-logo-url.com"
+          alt="Your Company"
           style="width: 150px"
         />
       </div>
       <div style="text-align: center; margin-bottom: 30px">
         <h1 style="font-size: 24px; color: #333333; margin-bottom: 20px">
-          Unknown Payment Issue
+          Styx Tokens Pre-Sale Confirmation
         </h1>
-        <p style="color: #333333">Dear Admin,</p>
-        <p style="color: #333333">
-          The customer, {{{customerName}}}, , with the email address
-          {{{customerEmail}}}, has encountered an unknown issue with their
-          payment for STYX tokens.
-        </p>
-        <p style="color: #333333">
-          <strong>Transaction Details:</strong>
-        </p>
+        <p>Dear {{{customerName}}},</p>
+        <p>Thank you for participating in our STYX tokens pre-sale!</p>
+        <p>We are pleased to confirm your purchase.</p>
+        <p><strong>Order Details:</strong></p>
         <table
           style="width: 100%; border-collapse: collapse; margin-bottom: 20px"
         >
@@ -56,37 +51,66 @@
           </tr>
           <tr>
             <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
-              Customer Name
+              Purchase Code
             </td>
             <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
-              {{{customerName}}}
+              {{{purchaseCode}}}
+            </td>
+          </tr>
+          <tr>
+            {{#if packageName}}
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              Package
+            </td>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              {{{packageName}}}
+            </td>
+            {{else}}
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              Unit Price
+            </td>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              {{{tokenPrice}}}
+            </td>
+            {{/if}}
+          </tr>
+
+          <tr>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              Token Amount
+            </td>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              {{{tokenAmount}}}
             </td>
           </tr>
           <tr>
             <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
-              Customer Email
+              Total Amount
             </td>
             <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
-              {{{customerEmail}}}
+              {{{totalAmount}}} {{{currency}}}
             </td>
           </tr>
           <tr>
             <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
-              Charge Code
+              Date of Purchase
             </td>
             <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
-              {{{chargeCode}}}
+              {{{dateOfPurchase}}}
             </td>
           </tr>
         </table>
-
-        <p style="color: #333333">
-          Please review the transaction and investigate the issue. Please
-          resolve manually.
+        <p>
+          Please note that the tokens will not be available immediately. We will
+          notify you once the tokens are ready for transfer to your Ethereum
+          wallet.
         </p>
-        <p style="color: #333333">
-          Thank you for your prompt attention to this matter.
+        <p>
+          Ensure you have set up your Ethereum wallet in your profile settings.
+          This will allow the STYX tokens to be transferred to your wallet when
+          they are ready.
         </p>
+        <p>Thank you for your trust and support!</p>
       </div>
       <div style="text-align: center; font-size: 14px; color: #999999">
         <p>&copy; 2023 Your Company. All rights reserved.</p>
