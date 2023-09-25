@@ -60,168 +60,169 @@ describe('CommissionService', () => {
     expect(service).toBeDefined();
   });
 
-  describe('calculateCommission', () => {
-    it('should calculate the commission correctly', async () => {
-      const createdAt = new Date();
-      const expiresAt = new Date(createdAt);
-      expiresAt.setHours(createdAt.getHours() + 1);
+  //  All the `calculateCommission` test is move to E2E commissions.spec.ts
+  // describe('calculateCommission', () => {
+  //   it('should calculate the commission correctly', async () => {
+  //     const createdAt = new Date();
+  //     const expiresAt = new Date(createdAt);
+  //     expiresAt.setHours(createdAt.getHours() + 1);
 
-      const mockCharge: Charge = {
-        chargeId: 1,
-        customerId: 1,
-        code: 'CHARGE123',
-        name: 'Sample Charge',
-        description: 'Sample Description',
-        pricingType: 'fixed_price',
-        pricing: {
-          local: {
-            amount: '40.00',
-            currency: 'EUR',
-          },
-        },
-        addresses: null,
-        exchangeRates: null,
-        localExchangeRates: null,
-        hostedUrl: 'https://commerce.coinbase.com/charges/CHARGE123',
-        cancelUrl: 'https://example.com/cancel',
-        redirectUrl: 'https://example.com/redirect',
-        feeRate: 0.01,
-        expiresAt: expiresAt,
-        paymentThreshold: null,
-        createdAt: createdAt,
-        updatedAt: new Date(),
-      };
+  //     const mockCharge: Charge = {
+  //       chargeId: 1,
+  //       customerId: 1,
+  //       code: 'CHARGE123',
+  //       name: 'Sample Charge',
+  //       description: 'Sample Description',
+  //       pricingType: 'fixed_price',
+  //       pricing: {
+  //         local: {
+  //           amount: '40.00',
+  //           currency: 'EUR',
+  //         },
+  //       },
+  //       addresses: null,
+  //       exchangeRates: null,
+  //       localExchangeRates: null,
+  //       hostedUrl: 'https://commerce.coinbase.com/charges/CHARGE123',
+  //       cancelUrl: 'https://example.com/cancel',
+  //       redirectUrl: 'https://example.com/redirect',
+  //       feeRate: 0.01,
+  //       expiresAt: expiresAt,
+  //       paymentThreshold: null,
+  //       createdAt: createdAt,
+  //       updatedAt: new Date(),
+  //     };
 
-      const mockReferrerReferrerCustomer: Customer = {
-        customerId: 3,
-        name: 'Alice Smith',
-        email: 'alice@example.com',
-        password: 'hashedpassword',
-        emailStatus: EmailStatus.VERIFIED,
-        customerStatus: CustomerStatus.ACTIVE,
-        customerRole: CustomerRole.USER,
-        referralCode: 'REF789',
-        referralCustomerId: null, // Assuming Alice doesn't have a referrer
-        tokenVersion: 1,
-        createdAt: new Date(),
-        updatedAt: null,
-      };
+  //     const mockReferrerReferrerCustomer: Customer = {
+  //       customerId: 3,
+  //       name: 'Alice Smith',
+  //       email: 'alice@example.com',
+  //       password: 'hashedpassword',
+  //       emailStatus: EmailStatus.VERIFIED,
+  //       customerStatus: CustomerStatus.ACTIVE,
+  //       customerRole: CustomerRole.USER,
+  //       referralCode: 'REF789',
+  //       referralCustomerId: null, // Assuming Alice doesn't have a referrer
+  //       tokenVersion: 1,
+  //       createdAt: new Date(),
+  //       updatedAt: null,
+  //     };
 
-      const mockReferrerCustomer: Customer & { referrer: Customer } = {
-        customerId: 2,
-        name: 'Jane Doe',
-        email: 'jane@example.com',
-        password: 'hashedpassword',
-        emailStatus: EmailStatus.VERIFIED,
-        customerStatus: CustomerStatus.ACTIVE,
-        customerRole: CustomerRole.USER,
-        referralCode: 'REF456',
-        referralCustomerId: 3,
-        tokenVersion: 1,
-        createdAt: new Date(),
-        updatedAt: null,
-        referrer: mockReferrerReferrerCustomer,
-      };
+  //     const mockReferrerCustomer: Customer & { referrer: Customer } = {
+  //       customerId: 2,
+  //       name: 'Jane Doe',
+  //       email: 'jane@example.com',
+  //       password: 'hashedpassword',
+  //       emailStatus: EmailStatus.VERIFIED,
+  //       customerStatus: CustomerStatus.ACTIVE,
+  //       customerRole: CustomerRole.USER,
+  //       referralCode: 'REF456',
+  //       referralCustomerId: 3,
+  //       tokenVersion: 1,
+  //       createdAt: new Date(),
+  //       updatedAt: null,
+  //       referrer: mockReferrerReferrerCustomer,
+  //     };
 
-      const mockCustomer: Customer & { referrer: Customer } = {
-        customerId: 1,
-        name: 'John Doe',
-        email: 'john@example.com',
-        password: 'hashedpassword',
-        emailStatus: EmailStatus.VERIFIED,
-        customerStatus: CustomerStatus.ACTIVE,
-        customerRole: CustomerRole.USER,
-        referralCode: 'REF123',
-        referralCustomerId: 2,
-        tokenVersion: 1,
-        createdAt: createdAt,
-        updatedAt: null,
-        referrer: mockReferrerCustomer,
-      };
+  //     const mockCustomer: Customer & { referrer: Customer } = {
+  //       customerId: 1,
+  //       name: 'John Doe',
+  //       email: 'john@example.com',
+  //       password: 'hashedpassword',
+  //       emailStatus: EmailStatus.VERIFIED,
+  //       customerStatus: CustomerStatus.ACTIVE,
+  //       customerRole: CustomerRole.USER,
+  //       referralCode: 'REF123',
+  //       referralCustomerId: 2,
+  //       tokenVersion: 1,
+  //       createdAt: createdAt,
+  //       updatedAt: null,
+  //       referrer: mockReferrerCustomer,
+  //     };
 
-      const mockPurchaseActivity: PurchaseActivity = {
-        purchaseActivityId: 1,
-        chargeId: 1,
-        customerId: 3,
-        purchaseCode: '21AUG01-ABCDE',
-        packageId: 1,
-        tokenPriceId: 1,
-        price: 40, // EUR 0.40
-        amount: 4000, // EUR 40.00
-        currency: 'EUR',
-        tokenAmount: 100,
-        purchaseConfirmed: true,
-        paymentStatus: PaymentStatus.COMPLETED,
-        createdAt: createdAt,
-        updatedAt: null,
-      };
+  //     const mockPurchaseActivity: PurchaseActivity = {
+  //       purchaseActivityId: 1,
+  //       chargeId: 1,
+  //       customerId: 3,
+  //       purchaseCode: '21AUG01-ABCDE',
+  //       packageId: 1,
+  //       tokenPriceId: 1,
+  //       price: 40, // EUR 0.40
+  //       amount: 4000, // EUR 40.00
+  //       currency: 'EUR',
+  //       tokenAmount: 100,
+  //       purchaseConfirmed: true,
+  //       paymentStatus: PaymentStatus.COMPLETED,
+  //       createdAt: createdAt,
+  //       updatedAt: null,
+  //     };
 
-      // mockPrismaService.customer.findUnique.mockResolvedValueOnce(
-      //   mockReferrerCustomer
-      // );
-      mockPrismaService.customer.findUnique
-        .mockResolvedValueOnce(mockReferrerCustomer) // First call returns Jane
-        .mockResolvedValueOnce(mockReferrerReferrerCustomer) // Second call returns Alice
-        .mockResolvedValueOnce(null); // Third call returns null, ending the loop
+  //     // mockPrismaService.customer.findUnique.mockResolvedValueOnce(
+  //     //   mockReferrerCustomer
+  //     // );
+  //     mockPrismaService.customer.findUnique
+  //       .mockResolvedValueOnce(mockReferrerCustomer) // First call returns Jane
+  //       .mockResolvedValueOnce(mockReferrerReferrerCustomer) // Second call returns Alice
+  //       .mockResolvedValueOnce(null); // Third call returns null, ending the loop
 
-      mockPrismaService.commissionTier.findMany.mockResolvedValue([
-        { tier: 1, commissionRate: 0.1 },
-        { tier: 2, commissionRate: 0.05 },
-      ]);
+  //     mockPrismaService.commissionTier.findMany.mockResolvedValue([
+  //       { tier: 1, commissionRate: 0.1 },
+  //       { tier: 2, commissionRate: 0.05 },
+  //     ]);
 
-      const result = await service['calculateCommissions'](
-        {
-          ...mockCharge,
-          customer: mockCustomer,
-          purchaseActivity: {
-            ...mockPurchaseActivity,
-            // package: {
-            //   packageId: 1,
-            //   name: 'Sample Package',
-            //   description: 'Sample Description',
-            //   tokenAmount: 100,
-            //   price: 5000, // USD 50
-            //   currency: 'USD',
-            //   isActive: true,
-            //   createdAt: new Date(),
-            //   updatedAt: null,
-            //   deletedAt: null,
-            // },
-            // tokenPrice: {
-            //   tokenPriceId: 1,
-            //   currency: 'USD',
-            //   price: 0.5,
-            //   createdAt: new Date(),
-            //   updatedAt: null,
-            // },
-          },
-        },
-        mockPurchaseActivity.amount,
-        mockPurchaseActivity.currency
-      );
+  //     const result = await service['calculateCommissions'](
+  //       {
+  //         ...mockCharge,
+  //         customer: mockCustomer,
+  //         purchaseActivity: {
+  //           ...mockPurchaseActivity,
+  //           // package: {
+  //           //   packageId: 1,
+  //           //   name: 'Sample Package',
+  //           //   description: 'Sample Description',
+  //           //   tokenAmount: 100,
+  //           //   price: 5000, // USD 50
+  //           //   currency: 'USD',
+  //           //   isActive: true,
+  //           //   createdAt: new Date(),
+  //           //   updatedAt: null,
+  //           //   deletedAt: null,
+  //           // },
+  //           // tokenPrice: {
+  //           //   tokenPriceId: 1,
+  //           //   currency: 'USD',
+  //           //   price: 0.5,
+  //           //   createdAt: new Date(),
+  //           //   updatedAt: null,
+  //           // },
+  //         },
+  //       },
+  //       mockPurchaseActivity.amount,
+  //       mockPurchaseActivity.currency
+  //     );
 
-      console.log({ result });
+  //     console.log({ result });
 
-      expect(result).toEqual([
-        {
-          customerId: 2, // Referral customer ID
-          chargeId: mockCharge.chargeId,
-          tier: 1,
-          commissionRate: 0.1,
-          amount: mockPurchaseActivity.amount * 0.1,
-          currency: mockPurchaseActivity.currency,
-        },
-        {
-          customerId: 3, // Referrer's Referral customer ID (Alice)
-          chargeId: mockCharge.chargeId,
-          tier: 2, // Tier 2 for Alice since she's the referrer's referrer
-          commissionRate: 0.05,
-          amount: mockPurchaseActivity.amount * 0.05,
-          currency: mockPurchaseActivity.currency,
-        },
-      ]);
-    });
-  });
+  //     expect(result).toEqual([
+  //       {
+  //         customerId: 2, // Referral customer ID
+  //         chargeId: mockCharge.chargeId,
+  //         tier: 1,
+  //         commissionRate: 0.1,
+  //         amount: mockPurchaseActivity.amount * 0.1,
+  //         currency: mockPurchaseActivity.currency,
+  //       },
+  //       {
+  //         customerId: 3, // Referrer's Referral customer ID (Alice)
+  //         chargeId: mockCharge.chargeId,
+  //         tier: 2, // Tier 2 for Alice since she's the referrer's referrer
+  //         commissionRate: 0.05,
+  //         amount: mockPurchaseActivity.amount * 0.05,
+  //         currency: mockPurchaseActivity.currency,
+  //       },
+  //     ]);
+  //   });
+  // });
 
   describe('getCommissions', () => {
     it('should fetch commissions correctly', async () => {

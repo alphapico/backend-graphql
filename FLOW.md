@@ -118,7 +118,7 @@ Coins' price is calculated from the created **Package** or **Price per unit**.
 
 #### c. Coin purchase flow
 
-<img width="2312" alt="CoinbaseCommerce_vtest" src="https://github.com/Tequnity/charonium/assets/128450164/6d9f0975-3fe3-4fb5-b1b2-5739598cbed6">
+<img width="2312" alt="CoinbaseCommerce_v3" src="https://github.com/Tequnity/charonium/assets/128450164/49b6835c-577d-4f06-a2ce-1a5c917a5d4e">
 
 - Each filled, purple-colored rounded rectangle represents a `PaymentStatus` state in Coinbase Commerce.
 - **Token Purchase Process**: Typically, when a user wants to buy a token, a Charge is created. After making payment, the Payment Status transitions from **`NEW`**, to **`PENDING`**, and finally to **`COMPLETED`**, indicating the successful purchase of the coin.
