@@ -61,6 +61,22 @@ enum ImageType {
   PACKAGE
 }
 
+enum CryptoType {
+  DAI //Dai
+  USDC // USD Coin
+  PUSDC // USDC on Polygon
+  PWETH // Wrapped Ether on Polygon
+  USDT // Tether
+  APE // ApeCoin
+  BTC // Bitcoin
+  PMATIC // MATIC on Polygon
+  DOGE // Dogecoin
+  ETH // Ethereum
+  LTC // Litecoin
+  SHIB // Shiba Inu
+  BCH // Bitcoin Cash
+}
+
 model Customer {
   customerId         Int            @id @default(autoincrement())
   name               String
@@ -74,7 +90,8 @@ model Customer {
   referrer           Customer?      @relation("CustomerReferral", fields: [referralCustomerId], references: [customerId])
   referees           Customer[]     @relation("CustomerReferral")
   tokenVersion       Int            @default(0)
-  charge             Charge[]  
+  purchaseActivities PurchaseActivity[]  
+  charges            Charge[]  
   commissions        Commission[]
   wallets            Wallet[]       
   image              Image?
@@ -83,22 +100,22 @@ model Customer {
 }
 
 model Wallet {
-  walletId       Int       @id @default(autoincrement())
+  walletId       Int          @id @default(autoincrement())
   customerId     Int
-  customer       Customer  @relation(fields: [customerId], references: [customerId], onDelete: Cascade)
-  address        String    // Wallet address
-  cryptoType     String    // Type of cryptocurrency (e.g., BTC, ETH)
-  isDefault      Boolean   @default(false) // Field to track if this wallet is the default one
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime? @updatedAt
+  customer       Customer     @relation(fields: [customerId], references: [customerId], onDelete: Cascade)
+  address        String       // Wallet address
+  cryptoType     CryptoType    @default(ETH) // Type of cryptocurrency (e.g., BTC, ETH)
+  isDefault      Boolean       @default(false) // Field to track if this wallet is the default one
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime?     @updatedAt
 }
 
 model Config {
-  configId   Int       @id @default(autoincrement())
-  configDesc String    @default("Null")
-  value      Float     @default(0)
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime? @updatedAt
+  configId              Int       @id @default(autoincrement())
+  referralViewLevel     Int       @default(3)
+  isReferralCodeEnabled Boolean   @default(true)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime? @updatedAt
 }
 
 model Log {
@@ -170,7 +187,7 @@ model Payment {
 model CommissionTier {
   commissionTierId     Int        @id @default(autoincrement())
   tier                 Int        @unique
-  commission           Decimal    @db.Decimal(4,4) //allow value from 0.0000 to 0.9999 (0% to 99.99%) 
+  commissionRate       Decimal    @db.Decimal(4,4) //allow value from 0.0000 to 0.9999 (0% to 99.99%) 
   createdAt            DateTime   @default(now())
   updatedAt            DateTime?  @updatedAt
 }
@@ -194,7 +211,7 @@ model TokenPrice {
   tokenPriceId      Int      @id @default(autoincrement())
   currency          String   // Currency code (e.g., "USD", "BTC")
   price             Int    // Price of one ECR-20 token in the specified currency
-  purchaseActivity  PurchaseActivity?
+  purchaseActivity  PurchaseActivity[]
   createdAt         DateTime @default(now())
   updatedAt         DateTime? @updatedAt
 }
@@ -207,7 +224,7 @@ model TokenPackage {
   price             Int     // Price of the package in a specific currency (e.g., USD)
   currency          String    // Currency code (e.g., "USD", "BTC")
   isActive          Boolean   // Whether the package is currently available for purchase
-  purchaseActivity  PurchaseActivity?
+  purchaseActivity  PurchaseActivity[]
   image             Image?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime? @updatedAt
@@ -216,11 +233,14 @@ model TokenPackage {
 
 model PurchaseActivity {
   purchaseActivityId    Int           @id @default(autoincrement())
+  purchaseCode          String        @unique
   chargeId              Int?          @unique
   charge                Charge?       @relation(fields: [chargeId], references: [chargeId], onDelete: SetNull)
-  packageId             Int?          @unique
+  customerId            Int?
+  customer              Customer?     @relation(fields: [customerId], references: [customerId], onDelete: SetNull)
+  packageId             Int?          
   package               TokenPackage? @relation(fields: [packageId], references: [packageId], onDelete: SetNull)
-  tokenPriceId          Int?          @unique
+  tokenPriceId          Int?          
   tokenPrice            TokenPrice?   @relation(fields: [tokenPriceId], references: [tokenPriceId], onDelete: SetNull)
 	price                 Int           // Price per unit or per package     
   tokenAmount           Float

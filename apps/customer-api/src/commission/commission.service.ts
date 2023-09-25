@@ -2,10 +2,15 @@ import {
   Commission,
   ERROR_MESSAGES,
   PurchaseActivityRecord,
+  ReferrerResults,
   handlePrismaError,
 } from '@charonium/common';
 import { PrismaService } from '@charonium/prisma';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   Charge,
   Commission as PrismaCommission,
@@ -19,6 +24,7 @@ import {
 } from '@prisma/client';
 import { CommissionResult } from './dto/commission.dto';
 import graphqlFields from 'graphql-fields';
+import { CommissionTier } from './dto/commission-tier.dto';
 
 @Injectable()
 export class CommissionService {
@@ -52,6 +58,7 @@ export class CommissionService {
         commissionData,
         charge.purchaseActivity.purchaseActivityId
       );
+      return charge.chargeId;
     } catch (error) {
       handlePrismaError(error);
     }
@@ -88,48 +95,65 @@ export class CommissionService {
     const commissionData: Commission[] = [];
     const customer = charge.customer;
 
-    // Record the token amount for the customer itself
-    // commissionData.push({
-    //   customerId: customer.customerId,
-    //   chargeId: charge.chargeId,
-    //   tier: 0, // Tier 0 for the customer itself
-    //   commissionRate: 1, // 100% of the token amount
-    //   amount: amount,
-    //   currency: currency,
-    // });
+    const commissionRates = await this.getAllCommissionRates();
+    const maxTier = Math.max(...Object.keys(commissionRates).map(Number));
+
+    const referrers = await this.getAllReferrers(
+      customer.referralCustomerId,
+      maxTier
+    );
 
     // Calculate commission for the referrers
-    let referrer = await this.prisma.customer.findUnique({
-      where: { customerId: customer.referralCustomerId },
-    });
     let tier = 1;
-    const commissionRates = await this.getAllCommissionRates();
-    while (referrer) {
-      if (referrer.customerStatus !== CustomerStatus.SUSPENDED) {
-        const commissionRate = commissionRates[tier] || 0;
-        // Calculate the commission amount
-        const commissionDecimal = amount * commissionRate;
-        // Round the result to get an integer value
-        const commissionAmount = Math.floor(commissionDecimal);
 
-        // Collect commission data
-        commissionData.push({
-          customerId: referrer.customerId,
-          chargeId: charge.chargeId,
-          tier: tier,
-          commissionRate: commissionRate,
-          amount: commissionAmount,
-          currency: currency,
-        });
+    for (const referrer of referrers) {
+      if (referrer.customerStatus === CustomerStatus.ACTIVE) {
+        const commissionRate = commissionRates[tier] || 0;
+        if (commissionRate > 0) {
+          // Calculate the commission amount
+          const commissionDecimal = amount * commissionRate;
+          // Round the result to get an integer value
+          const commissionAmount = Math.floor(commissionDecimal);
+
+          // Collect commission data
+          commissionData.push({
+            customerId: referrer.customerId,
+            chargeId: charge.chargeId,
+            tier: tier,
+            commissionRate: commissionRate,
+            amount: commissionAmount,
+            currency: currency,
+          });
+        }
       }
 
-      referrer = await this.prisma.customer.findUnique({
-        where: { customerId: referrer.referralCustomerId },
-      });
       tier++;
     }
 
     return commissionData;
+  }
+
+  async getAllReferrers(
+    referralCustomerId: number,
+    maxTier: number
+  ): Promise<ReferrerResults> {
+    const query = Prisma.sql`
+    WITH RECURSIVE referrers AS (
+        SELECT "customerId", "name", "referralCustomerId", "customerStatus", 1 as "tier"
+        FROM "Customer"
+        WHERE "customerId" = ${referralCustomerId}
+
+        UNION ALL
+
+        SELECT c."customerId", c."name", c."referralCustomerId", c."customerStatus", r."tier" + 1
+        FROM "Customer" c
+        JOIN referrers r ON c."customerId" = r."referralCustomerId"
+        WHERE r."tier" < ${maxTier}
+    )
+    SELECT * FROM referrers
+    `;
+
+    return await this.prisma.$queryRaw(query);
   }
 
   private async performTransaction(
@@ -150,15 +174,19 @@ export class CommissionService {
     await this.prisma.$transaction([createCommissions, confirmPurchase]);
   }
 
-  private async getAllCommissionRates(): Promise<{ [key: number]: number }> {
-    const commissionTiers = await this.prisma.commissionTier.findMany();
-    const rates: { [key: number]: number } = {};
+  async getAllCommissionRates(): Promise<{ [key: number]: number }> {
+    const commissionTiers = await this.prisma.commissionTier.findMany({
+      orderBy: {
+        tier: 'asc',
+      },
+    });
+    const commissionRates: { [key: number]: number } = {};
 
     for (const tier of commissionTiers) {
-      rates[tier.tier] = parseFloat(tier.commission.toString());
+      commissionRates[tier.tier] = parseFloat(tier.commissionRate.toString());
     }
 
-    return rates;
+    return commissionRates;
   }
 
   async isPurchaseConfirmed(chargeCode: string): Promise<boolean> {
@@ -176,6 +204,74 @@ export class CommissionService {
     }
 
     return true;
+  }
+
+  async createCommissionTier(
+    tier: number,
+    commissionRate: number
+  ): Promise<CommissionTier> {
+    try {
+      const commissionTier = await this.prisma.commissionTier.create({
+        data: {
+          tier,
+          commissionRate,
+        },
+      });
+      return {
+        ...commissionTier,
+        commissionRate: parseFloat(commissionTier.commissionRate.toFixed(4)),
+      };
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException(
+          ERROR_MESSAGES.COMMISSION_TIER_ALREADY_EXISTS
+        );
+      }
+      throw error;
+    }
+  }
+
+  async updateCommissionTier(
+    tier: number,
+    commissionRate: number
+  ): Promise<CommissionTier> {
+    const existingTier = await this.prisma.commissionTier.findUnique({
+      where: { tier },
+    });
+
+    if (!existingTier) {
+      throw new NotFoundException(ERROR_MESSAGES.COMMISSION_TIER_NOT_FOUND);
+    }
+
+    const commissionTier = await this.prisma.commissionTier.update({
+      where: { tier },
+      data: { commissionRate },
+    });
+    return {
+      ...commissionTier,
+      commissionRate: parseFloat(commissionTier.commissionRate.toFixed(4)),
+    };
+  }
+
+  async deleteCommissionTier(tier: number): Promise<CommissionTier> {
+    const existingTier = await this.prisma.commissionTier.findUnique({
+      where: { tier },
+    });
+
+    if (!existingTier) {
+      throw new NotFoundException(ERROR_MESSAGES.COMMISSION_TIER_NOT_FOUND);
+    }
+
+    const commissionTier = await this.prisma.commissionTier.delete({
+      where: { tier },
+    });
+    return {
+      ...commissionTier,
+      commissionRate: parseFloat(commissionTier.commissionRate.toFixed(4)),
+    };
   }
 
   async getPurchaseActivities(
@@ -232,9 +328,7 @@ export class CommissionService {
     }
 
     if (customerId) {
-      whereFilter.charge = {
-        customerId: customerId,
-      };
+      whereFilter.customerId = customerId;
     }
 
     // Check if the include object is empty
@@ -350,6 +444,15 @@ export class CommissionService {
     return commission?.isTransferred || false;
   }
 
+  async getReferrerCommissionByCharge(chargeId: number) {
+    const commissions = await this.prisma.commission.findMany({
+      where: { chargeId },
+      include: { customer: true },
+    });
+
+    return commissions;
+  }
+
   async getCommissions(
     info: any,
     cursor?: number,
@@ -429,7 +532,7 @@ export class CommissionService {
   ) {
     const fields = graphqlFields(info);
 
-    console.log({ fields });
+    // console.log({ fields });
 
     const include: any = {};
 

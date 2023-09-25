@@ -7,6 +7,7 @@ import { AdminGuard } from '../auth/admin.guard';
 import { TokenPackage } from './dto/token-package.dto';
 import { TokenPackageCreateInput } from './dto/token-package-create.input';
 import { TokenPackageUpdateInput } from './dto/token-package-update.input';
+import { Config } from './dto/config.dto';
 
 @Resolver()
 export class ConfigResolver {
@@ -75,5 +76,27 @@ export class ConfigResolver {
     @Args('isActive', { type: () => Boolean }) isActive: boolean
   ): Promise<TokenPackage[]> {
     return this.configService.getAllTokenPackagesByStatus(isActive);
+  }
+
+  @Mutation(() => Config)
+  @UseGuards(AdminGuard)
+  async setReferralViewLevel(
+    @Args('depth', { type: () => Int }) depth: number
+  ): Promise<Config> {
+    return this.configService.setReferralViewLevel(depth);
+  }
+
+  @Mutation(() => Config)
+  @UseGuards(AdminGuard)
+  async setReferralCodeEnabledStatus(
+    @Args('status', { type: () => Boolean }) status: boolean
+  ): Promise<Config> {
+    return this.configService.setReferralCodeEnabledStatus(status);
+  }
+
+  @Query(() => Config, { nullable: true })
+  @UseGuards(AdminGuard)
+  async getConfig(): Promise<Config> {
+    return this.configService.getConfig();
   }
 }

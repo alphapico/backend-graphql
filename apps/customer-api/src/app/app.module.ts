@@ -14,6 +14,7 @@ import { PaymentGatewayModule } from '../payment-gateway/payment-gateway.module'
 import { CommissionModule } from '../commission/commission.module';
 import { ConfigModule } from '../config/config.module';
 import GraphQLJSON from 'graphql-type-json';
+import { WalletModule } from '../wallet/wallet.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import GraphQLJSON from 'graphql-type-json';
     PaymentGatewayModule,
     CommissionModule,
     ConfigModule,
+    WalletModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],

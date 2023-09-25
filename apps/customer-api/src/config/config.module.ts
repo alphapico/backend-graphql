@@ -6,5 +6,6 @@ import { ConfigResolver } from './config.resolver';
 @Module({
   imports: [PrismaModule],
   providers: [ConfigService, ConfigResolver],
+  exports: [ConfigService],
 })
 export class ConfigModule {}

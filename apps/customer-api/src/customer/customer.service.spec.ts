@@ -15,6 +15,7 @@ import { AuthService } from '../auth/auth.service';
 import { EmailModule } from '../email/email.module';
 import { AuthModule } from '../auth/auth.module';
 import { LogService } from '../log/log.service';
+import { ConfigService } from '../config/config.service';
 
 describe('CustomerService', () => {
   let customerService: CustomerService;
@@ -30,6 +31,7 @@ describe('CustomerService', () => {
     const prismaServiceMock = {}; // Provide mock implementation if necessary
     const referralCodeUtilMock = {}; // Provide mock implementation if necessary
     const logServiceMock = {};
+    const configServiceMock = {};
 
     const moduleRef: TestingModule = await Test.createTestingModule({
       providers: [
@@ -39,6 +41,7 @@ describe('CustomerService', () => {
         { provide: PrismaService, useValue: prismaServiceMock },
         { provide: ReferralCodeUtil, useValue: referralCodeUtilMock },
         { provide: LogService, useValue: logServiceMock },
+        { provide: ConfigService, useValue: configServiceMock },
         // {
         //   provide: JwtService,
         //   useValue: jwtServiceMock,

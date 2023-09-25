@@ -26,6 +26,7 @@ import {
   Webhook,
   resources,
 } from 'coinbase-commerce-node';
+import { format } from 'date-fns';
 // import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
@@ -80,6 +81,7 @@ export class CoinbaseService {
 
       await this.recordPurchaseActivity(
         prismaCharge.chargeId,
+        prismaCharge.customerId,
         amount,
         currency,
         tokenPackage,
@@ -151,15 +153,20 @@ export class CoinbaseService {
 
   private async recordPurchaseActivity(
     chargeId: number,
+    customerId: number,
     amount: number,
     currency: string,
     tokenPackage?: TokenPackage,
     tokenPrice?: TokenPrice,
     tokenAmount?: number
   ) {
+    const purchaseCode = await this.generateUniquePurchaseCode();
+
     await this.prismaService.purchaseActivity.create({
       data: {
         chargeId: chargeId,
+        customerId: customerId,
+        purchaseCode: purchaseCode,
         packageId: tokenPackage?.packageId,
         tokenPriceId: tokenPrice?.tokenPriceId,
         price: tokenPackage?.price ?? tokenPrice?.price,
@@ -515,5 +522,64 @@ export class CoinbaseService {
       amountRequired: requiredAmount,
       currency: currency,
     };
+  }
+
+  async generateUniquePurchaseCode(): Promise<string> {
+    const datePart = this.getDatePart();
+    let randomPart: string;
+    let fullCode: string;
+
+    do {
+      randomPart = this.generateRandomString(5);
+      fullCode = `${datePart}-${randomPart}`;
+    } while (await this.codeExistsInDatabase(fullCode));
+
+    return fullCode;
+  }
+
+  getDatePart(): string {
+    return format(new Date(), 'yyMMMdd').toUpperCase();
+  }
+
+  async codeExistsInDatabase(code: string): Promise<boolean> {
+    const existingCode = await this.prismaService.purchaseActivity.findUnique({
+      where: { purchaseCode: code },
+    });
+    return !!existingCode;
+  }
+
+  generateRandomString(length: number): string {
+    const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let result = '';
+
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * characters.length);
+      result += characters.charAt(randomIndex);
+    }
+
+    return result;
+  }
+
+  async getPurchaseActivityByChargeCode(chargeCode: string) {
+    const charge = await this.prismaService.charge.findUnique({
+      where: { code: chargeCode },
+      include: {
+        purchaseActivity: {
+          include: {
+            customer: true,
+            package: true,
+            tokenPrice: true,
+          },
+        },
+      },
+    });
+
+    if (!charge.purchaseActivity) {
+      throw new NotFoundException(
+        ERROR_MESSAGES.PURCHASE_ACTIVITY_BY_CHARGE_NOT_FOUND
+      );
+    }
+
+    return charge.purchaseActivity;
   }
 }

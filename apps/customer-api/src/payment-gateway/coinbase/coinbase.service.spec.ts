@@ -11,6 +11,7 @@ import {
 import { ERROR_MESSAGES, ExtChargeResource } from '@charonium/common';
 import { resources } from 'coinbase-commerce-node';
 import { Payment, PaymentStatus, UnresolvedReason } from '@prisma/client';
+import { format } from 'date-fns';
 
 describe('CoinbaseService', () => {
   let service: CoinbaseService;
@@ -486,6 +487,8 @@ describe('CoinbaseService', () => {
       // Mocking the PrismaService method to return the created purchase activity
       const mockPurchaseActivity = {
         chargeId: 1,
+        customerId: 2,
+        purchaseCode: '21AUG01-ABCDE',
         packageId: 2,
         tokenPriceId: 3,
         tokenAmount: 100,
@@ -499,7 +502,15 @@ describe('CoinbaseService', () => {
         mockPurchaseActivity
       );
 
+      jest
+        .spyOn(service, 'generateUniquePurchaseCode')
+        .mockResolvedValue('21AUG01-ABCDE');
+      jest.spyOn(service, 'getDatePart').mockReturnValue('21AUG01');
+      jest.spyOn(service, 'codeExistsInDatabase').mockResolvedValue(false);
+      jest.spyOn(service, 'generateRandomString').mockReturnValue('ABCDE');
+
       const chargeId = 1;
+      const customerId = 2;
       const tokenPackage = {
         packageId: 2,
         name: 'Gold',
@@ -526,6 +537,7 @@ describe('CoinbaseService', () => {
       // Expectation
       await service['recordPurchaseActivity'](
         chargeId,
+        customerId,
         amount,
         currency,
         tokenPackage,
@@ -537,6 +549,8 @@ describe('CoinbaseService', () => {
       expect(mockPrismaService.purchaseActivity.create).toHaveBeenCalledWith({
         data: {
           chargeId: chargeId,
+          customerId: customerId,
+          purchaseCode: '21AUG01-ABCDE',
           packageId: tokenPackage.packageId,
           tokenPriceId: tokenPrice.tokenPriceId,
           tokenAmount: tokenAmount,
@@ -547,6 +561,74 @@ describe('CoinbaseService', () => {
           paymentStatus: mockPurchaseActivity.paymentStatus,
         },
       });
+    });
+  });
+
+  describe('getPurchaseCode', () => {
+    it('should generate a unique purchase code successfully', async () => {
+      // Mock the getDatePart method to return a specific date
+      jest.spyOn(service, 'getDatePart').mockReturnValue('21AUG01');
+
+      // Mock the generateRandomString method to return a specific string
+      jest
+        .spyOn(service, 'generateRandomString')
+        .mockReturnValueOnce('ABCDE')
+        .mockReturnValueOnce('ABCDF');
+
+      // Mock the codeExistsInDatabase method to simulate that the first code exists but the second one doesn't
+      jest
+        .spyOn(service, 'codeExistsInDatabase')
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(false);
+
+      // Call the method
+      const result = await service.generateUniquePurchaseCode();
+
+      // Expectations
+      expect(result).toBe('21AUG01-ABCDF');
+      expect(service.getDatePart).toBeCalled();
+      expect(service.generateRandomString).toBeCalledTimes(2);
+      expect(service.codeExistsInDatabase).toBeCalledWith('21AUG01-ABCDE');
+      expect(service.codeExistsInDatabase).toBeCalledWith('21AUG01-ABCDF');
+    });
+  });
+
+  describe('getDatePart', () => {
+    it('should return the formatted date for today', () => {
+      // Get the current date and format it
+      const expectedDatePart = format(new Date(), 'yyMMMdd').toUpperCase();
+
+      // Call the method
+      const result = service.getDatePart();
+
+      // Expectations
+      console.log({ expectedDatePart });
+      expect(result).toBe(expectedDatePart);
+    });
+  });
+
+  describe('generateRandomString', () => {
+    it('should generate a random string of the correct length', () => {
+      const length = 5;
+
+      // Call the method
+      const result = service.generateRandomString(length);
+
+      // Expectations
+      expect(result.length).toBe(length);
+    });
+
+    it('should only contain valid characters', () => {
+      const length = 10;
+      const validCharacters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+      // Call the method multiple times to increase the chance of catching any invalid characters
+      for (let i = 0; i < 100; i++) {
+        const result = service.generateRandomString(length);
+        for (const char of result) {
+          expect(validCharacters).toContain(char);
+        }
+      }
     });
   });
 

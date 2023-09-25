@@ -1,5 +1,5 @@
-import { Resolver, Mutation, Query, Args } from '@nestjs/graphql';
-import { Customer } from './dto/customer.dto';
+import { Resolver, Mutation, Query, Args, Info, Int } from '@nestjs/graphql';
+import { Customer, CustomerResult } from './dto/customer.dto';
 import { RegisterInput } from './dto/register.input';
 import { CustomerService } from './customer.service';
 import { ResetPasswordInput } from './dto/reset-password.input';
@@ -7,7 +7,16 @@ import { EmailInput } from './dto/email.input';
 import { RegisterAdminInput } from './dto/register-admin.input';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UseGuards } from '@nestjs/common';
-import { CurrentUser, IJwtPayload } from '@charonium/common';
+import {
+  CurrentUser,
+  CustomerRole,
+  CustomerStatus,
+  EmailStatus,
+  IJwtPayload,
+} from '@charonium/common';
+import { AdminGuard } from '../auth/admin.guard';
+import { FreshTokenGuard } from '../auth/fresh-token.guard';
+import { ChangePasswordInput } from './dto/change-password.input';
 
 @Resolver(() => Customer)
 export class CustomerResolver {
@@ -15,7 +24,14 @@ export class CustomerResolver {
 
   @Mutation(() => Customer)
   async register(@Args('input') input: RegisterInput): Promise<Customer> {
-    return this.customerService.register(input);
+    const customer = await this.customerService.register(input);
+    return {
+      ...customer,
+      charges: [],
+      commissions: [],
+      wallets: [],
+      purchaseActivities: [],
+    };
   }
 
   @Mutation(() => Boolean)
@@ -49,10 +65,48 @@ export class CustomerResolver {
     return this.customerService.resendAdminRegistrationEmail();
   }
 
+  @Mutation(() => Boolean)
+  @UseGuards(FreshTokenGuard)
+  async changePassword(
+    @CurrentUser() user: IJwtPayload,
+    @Args('input') input: ChangePasswordInput
+  ): Promise<boolean> {
+    return this.customerService.changePassword(user.sub, input);
+  }
+
+  @Query(() => CustomerResult)
+  @UseGuards(AdminGuard)
+  async getCustomers(
+    @Info() info: any,
+    @Args('cursor', { type: () => Int, nullable: true }) cursor?: number,
+    @Args('limit', { type: () => Int, defaultValue: 10 }) limit?: number,
+    @Args('customerStatus', { type: () => CustomerStatus, nullable: true })
+    customerStatus?: CustomerStatus,
+    @Args('emailStatus', { type: () => EmailStatus, nullable: true })
+    emailStatus?: EmailStatus,
+    @Args('customerRole', { type: () => CustomerRole, nullable: true })
+    customerRole?: CustomerRole,
+    @Args('customerId', { type: () => Int, nullable: true })
+    customerId?: number
+  ): Promise<CustomerResult> {
+    return this.customerService.getCustomers(
+      info,
+      cursor,
+      limit,
+      customerStatus,
+      emailStatus,
+      customerRole,
+      customerId
+    );
+  }
+
   @Query(() => Customer)
   @UseGuards(JwtAuthGuard)
-  async me(@CurrentUser() user: IJwtPayload): Promise<Customer> {
-    return this.customerService.getCustomer(user.sub);
+  async me(
+    @Info() info: any,
+    @CurrentUser() user: IJwtPayload
+  ): Promise<Customer> {
+    return this.customerService.getCustomer(info, user.sub);
   }
 
   @Query(() => String)

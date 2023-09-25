@@ -8,6 +8,13 @@ import { AdminGuard } from '../auth/admin.guard';
 import { CurrentUser, IJwtPayload, PaymentStatus } from '@charonium/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ChargeResult } from './dto/charge.dto';
+import {
+  CommissionRate,
+  CommissionTier,
+  CreateCommissionTierInput,
+  UpdateCommissionTierInput,
+} from './dto/commission-tier.dto';
+import { ReferrerResult } from './dto/referrer-result.dto';
 
 @Resolver()
 export class CommissionResolver {
@@ -27,7 +34,7 @@ export class CommissionResolver {
     paymentStatus?: PaymentStatus,
     @Args('customerId', { type: () => Int, nullable: true }) customerId?: number
   ): Promise<PurchaseActivityResult> {
-    const result = await this.commissionService.getPurchaseActivities(
+    return this.commissionService.getPurchaseActivities(
       info,
       cursor,
       limit,
@@ -35,7 +42,6 @@ export class CommissionResolver {
       paymentStatus,
       customerId
     );
-    return result;
   }
 
   @Query(() => PurchaseActivityResult, {
@@ -52,7 +58,7 @@ export class CommissionResolver {
     @Args('paymentStatus', { type: () => PaymentStatus, nullable: true })
     paymentStatus?: PaymentStatus
   ): Promise<PurchaseActivityResult> {
-    const result = await this.commissionService.getPurchaseActivities(
+    return this.commissionService.getPurchaseActivities(
       info,
       cursor,
       limit,
@@ -60,7 +66,6 @@ export class CommissionResolver {
       paymentStatus,
       user.sub
     );
-    return result;
   }
 
   @Query(() => CommissionResult, {
@@ -138,5 +143,71 @@ export class CommissionResolver {
       customerId,
       code
     );
+  }
+
+  @Mutation(() => CommissionTier)
+  @UseGuards(AdminGuard)
+  async createCommissionTier(
+    @Args('input') input: CreateCommissionTierInput
+  ): Promise<CommissionTier> {
+    return this.commissionService.createCommissionTier(
+      input.tier,
+      input.commissionRate
+    );
+  }
+
+  @Mutation(() => CommissionTier)
+  @UseGuards(AdminGuard)
+  async updateCommissionTier(
+    @Args('input') input: UpdateCommissionTierInput
+  ): Promise<CommissionTier> {
+    return this.commissionService.updateCommissionTier(
+      input.tier,
+      input.commissionRate
+    );
+  }
+
+  @Mutation(() => CommissionTier)
+  @UseGuards(AdminGuard)
+  async deleteCommissionTier(
+    @Args('tier', { type: () => Int }) tier: number
+  ): Promise<CommissionTier> {
+    return this.commissionService.deleteCommissionTier(tier);
+  }
+
+  @Query(() => [CommissionRate])
+  @UseGuards(JwtAuthGuard)
+  async getAllCommissionRates(): Promise<CommissionRate[]> {
+    const ratesMap = await this.commissionService.getAllCommissionRates();
+    const ratesArray: CommissionRate[] = [];
+
+    for (const [tier, commissionRate] of Object.entries(ratesMap)) {
+      ratesArray.push({
+        tier: parseInt(tier),
+        commissionRate: commissionRate,
+      });
+    }
+
+    return ratesArray;
+  }
+
+  @Query(() => [ReferrerResult])
+  @UseGuards(AdminGuard)
+  async getAllReferrers(
+    @Args('referralCustomerId', { type: () => Int, nullable: true })
+    referralCustomerId: number,
+    @Args('tier', { type: () => Int })
+    tier: number
+  ): Promise<ReferrerResult[]> {
+    return this.commissionService.getAllReferrers(referralCustomerId, tier);
+  }
+
+  @Mutation(() => Int)
+  @UseGuards(AdminGuard)
+  async calculateCommission(
+    @Args('chargeCode')
+    chargeCode: string
+  ): Promise<number> {
+    return this.commissionService.calculateCommission(chargeCode);
   }
 }

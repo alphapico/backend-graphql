@@ -142,6 +142,8 @@ describe('CommissionService', () => {
       const mockPurchaseActivity: PurchaseActivity = {
         purchaseActivityId: 1,
         chargeId: 1,
+        customerId: 3,
+        purchaseCode: '21AUG01-ABCDE',
         packageId: 1,
         tokenPriceId: 1,
         price: 40, // EUR 0.40
@@ -163,8 +165,8 @@ describe('CommissionService', () => {
         .mockResolvedValueOnce(null); // Third call returns null, ending the loop
 
       mockPrismaService.commissionTier.findMany.mockResolvedValue([
-        { tier: 1, commission: 0.1 },
-        { tier: 2, commission: 0.05 },
+        { tier: 1, commissionRate: 0.1 },
+        { tier: 2, commissionRate: 0.05 },
       ]);
 
       const result = await service['calculateCommissions'](

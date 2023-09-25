@@ -79,6 +79,7 @@
     "class-validator": "^0.14.0",
     "coinbase-commerce-node": "^1.0.4",
     "cookie-parser": "^1.4.6",
+    "date-fns": "^2.30.0",
     "dotenv": "^16.0.3",
     "dotenv-cli": "^7.1.0",
     "fetch-blob": "^3.2.0",
@@ -92,6 +93,7 @@
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.0.0",
-    "tslib": "^2.3.0"
+    "tslib": "^2.3.0",
+    "web3": "^4.1.1"
   }
 }

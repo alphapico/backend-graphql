@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { SES, SendEmailCommandInput } from '@aws-sdk/client-ses';
-import { Customer } from '../customer/dto/customer.dto';
+// import { Customer } from '../customer/dto/customer.dto';
 import * as Handlebars from 'handlebars';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -12,6 +12,7 @@ import {
   SUCCESS_MESSAGES,
 } from '@charonium/common';
 import {
+  Customer,
   EmailStatus,
   CustomerStatus,
   LogStatus,
@@ -150,6 +151,32 @@ export class EmailService {
     );
   }
 
+  async sendPurchaseConfirmationEmail(
+    customer: Customer,
+    data: Record<string, any>
+  ): Promise<void> {
+    await this.sendEmail(
+      EmailType.PURCHASE_CONFIRMATION,
+      customer,
+      data,
+      './email-templates/purchase-confirmation.html',
+      'Purchase Confirmation'
+    );
+  }
+
+  async sendReferrerCommissionEmail(
+    customer: Customer,
+    data: Record<string, any>
+  ): Promise<void> {
+    await this.sendEmail(
+      EmailType.REFERRER_COMMISSION,
+      customer,
+      data,
+      './email-templates/referrer-commission.html',
+      'Referrer Commission'
+    );
+  }
+
   async sendUnresolvedUnderpaidEmail(
     customer: Customer,
     data: Record<string, any>
@@ -264,6 +291,16 @@ export class EmailService {
             message = error
               ? ERROR_MESSAGES.EMAIL_ERROR.FAILED_TO_SEND_WELCOME
               : SUCCESS_MESSAGES.EMAIL_WELCOME_SENT;
+            break;
+          case EmailType.PURCHASE_CONFIRMATION:
+            message = error
+              ? ERROR_MESSAGES.EMAIL_ERROR.FAILED_TO_SEND_PURCHASE_CONFIRMATION
+              : SUCCESS_MESSAGES.EMAIL_PURCHASE_CONFIRMATION_SENT;
+            break;
+          case EmailType.REFERRER_COMMISSION:
+            message = error
+              ? ERROR_MESSAGES.EMAIL_ERROR.FAILED_TO_SEND_REFERRER_COMMISSION
+              : SUCCESS_MESSAGES.EMAIL_REFFEREER_COMMISSION_SENT;
             break;
           case EmailType.UNRESOLVED_UNDERPAID:
             message = error

@@ -13,6 +13,7 @@ export const registerMutation = gql`
       email
       name
       referralCode
+      referralCustomerId
     }
   }
 `;
@@ -44,6 +45,7 @@ interface IRegisterResponse {
     email: string;
     name: string;
     referralCode: string;
+    referralCustomerId: number;
   };
 }
 
@@ -205,5 +207,36 @@ export async function createAndVerifyAdmin(
     },
   });
 
-  return { graphQLClientWithAdminAccessToken };
+  return {
+    graphQLClientWithAdminAccessToken,
+  };
 }
+
+export async function fetchAdminReferralCode(
+  prismaService: PrismaService
+): Promise<{ referralCode: string }> {
+  const adminDetails: Customer = await prismaService.customer.findUnique({
+    where: { email: process.env.ADMIN_EMAIL },
+  });
+
+  if (!adminDetails) {
+    throw new Error('Admin details not found in the database');
+  }
+
+  return { referralCode: adminDetails.referralCode };
+}
+
+export const waitForCondition = async (
+  conditionFn: () => Promise<boolean>,
+  timeout = 2000,
+  interval = 100
+) => {
+  const startTime = Date.now();
+  while (Date.now() - startTime < timeout) {
+    if (await conditionFn()) {
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, interval));
+  }
+  throw new Error('Condition not met within timeout');
+};

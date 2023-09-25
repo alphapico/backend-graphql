@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body
+    style="
+      font-family: Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      color: #333333;
+      margin: 0;
+    "
+  >
+    <div
+      style="
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 40px;
+        background-color: #ffffff;
+        box-sizing: border-box;
+      "
+    >
+      <div style="text-align: center; margin-bottom: 20px">
+        <img
+          src="https://your-company-logo-url.com"
+          alt="Your Company"
+          style="width: 150px"
+        />
+      </div>
+      <div style="text-align: center; margin-bottom: 30px">
+        <h1 style="font-size: 24px; color: #333333; margin-bottom: 20px">
+          Congratulations on Earning a Commission!
+        </h1>
+        <p>Dear {{{referrerName}}},</p>
+        <p>We are pleased to inform you that you have earned a commission!</p>
+        <p>
+          This commission was earned because your downline, {{{refereeName}}},
+          made a purchase of STYX tokens. Here are the details of their
+          purchase:
+        </p>
+        <table
+          style="width: 100%; border-collapse: collapse; margin-bottom: 20px"
+        >
+          <tr style="background-color: #f8f8f8">
+            <th style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              Detail
+            </th>
+            <th style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              Value
+            </th>
+          </tr>
+          <tr>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              Referee's Name
+            </td>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              {{{refereeName}}}
+            </td>
+          </tr>
+          <tr>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              Total Amount
+            </td>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              {{{totalAmount}}} {{{currency}}}
+            </td>
+          </tr>
+          <tr>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              Date of Purchase
+            </td>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              {{{dateOfPurchase}}}
+            </td>
+          </tr>
+        </table>
+        <p style="font-size: 18px; font-weight: bold">
+          Your commission amount based on this purchase is:
+          <span style="color: #007bff"
+            >{{{commissionAmount}}} {{{currency}}}</span
+          >.
+        </p>
+        <p>
+          Thank you for referring customers to our platform and helping us grow!
+        </p>
+      </div>
+      <div style="text-align: center; font-size: 14px; color: #999999">
+        <p>&copy; 2023 Your Company. All rights reserved.</p>
+      </div>
+    </div>
+  </body>
+</html>

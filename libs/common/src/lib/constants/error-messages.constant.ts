@@ -30,12 +30,24 @@ export const ERROR_MESSAGES = {
   FAILED_HANDLING_CHARGE_EVENT: 'Failed handling charge event',
   AMOUNT_NOT_FOUND: 'Amount not found',
   CURRENCY_NOT_FOUND: 'Currency not found',
+  WALLET_NOT_FOUND: 'Wallet not found',
+  ETH_WALLET_REQUIRED: 'You must have at least one ETH wallet',
+  INVALID_ETH_ADDRESS: 'Invalid ETH address',
+  OPERATION_NOT_ALLOWED: 'Operation not allowed',
+  TOKEN_IS_NOT_FRESH: 'Token is not fresh',
+  INVALID_OLD_PASSWORD: 'Invalid old password',
+  REFERRAL_CODE_REQUIRED: 'Referral code is required',
+  COMMISSION_TIER_NOT_FOUND: 'Commission Tier not found',
+  COMMISSION_TIER_ALREADY_EXISTS: 'Commission Tier already exists',
+  PURCHASE_ACTIVITY_BY_CHARGE_NOT_FOUND:
+    'Purchase Activity by given Charge Code not found',
   VAL: {
     IS_STRING: '$property must be a string',
     IS_EMAIL: '$property must be an email',
     IS_URL: '$property must be a URL',
     IS_INT: '$property must be an integer',
     INVALID_IMAGE_TYPE: 'type must be a valid ImageType',
+    INVALID_CRYPTO_TYPE: 'type must be a valid CryptoType',
     IS_NOT_EMPTY: '$property should not be empty',
     IS_VALID_CURRENCY_FORMAT: 'Invalid currency format',
     IS_SUPPORTED_CURRENCY: `currency must be one of the following: ${supportedCurrencyList}`,
@@ -58,6 +70,10 @@ export const ERROR_MESSAGES = {
     FAILED_TO_SEND_ADMIN_REGISTRATION:
       'Failed to send email admin registration',
     FAILED_TO_SEND_WELCOME: 'Failed to send email welcome',
+    FAILED_TO_SEND_PURCHASE_CONFIRMATION:
+      'Failed to send purchase confirmation email',
+    FAILED_TO_SEND_REFERRER_COMMISSION:
+      'Failed to send referrer commission email',
     FAILED_TO_SEND_UNRESOLVED_UNDERPAID:
       'Failed to send Unresolved (Underpaid) email',
     FAILED_TO_SEND_ADMIN_UNRESOLVED_UNDERPAID:

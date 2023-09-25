@@ -11,10 +11,11 @@ import { RegisterInput } from './dto/register.input';
 
 import * as argon2 from 'argon2';
 import NodeCache from 'node-cache';
-import { Customer } from './dto/customer.dto';
+import { Customer, CustomerResult } from './dto/customer.dto';
 import {
   CustomerRole,
   LogStatus,
+  Prisma,
   Customer as PrismaCustomer,
 } from '@prisma/client';
 import {
@@ -23,6 +24,7 @@ import {
   PRISMA_ERROR_MESSAGES,
   ReferralCodeUtil,
 } from '@charonium/common';
+import graphqlFields from 'graphql-fields';
 // import { validate } from 'class-validator';
 // import { ClassValidationException } from '@charonium/common';
 
@@ -32,6 +34,8 @@ import { AuthService } from '../auth/auth.service';
 import { EmailService } from '../email/email.service';
 import { RegisterAdminInput } from './dto/register-admin.input';
 import { LogService } from '../log/log.service';
+import { ChangePasswordInput } from './dto/change-password.input';
+import { ConfigService } from '../config/config.service';
 @Injectable()
 export class CustomerService {
   private cache: NodeCache;
@@ -41,7 +45,8 @@ export class CustomerService {
     private authService: AuthService,
     private emailService: EmailService,
     private logService: LogService,
-    private referralCodeUtil: ReferralCodeUtil
+    private referralCodeUtil: ReferralCodeUtil,
+    private configService: ConfigService
   ) {
     this.cache = new NodeCache();
   }
@@ -50,19 +55,41 @@ export class CustomerService {
     return this.prisma.customer.findUnique({ where: { email } });
   }
 
-  async findByCustomerId(customerId: number): Promise<Customer | null> {
+  async findByCustomerId(customerId: number): Promise<PrismaCustomer | null> {
     return this.prisma.customer.findUnique({
       where: { customerId },
     });
   }
 
-  async register(input: RegisterInput): Promise<Customer> {
+  async updateCustomerStatus(
+    customer: PrismaCustomer
+  ): Promise<PrismaCustomer> {
+    return this.prisma.customer.update({
+      where: {
+        customerId: customer.customerId,
+      },
+      data: {
+        customerStatus: customer.customerStatus,
+      },
+    });
+  }
+
+  async register(input: RegisterInput): Promise<PrismaCustomer> {
     // const validationErrors = await validate(input);
     // if (validationErrors.length > 0) {
     //   throw new ClassValidationException(validationErrors);
     // }
 
     let referralCustomerId: number | undefined;
+
+    const isReferralCodeEnabled =
+      process.env.NODE_ENV === 'test'
+        ? false
+        : (await this.configService.getReferralCodeEnabledStatus()) || true;
+
+    if (isReferralCodeEnabled && !input.referralCode) {
+      throw new BadRequestException(ERROR_MESSAGES.REFERRAL_CODE_REQUIRED);
+    }
 
     const hashedPassword = await argon2.hash(input.password);
     const referralCode = await this.referralCodeUtil.encodeReferralCode();
@@ -234,7 +261,7 @@ export class CustomerService {
     return true;
   }
 
-  async createAdmin(email: string): Promise<Customer> {
+  async createAdmin(email: string): Promise<PrismaCustomer> {
     const existingAdmin = await this.findByEmail(email);
     if (existingAdmin) return existingAdmin;
 
@@ -289,14 +316,187 @@ export class CustomerService {
     return true;
   }
 
-  async getCustomer(customerId: number) {
+  async changePassword(
+    customerId: number,
+    input: ChangePasswordInput
+  ): Promise<boolean> {
     const customer = await this.prisma.customer.findUnique({
       where: { customerId },
-      include: {
-        image: true,
+    });
+
+    if (!customer) {
+      throw new BadRequestException(ERROR_MESSAGES.CUSTOMER_NOT_FOUND);
+    }
+
+    const valid = await argon2.verify(customer.password, input.oldPassword);
+    if (!valid) {
+      throw new BadRequestException(ERROR_MESSAGES.INVALID_OLD_PASSWORD);
+    }
+
+    const hashedPassword = await argon2.hash(input.newPassword);
+
+    await this.prisma.customer.update({
+      where: { customerId },
+      data: {
+        password: hashedPassword,
       },
     });
 
+    return true;
+  }
+
+  async getCustomer(info: any, customerId: number) {
+    const fields = graphqlFields(info);
+    // console.log(fields);
+
+    const include: any = {};
+    if (fields.image) {
+      include.image = true;
+    }
+    if (fields.charges) {
+      include.charges = true;
+    }
+    if (fields.commissions) {
+      include.commissions = true;
+    }
+    if (fields.wallets) {
+      include.wallets = true;
+    }
+    if (fields.purchaseActivities) {
+      include.purchaseActivities = true;
+    }
+    if (fields.referrer) {
+      include.referrer = true;
+    }
+    if (fields.referees) {
+      include.referees = true;
+    }
+
+    // Check if the include object is empty
+    const isIncludeEmpty = Object.keys(include).length === 0;
+    const findUniqueArgs: any = {
+      where: { customerId },
+    };
+    if (!isIncludeEmpty) {
+      findUniqueArgs.include = include;
+    }
+
+    const customer = (await this.prisma.customer.findUnique(
+      findUniqueArgs
+    )) as any as Customer;
+
+    if (!customer) {
+      throw new NotFoundException(ERROR_MESSAGES.CUSTOMER_NOT_FOUND);
+    }
+
+    // Format the commission amount field
+    if (customer.commissions) {
+      customer.commissions.forEach((commission) => {
+        if (commission.amount) {
+          commission.amount = commission.amount / 100;
+        }
+      });
+    }
+
     return customer;
+  }
+
+  async getCustomers(
+    info: any,
+    cursor?: number,
+    limit = 10,
+    customerStatus?: CustomerStatus,
+    emailStatus?: EmailStatus,
+    customerRole?: CustomerRole,
+    customerId?: number
+  ): Promise<CustomerResult> {
+    const fields = graphqlFields(info);
+    console.log(fields);
+
+    const include: any = {};
+    if (fields.data) {
+      if (fields.data.image) {
+        include.image = true;
+      }
+      if (fields.data.charges) {
+        include.charges = true;
+      }
+      if (fields.data.commissions) {
+        include.commissions = true;
+      }
+      if (fields.data.wallets) {
+        include.wallets = true;
+      }
+      if (fields.data.purchaseActivities) {
+        include.purchaseActivities = true;
+      }
+      if (fields.data.referrer) {
+        include.referrer = true;
+      }
+      if (fields.data.referees) {
+        include.referees = true;
+      }
+    }
+
+    const whereClause: Prisma.CustomerWhereInput = {};
+
+    if (customerStatus) {
+      whereClause.customerStatus = customerStatus;
+    }
+
+    if (emailStatus) {
+      whereClause.emailStatus = emailStatus;
+    }
+
+    if (customerRole) {
+      whereClause.customerRole = customerRole;
+    }
+
+    if (customerId) {
+      whereClause.customerId = customerId;
+    }
+
+    // Check if the include object is empty
+    const isIncludeEmpty = Object.keys(include).length === 0;
+    const findManyArgs: any = {
+      take: limit + 1, // Fetch one extra record to determine if there's a next page
+      cursor: cursor ? { customerId: cursor } : undefined,
+      orderBy: [{ customerId: 'asc' }], //lowest values represent the earliest records
+      where: whereClause,
+    };
+
+    if (!isIncludeEmpty) {
+      findManyArgs.include = include;
+    }
+
+    const records = (await this.prisma.customer.findMany(
+      findManyArgs
+    )) as any as Customer[];
+
+    const hasNextPage = records.length > limit;
+    if (hasNextPage) {
+      // Remove the extra record
+      records.pop();
+    }
+
+    // Format the commission amount field
+    if (records) {
+      records.forEach((record) => {
+        if (record.commissions) {
+          record.commissions.forEach((commission) => {
+            if (commission.amount) {
+              commission.amount = commission.amount / 100;
+            }
+          });
+        }
+      });
+    }
+
+    return {
+      data: records,
+      nextPageCursor: hasNextPage
+        ? records[records.length - 1].customerId
+        : null,
+    };
   }
 }
