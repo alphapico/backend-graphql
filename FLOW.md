@@ -166,3 +166,5 @@ All email templates can be found in `<root>/apps/customer-api/email-templates`. 
 | ADMIN_UNRESOLVED_DELAYED   | `admin-payment-delayed.html`              |
 | ADMIN_UNRESOLVED_MULTIPLE  | `admin-payment-multiple.html`             |
 | ADMIN_UNRESOLVED_OTHER     | `admin-payment-other.html`                |
+| PURCHASE_CONFIRMATION      | `purchase-confirmation`                   |
+| REFERRER_COMMISSION        | `referrer-commission`                     |
