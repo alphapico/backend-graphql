@@ -13,6 +13,7 @@ import {
   CONFIG,
   ERROR_MESSAGES,
   ImageType,
+  LogError,
   writeDataToFile,
 } from '@charonium/common';
 import { UploadInput } from './dto/upload.input';
@@ -30,6 +31,7 @@ export class UploadService {
     });
   }
 
+  @LogError
   async generatePresignedPost(
     uploadInput: UploadInput,
     customerId: number
@@ -76,6 +78,7 @@ export class UploadService {
     return presignedPost;
   }
 
+  @LogError
   async generatePresignedUrl(
     uploadInput: UploadInput,
     customerId: number
@@ -134,6 +137,7 @@ export class UploadService {
     );
   }
 
+  @LogError
   async saveUploadedImage(saveImageInput: SaveImageInput): Promise<Image> {
     // Write the output to a text file
     // writeDataToFile(

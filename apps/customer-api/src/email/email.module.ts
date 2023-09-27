@@ -3,10 +3,10 @@ import { EmailService } from './email.service';
 import { PrismaModule } from '@charonium/prisma';
 import { EmailResolver } from './email.resolver';
 import { AuthModule } from '../auth/auth.module';
-import { LogModule } from '../log/log.module';
+import { LoggerModule } from '@charonium/logger';
 
 @Module({
-  imports: [AuthModule, PrismaModule, LogModule],
+  imports: [AuthModule, PrismaModule, LoggerModule],
   providers: [EmailResolver, EmailService],
   exports: [EmailService],
 })

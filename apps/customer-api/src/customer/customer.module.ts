@@ -5,11 +5,16 @@ import { CustomerResolver } from './customer.resolver';
 import { ReferralCodeUtil } from '@charonium/common';
 import { EmailModule } from '../email/email.module';
 import { AuthModule } from '../auth/auth.module';
-import { LogModule } from '../log/log.module';
+import { LoggerModule } from '@charonium/logger';
 import { ConfigService } from '../config/config.service';
 
 @Module({
-  imports: [EmailModule, forwardRef(() => AuthModule), PrismaModule, LogModule],
+  imports: [
+    EmailModule,
+    forwardRef(() => AuthModule),
+    PrismaModule,
+    LoggerModule,
+  ],
   providers: [
     CustomerResolver,
     CustomerService,

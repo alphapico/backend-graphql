@@ -11,6 +11,7 @@ import { Customer } from '../customer/dto/customer.dto';
 import {
   CustomerStatus,
   ERROR_MESSAGES,
+  LogError,
   PRISMA_ERROR_MESSAGES,
   ReferralResults,
 } from '@charonium/common';
@@ -25,6 +26,7 @@ export class ReferralService {
     private readonly configService: ConfigService
   ) {}
 
+  @LogError
   async getReferralMap(
     referrerId: number,
     startLevel = 0
@@ -103,11 +105,13 @@ export class ReferralService {
       ORDER BY "referrer_id", "referee_id";
       `;
 
-    try {
-      return await this.prisma.$queryRaw(query);
-    } catch (error) {
-      this.handleQueryError(error);
-    }
+    return await this.prisma.$queryRaw(query);
+
+    // try {
+    //   return await this.prisma.$queryRaw(query);
+    // } catch (error) {
+    //   this.handleQueryError(error);
+    // }
   }
 
   private handleQueryError(error: any): void {

@@ -1,9 +1,9 @@
 import {
   Commission,
   ERROR_MESSAGES,
+  LogError,
   PurchaseActivityRecord,
   ReferrerResults,
-  handlePrismaError,
 } from '@charonium/common';
 import { PrismaService } from '@charonium/prisma';
 import {
@@ -30,6 +30,7 @@ import { CommissionTier } from './dto/commission-tier.dto';
 export class CommissionService {
   constructor(private readonly prisma: PrismaService) {}
 
+  @LogError
   async calculateCommission(chargeCode: string) {
     const charge = await this.getCharge(chargeCode);
 
@@ -53,15 +54,11 @@ export class CommissionService {
       currency
     );
 
-    try {
-      await this.performTransaction(
-        commissionData,
-        charge.purchaseActivity.purchaseActivityId
-      );
-      return charge.chargeId;
-    } catch (error) {
-      handlePrismaError(error);
-    }
+    await this.performTransaction(
+      commissionData,
+      charge.purchaseActivity.purchaseActivityId
+    );
+    return charge.chargeId;
   }
 
   private async getCharge(chargeCode: string) {
@@ -189,6 +186,7 @@ export class CommissionService {
     return commissionRates;
   }
 
+  @LogError
   async isPurchaseConfirmed(chargeCode: string): Promise<boolean> {
     const purchaseActivity = await this.prisma.purchaseActivity.findFirst({
       where: {
@@ -206,6 +204,7 @@ export class CommissionService {
     return true;
   }
 
+  @LogError
   async createCommissionTier(
     tier: number,
     commissionRate: number
@@ -234,6 +233,7 @@ export class CommissionService {
     }
   }
 
+  @LogError
   async updateCommissionTier(
     tier: number,
     commissionRate: number
@@ -256,6 +256,7 @@ export class CommissionService {
     };
   }
 
+  @LogError
   async deleteCommissionTier(tier: number): Promise<CommissionTier> {
     const existingTier = await this.prisma.commissionTier.findUnique({
       where: { tier },
@@ -274,6 +275,7 @@ export class CommissionService {
     };
   }
 
+  @LogError
   async getPurchaseActivities(
     info: any,
     cursor?: number,
@@ -417,6 +419,7 @@ export class CommissionService {
     };
   }
 
+  @LogError
   async updateCommissionTransferStatus(
     commissionId: number
   ): Promise<PrismaCommission> {
@@ -431,6 +434,7 @@ export class CommissionService {
     return commission;
   }
 
+  @LogError
   async isCommissionTransferred(commissionId: number): Promise<boolean> {
     const commission = await this.prisma.commission.findUnique({
       where: {
@@ -444,6 +448,7 @@ export class CommissionService {
     return commission?.isTransferred || false;
   }
 
+  @LogError
   async getReferrerCommissionByCharge(chargeId: number) {
     const commissions = await this.prisma.commission.findMany({
       where: { chargeId },
@@ -453,6 +458,7 @@ export class CommissionService {
     return commissions;
   }
 
+  @LogError
   async getCommissions(
     info: any,
     cursor?: number,
@@ -523,6 +529,7 @@ export class CommissionService {
     };
   }
 
+  @LogError
   async getCharges(
     info: any, // This is the GraphQL resolver's info argument
     cursor?: number,

@@ -39,9 +39,6 @@ export class AuthResolver {
     @Context('res') res: Response
   ): Promise<string> {
     const refreshToken = req.cookies['refresh_token'];
-    if (!refreshToken) {
-      throw new UnauthorizedException(ERROR_MESSAGES.INVALID_REFRESH_TOKEN);
-    }
 
     const payload = await this.authService.verifyRefreshToken(refreshToken);
 

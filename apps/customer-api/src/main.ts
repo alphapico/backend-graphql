@@ -6,9 +6,11 @@ import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app/app.module';
 import { PrismaService } from '@charonium/prisma';
 import { CustomerService } from './customer/customer.service';
+import { setAppInstance } from '@charonium/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  setAppInstance(app);
   const prismaService = app.get(PrismaService);
   const customerService = app.get(CustomerService);
   await prismaService.enableShutdownHooks(app);

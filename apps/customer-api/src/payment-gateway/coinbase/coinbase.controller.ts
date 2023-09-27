@@ -1,6 +1,12 @@
 import { Body, Controller, Post, Headers } from '@nestjs/common';
 import { CoinbaseService } from './coinbase.service';
-import { ExtChargeResource, writeDataToFile } from '@charonium/common';
+import {
+  ERROR_CATEGORIES,
+  ERROR_MESSAGES,
+  ExtChargeResource,
+  INFO_CATEGORIES,
+  writeDataToFile,
+} from '@charonium/common';
 import {
   CustomerStatus,
   PaymentStatus,
@@ -11,13 +17,16 @@ import { currencyPrecision } from '@charonium/common';
 import { CommissionService } from '../../commission/commission.service';
 import { StatusCodes } from 'http-status-codes';
 import { format } from 'date-fns';
+import { LoggerService } from '@charonium/logger';
+import { ChargeResource } from 'coinbase-commerce-node';
 
 @Controller('coinbase')
 export class CoinbaseController {
   constructor(
     private readonly coinbaseService: CoinbaseService,
     private commissionService: CommissionService,
-    private emailService: EmailService
+    private emailService: EmailService,
+    private loggerService: LoggerService
   ) {}
 
   @Post('webhook')
@@ -36,7 +45,7 @@ export class CoinbaseController {
         process.env.COINBASE_WEBHOOK_SECRET
       );
 
-      console.log('Received event with type:', event.type);
+      // console.log('Received event with type:', event.type);
 
       writeDataToFile(`${this.constructor.name}/event.txt`, event);
 
@@ -55,10 +64,17 @@ export class CoinbaseController {
           const status = charge.timeline[charge.timeline.length - 1].status;
           const context = charge.timeline[charge.timeline.length - 1].context;
 
-          console.log(
-            'Payment status:',
-            charge.timeline[charge.timeline.length - 1].status
-          );
+          // console.log(
+          //   'Payment status:',
+          //   charge.timeline[charge.timeline.length - 1].status
+          // );
+          this.loggerService.info({
+            message: status,
+            methodName: 'handleWebhook',
+            serviceName: 'CoinbaseController',
+            infoCategory: INFO_CATEGORIES.COINBASE,
+            metadata: { charge },
+          });
 
           switch (status) {
             // Payment created
@@ -388,14 +404,34 @@ export class CoinbaseController {
               break;
           }
         } else {
-          console.error('Unexpected charge object structure in webhook');
+          const charge = rawCharge as ChargeResource;
+          this.loggerService.error({
+            message: ERROR_MESSAGES.UNEXPECTED_CHARGE_STRUCTURE,
+            methodName: 'handleWebhook',
+            serviceName: 'CoinbaseController',
+            errorCategory: ERROR_CATEGORIES.COINBASE_ERROR,
+            metadata: { charge },
+          });
+
+          // Respond with a 400 status if there was an error
+          return {
+            statusCode: StatusCodes.BAD_REQUEST,
+            message: ERROR_MESSAGES.UNEXPECTED_CHARGE_STRUCTURE,
+          };
         }
       }
 
       // Respond with a 200 status to acknowledge receipt of the event
       return { statusCode: StatusCodes.OK };
     } catch (error) {
-      console.error('Error occurred:', error.message);
+      this.loggerService.error({
+        message: error.message,
+        methodName: 'handleWebhook',
+        serviceName: 'CoinbaseController',
+        errorCategory:
+          error.constructor?.name || ERROR_CATEGORIES.COINBASE_ERROR,
+        trace: error.stack,
+      });
 
       // Respond with a 400 status if there was an error
       return { statusCode: StatusCodes.BAD_REQUEST, message: error.message };

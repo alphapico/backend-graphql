@@ -15,7 +15,6 @@ export class EmailResolver {
         return { success, message: ERROR_MESSAGES.CUSTOMER_SUSPENDED };
       return { success, message: SUCCESS_MESSAGES.CUSTOMER_IS_VERIFIED };
     } catch (error) {
-      console.error('Error verifying email:', error);
       return { success: false, message: error.message };
     }
   }

@@ -1,9 +1,12 @@
 import {
   ChargePayments,
+  ERROR_CATEGORIES,
   ERROR_MESSAGES,
   ExtChargeResource,
+  LogError,
   writeDataToFile,
 } from '@charonium/common';
+import { LoggerService } from '@charonium/logger';
 import { PrismaService } from '@charonium/prisma';
 import {
   BadRequestException,
@@ -31,14 +34,19 @@ import { format } from 'date-fns';
 
 @Injectable()
 export class CoinbaseService {
-  constructor(private prismaService: PrismaService) {
+  constructor(
+    private prismaService: PrismaService,
+    private loggerService: LoggerService
+  ) {
     Client.init(process.env.COINBASE_API_KEY);
   }
 
+  @LogError
   verify(body: any, signature: string, secret: string) {
     return Webhook.verifyEventBody(body, signature, secret);
   }
 
+  @LogError
   async purchaseTokens(
     email: string,
     name: string,
@@ -92,8 +100,15 @@ export class CoinbaseService {
       return prismaCharge;
     } else {
       // Handle the error case where the expected properties are not present
-      const errorMsg = 'Unexpected charge object structure';
-      writeDataToFile(`${this.constructor.name}/charge-error.txt`, errorMsg);
+      const charge = rawCharge as ChargeResource;
+
+      this.loggerService.error({
+        message: ERROR_MESSAGES.UNEXPECTED_CHARGE_STRUCTURE,
+        methodName: 'purchaseTokens',
+        serviceName: this?.constructor?.name,
+        errorCategory: ERROR_CATEGORIES.COINBASE_ERROR,
+        metadata: { charge },
+      });
 
       throw new InternalServerErrorException(
         ERROR_MESSAGES.UNEXPECTED_CHARGE_STRUCTURE
@@ -293,67 +308,68 @@ export class CoinbaseService {
     }
   }
 
+  @LogError
   async handleChargeEvent(
     charge: ExtChargeResource,
     type: string,
     paymentStatus: PaymentStatus,
     unresolvedReason?: UnresolvedReason
   ) {
-    try {
-      // Extract the necessary information from the charge object
-      const { code } = charge;
+    // try {
+    // Extract the necessary information from the charge object
+    const { code } = charge;
 
-      // Look up the charge in the database using the code
-      const existingCharge = (await this.getChargeByCode(
-        code,
-        true
-      )) as ChargePayments;
+    // Look up the charge in the database using the code
+    const existingCharge = (await this.getChargeByCode(
+      code,
+      true
+    )) as ChargePayments;
 
-      // Update PurchaseAcitivty Payment Status
-      await this.updatePurchaseActivityPaymentStatus(
-        existingCharge.chargeId,
-        paymentStatus
+    // Update PurchaseAcitivty Payment Status
+    await this.updatePurchaseActivityPaymentStatus(
+      existingCharge.chargeId,
+      paymentStatus
+    );
+
+    // Create a set of transaction IDs from existing payments
+    const existingTransactionIds = new Set(
+      existingCharge.payments.map((payment) => payment.transaction)
+    );
+
+    // If payments array is empty, create a payment record with null or default values
+    if (charge.payments.length === 0) {
+      await this.createPaymentRecord(
+        type,
+        paymentStatus,
+        unresolvedReason,
+        existingCharge.chargeId
       );
-
-      // Create a set of transaction IDs from existing payments
-      const existingTransactionIds = new Set(
-        existingCharge.payments.map((payment) => payment.transaction)
-      );
-
-      // If payments array is empty, create a payment record with null or default values
-      if (charge.payments.length === 0) {
-        await this.createPaymentRecord(
-          type,
-          paymentStatus,
-          unresolvedReason,
-          existingCharge.chargeId
-        );
-      } else {
-        // Create a new payment record for each payment in the charge
-        for (const payment of charge.payments) {
-          // Check if a payment with the same transaction ID already exists
-          if (!existingTransactionIds.has(payment.transaction_id)) {
-            await this.createPaymentRecordFromCharge(
-              payment,
-              type,
-              paymentStatus,
-              unresolvedReason,
-              existingCharge.chargeId
-            );
-          }
+    } else {
+      // Create a new payment record for each payment in the charge
+      for (const payment of charge.payments) {
+        // Check if a payment with the same transaction ID already exists
+        if (!existingTransactionIds.has(payment.transaction_id)) {
+          await this.createPaymentRecordFromCharge(
+            payment,
+            type,
+            paymentStatus,
+            unresolvedReason,
+            existingCharge.chargeId
+          );
         }
       }
-    } catch (error) {
-      console.error(
-        `Error occurred while handling ${PaymentStatus[
-          paymentStatus
-        ].toLowerCase()} charge:`,
-        error.message
-      );
-      throw new InternalServerErrorException(
-        ERROR_MESSAGES.FAILED_HANDLING_CHARGE_EVENT
-      );
     }
+    // } catch (error) {
+    //   console.error(
+    //     `Error occurred while handling ${PaymentStatus[
+    //       paymentStatus
+    //     ].toLowerCase()} charge:`,
+    //     error.message
+    //   );
+    //   throw new InternalServerErrorException(
+    //     ERROR_MESSAGES.FAILED_HANDLING_CHARGE_EVENT
+    //   );
+    // }
   }
 
   async updatePurchaseActivityPaymentStatus(
@@ -442,6 +458,7 @@ export class CoinbaseService {
     });
   }
 
+  @LogError
   async checkMultiplePayments(charge: ChargeResource): Promise<boolean> {
     const existingCharge = (await this.getChargeByCode(charge.code)) as Charge;
 
@@ -455,6 +472,7 @@ export class CoinbaseService {
     return payments.length > 1;
   }
 
+  @LogError
   async calculatePaymentDetails(chargeResource: ChargeResource) {
     // Retrieve the charge details from the database using the code
     const charge = (await this.getChargeByCode(chargeResource.code)) as Charge;
@@ -494,6 +512,7 @@ export class CoinbaseService {
     return totalPaid;
   }
 
+  @LogError
   async calculateRemainingAmount(chargeResource: ChargeResource) {
     const { totalPaid, requiredAmount, currency } =
       await this.calculatePaymentDetails(chargeResource);
@@ -509,6 +528,7 @@ export class CoinbaseService {
     };
   }
 
+  @LogError
   async calculateExcessAmount(chargeResource: ChargeResource) {
     const { totalPaid, requiredAmount, currency } =
       await this.calculatePaymentDetails(chargeResource);
@@ -560,6 +580,7 @@ export class CoinbaseService {
     return result;
   }
 
+  @LogError
   async getPurchaseActivityByChargeCode(chargeCode: string) {
     const charge = await this.prismaService.charge.findUnique({
       where: { code: chargeCode },

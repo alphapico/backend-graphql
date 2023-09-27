@@ -14,7 +14,7 @@ import { EmailService } from '../email/email.service';
 import { AuthService } from '../auth/auth.service';
 import { EmailModule } from '../email/email.module';
 import { AuthModule } from '../auth/auth.module';
-import { LogService } from '../log/log.service';
+import { LoggerService } from '@charonium/logger';
 import { ConfigService } from '../config/config.service';
 
 describe('CustomerService', () => {
@@ -30,7 +30,7 @@ describe('CustomerService', () => {
     const emailServiceMock = {}; // Provide mock implementation if necessary
     const prismaServiceMock = {}; // Provide mock implementation if necessary
     const referralCodeUtilMock = {}; // Provide mock implementation if necessary
-    const logServiceMock = {};
+    const loggerServiceMock = {};
     const configServiceMock = {};
 
     const moduleRef: TestingModule = await Test.createTestingModule({
@@ -40,7 +40,7 @@ describe('CustomerService', () => {
         { provide: EmailService, useValue: emailServiceMock },
         { provide: PrismaService, useValue: prismaServiceMock },
         { provide: ReferralCodeUtil, useValue: referralCodeUtilMock },
-        { provide: LogService, useValue: logServiceMock },
+        { provide: LoggerService, useValue: loggerServiceMock },
         { provide: ConfigService, useValue: configServiceMock },
         // {
         //   provide: JwtService,

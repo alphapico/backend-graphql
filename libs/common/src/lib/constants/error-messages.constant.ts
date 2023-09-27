@@ -41,6 +41,7 @@ export const ERROR_MESSAGES = {
   COMMISSION_TIER_ALREADY_EXISTS: 'Commission Tier already exists',
   PURCHASE_ACTIVITY_BY_CHARGE_NOT_FOUND:
     'Purchase Activity by given Charge Code not found',
+  MODULEREF_NOT_AVAILABLE: 'ModuleRef is not available',
   VAL: {
     IS_STRING: '$property must be a string',
     IS_EMAIL: '$property must be an email',
