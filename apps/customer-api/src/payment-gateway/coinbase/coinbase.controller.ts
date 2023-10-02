@@ -404,13 +404,12 @@ export class CoinbaseController {
               break;
           }
         } else {
-          const charge = rawCharge as ChargeResource;
           this.loggerService.error({
             message: ERROR_MESSAGES.UNEXPECTED_CHARGE_STRUCTURE,
             methodName: 'handleWebhook',
             serviceName: 'CoinbaseController',
             errorCategory: ERROR_CATEGORIES.COINBASE_ERROR,
-            metadata: { charge },
+            metadata: { charge: rawCharge },
           });
 
           // Respond with a 400 status if there was an error
