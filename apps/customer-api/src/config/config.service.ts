@@ -5,11 +5,13 @@ import { TokenPackage, TokenPrice } from '@prisma/client';
 import { TokenPackageCreateInput } from './dto/token-package-create.input';
 import { TokenPackageUpdateInput } from './dto/token-package-update.input';
 import { Config } from './dto/config.dto';
+import { LogError } from '@charonium/common';
 
 @Injectable()
 export class ConfigService {
   constructor(private readonly prisma: PrismaService) {}
 
+  @LogError
   async setOrEditTokenPrice(priceDetails: TokenPriceCreateInput) {
     // Convert the user-friendly decimal format to integer format
     const priceInCents = Math.round(priceDetails.price * 100);
@@ -37,6 +39,7 @@ export class ConfigService {
     }
   }
 
+  @LogError
   async getTokenPrice(): Promise<TokenPrice | null> {
     const tokenPrice = await this.prisma.tokenPrice.findFirst({
       orderBy: { createdAt: 'desc' },
@@ -51,6 +54,7 @@ export class ConfigService {
     return null;
   }
 
+  @LogError
   async createTokenPackage(
     packageDetails: TokenPackageCreateInput
   ): Promise<TokenPackage> {
@@ -64,6 +68,7 @@ export class ConfigService {
     return tokenPackage;
   }
 
+  @LogError
   async editTokenPackage(
     packageId: number,
     packageDetails: TokenPackageUpdateInput
@@ -81,6 +86,7 @@ export class ConfigService {
     return tokenPackage;
   }
 
+  @LogError
   async deleteTokenPackage(packageId: number): Promise<TokenPackage> {
     return await this.prisma.tokenPackage.update({
       where: { packageId: packageId },
@@ -88,6 +94,7 @@ export class ConfigService {
     });
   }
 
+  @LogError
   async toggleTokenPackageStatus(packageId: number): Promise<TokenPackage> {
     const existingPackage = await this.prisma.tokenPackage.findUnique({
       where: { packageId: packageId },
@@ -98,6 +105,7 @@ export class ConfigService {
     });
   }
 
+  @LogError
   async getTokenPackage(packageId: number): Promise<TokenPackage | null> {
     const tokenPackage = await this.prisma.tokenPackage.findUnique({
       where: { packageId: packageId },
@@ -115,6 +123,7 @@ export class ConfigService {
     return tokenPackage;
   }
 
+  @LogError
   async getAllTokenPackages(): Promise<TokenPackage[]> {
     const tokenPackages = await this.prisma.tokenPackage.findMany({
       where: { deletedAt: null },
@@ -131,6 +140,7 @@ export class ConfigService {
     return tokenPackages;
   }
 
+  @LogError
   async getAllTokenPackagesByStatus(
     isActive: boolean
   ): Promise<TokenPackage[]> {
@@ -149,6 +159,7 @@ export class ConfigService {
     return tokenPackages;
   }
 
+  @LogError
   async setReferralViewLevel(depth: number): Promise<Config> {
     let updatedConfig: Config;
     const existingConfig = await this.prisma.config.findFirst();
@@ -167,11 +178,13 @@ export class ConfigService {
     return updatedConfig;
   }
 
+  @LogError
   async getReferralViewLevel(): Promise<number | null> {
     const config = await this.prisma.config.findFirst();
     return config?.referralViewLevel || null;
   }
 
+  @LogError
   async setReferralCodeEnabledStatus(status: boolean): Promise<Config> {
     let updatedConfig: Config;
     const existingConfig = await this.prisma.config.findFirst();
@@ -190,11 +203,13 @@ export class ConfigService {
     return updatedConfig;
   }
 
+  @LogError
   async getReferralCodeEnabledStatus(): Promise<boolean | null> {
     const config = await this.prisma.config.findFirst();
     return config?.isReferralCodeEnabled || null;
   }
 
+  @LogError
   async getConfig(): Promise<Config> {
     return this.prisma.config.findFirst();
   }

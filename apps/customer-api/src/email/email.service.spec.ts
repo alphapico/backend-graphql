@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EmailService } from './email.service';
 import { PrismaService } from '@charonium/prisma';
-import { LogService } from '../log/log.service';
+import { LoggerService } from '@charonium/logger';
 import { AuthService } from '../auth/auth.service';
 
 describe('EmailService', () => {
@@ -10,14 +10,14 @@ describe('EmailService', () => {
   beforeEach(async () => {
     const authServiceMock = {}; // Provide mock implementation if necessary
     const prismaServiceMock = {}; // Provide mock implementation if necessary
-    const logServiceMock = {}; // Provide mock implementation if necessary
+    const loggerServiceMock = {}; // Provide mock implementation if necessary
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         EmailService,
         { provide: AuthService, useValue: authServiceMock },
         { provide: PrismaService, useValue: prismaServiceMock },
-        { provide: LogService, useValue: logServiceMock },
+        { provide: LoggerService, useValue: loggerServiceMock },
       ],
     }).compile();
 

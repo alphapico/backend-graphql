@@ -6,9 +6,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { PrismaService } from '@charonium/prisma';
 import {
+  ERROR_CATEGORIES,
   ERROR_MESSAGES,
   EmailType,
   IJwtPayload,
+  INFO_CATEGORIES,
+  LogError,
   SUCCESS_MESSAGES,
 } from '@charonium/common';
 import {
@@ -20,7 +23,7 @@ import {
 } from '@prisma/client';
 import { AuthService } from '../auth/auth.service';
 import * as backoff from 'backoff';
-import { LogService } from '../log/log.service';
+import { LoggerService } from '@charonium/logger';
 
 @Injectable()
 export class EmailService {
@@ -28,7 +31,7 @@ export class EmailService {
   constructor(
     private authService: AuthService,
     private prisma: PrismaService,
-    private logService: LogService
+    private loggerService: LoggerService
   ) {
     this.ses = new SES({
       apiVersion: '2010-12-01',
@@ -338,26 +341,46 @@ export class EmailService {
             break;
         }
 
-        const logEntry = {
-          level: error ? LogStatus.ERROR : LogStatus.INFO,
-          message: message,
-          serviceName: this.constructor.name,
-          methodName: 'sendEmailWithRetry',
-          customerId: customer.customerId,
-          customerEmail: customer.email,
-        };
+        // const logEntry = {
+        //   level: error ? LogStatus.ERROR : LogStatus.INFO,
+        //   message: message,
+        //   serviceName: this.constructor.name,
+        //   methodName: 'sendEmailWithRetry',
+        //   customerId: customer.customerId,
+        //   customerEmail: customer.email,
+        // };
 
-        this.logService.createLogEntry(logEntry).catch((updateError) => {
-          console.error(
-            `Failed to create log entry for Email:${emailType}`,
-            updateError
-          );
-        });
+        // this.loggerService.createLogEntry(logEntry).catch((updateError) => {
+        //   console.error(
+        //     `Failed to create log entry for Email:${emailType}`,
+        //     updateError
+        //   );
+        // });
 
         if (error) {
-          console.error('Failed to send email after retries:', error);
+          this.loggerService.error({
+            message: message,
+            serviceName: this.constructor.name,
+            methodName: 'sendEmailWithRetry',
+            errorCategory: ERROR_CATEGORIES.EMAIL_ERROR,
+            metadata: {
+              customerId: customer.customerId,
+              email: customer.email,
+              customerStatus: customer.customerStatus,
+            },
+          });
         } else {
-          console.log('Email sent successfully');
+          this.loggerService.info({
+            message: message,
+            serviceName: this.constructor.name,
+            methodName: 'sendEmailWithRetry',
+            infoCategory: INFO_CATEGORIES.EMAIL,
+            metadata: {
+              customerId: customer.customerId,
+              email: customer.email,
+              customerStatus: customer.customerStatus,
+            },
+          });
         }
       }
     );
@@ -388,6 +411,7 @@ export class EmailService {
     sendEmailCall.start();
   }
 
+  @LogError
   async verifyEmail(token: string): Promise<boolean> {
     const payload = await this.authService.verifyEmailToken(token);
 

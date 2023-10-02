@@ -14,6 +14,7 @@ import {
   ERROR_MESSAGES,
   IJwtPayload,
   JSONWEBTOKEN_ERROR_MESSAGES,
+  LogError,
 } from '@charonium/common';
 import * as argon2 from 'argon2';
 import { Response } from 'express';
@@ -32,6 +33,7 @@ export class AuthService {
     private emailTokenJwtService: JwtService
   ) {}
 
+  @LogError
   async login(
     input: LoginInput
   ): Promise<{ accessToken: string; refreshToken: string }> {
@@ -66,8 +68,13 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
+  @LogError
   async verifyRefreshToken(token: string): Promise<IJwtPayload> {
     let payload: IJwtPayload;
+
+    if (!token) {
+      throw new UnauthorizedException(ERROR_MESSAGES.INVALID_REFRESH_TOKEN);
+    }
     try {
       payload = this.refreshTokenJwtService.verify(token);
     } catch (error) {
@@ -87,6 +94,7 @@ export class AuthService {
     return payload;
   }
 
+  @LogError
   async verifyEmailToken(token: string): Promise<IJwtPayload> {
     try {
       return this.emailTokenJwtService.verify(token);
@@ -99,14 +107,17 @@ export class AuthService {
     }
   }
 
+  @LogError
   async createAccessToken(payload: IJwtPayload): Promise<string> {
     return this.accessTokenJwtService.sign(payload);
   }
 
+  @LogError
   async createEmailToken(payload: IJwtPayload): Promise<string> {
     return this.emailTokenJwtService.sign(payload);
   }
 
+  @LogError
   async suspendCustomer(customerId: number): Promise<Customer> {
     const customer = await this.customerService.findByCustomerId(customerId);
     if (!customer) {
@@ -117,6 +128,7 @@ export class AuthService {
     return this.customerService.updateCustomerStatus(customer);
   }
 
+  @LogError
   async reinstateCustomer(customerId: number): Promise<Customer> {
     const customer = await this.customerService.findByCustomerId(customerId);
     if (!customer) {
@@ -127,6 +139,7 @@ export class AuthService {
     return this.customerService.updateCustomerStatus(customer);
   }
 
+  @LogError
   logout(@Res() res: Response): void {
     res.clearCookie('access_token');
     res.clearCookie('refresh_token');

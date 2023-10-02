@@ -7,7 +7,7 @@ import {
 import { CreateWalletInput } from './dto/create-wallet.input';
 import { UpdateWalletInput } from './dto/update-wallet.input';
 import { CryptoType } from '@prisma/client';
-import { ERROR_MESSAGES } from '@charonium/common';
+import { ERROR_MESSAGES, LogError } from '@charonium/common';
 import { isAddress } from 'web3-validator';
 
 @Injectable()
@@ -28,6 +28,7 @@ export class WalletService {
     return isAddress(address);
   }
 
+  @LogError
   async createWallet(input: CreateWalletInput) {
     const existingWallets = await this.prisma.wallet.findMany({
       where: { customerId: input.customerId },
@@ -55,6 +56,7 @@ export class WalletService {
     return this.prisma.wallet.create({ data: input });
   }
 
+  @LogError
   async updateWallet(input: UpdateWalletInput) {
     const { walletId, customerId, ...updateData } = input;
 
@@ -104,6 +106,7 @@ export class WalletService {
     });
   }
 
+  @LogError
   async setDefaultWallet(customerId: number, walletId: number) {
     const existingWallet = await this.prisma.wallet.findUnique({
       where: { walletId },
@@ -128,6 +131,7 @@ export class WalletService {
     });
   }
 
+  @LogError
   async deleteWallet(customerId: number, walletId: number) {
     const existingWallet = await this.prisma.wallet.findUnique({
       where: { walletId },

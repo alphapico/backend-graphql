@@ -21,6 +21,7 @@ import {
 import {
   CONFIG,
   ERROR_MESSAGES,
+  LogError,
   PRISMA_ERROR_MESSAGES,
   ReferralCodeUtil,
 } from '@charonium/common';
@@ -33,7 +34,7 @@ import { ResetPasswordInput } from './dto/reset-password.input';
 import { AuthService } from '../auth/auth.service';
 import { EmailService } from '../email/email.service';
 import { RegisterAdminInput } from './dto/register-admin.input';
-import { LogService } from '../log/log.service';
+import { LoggerService } from '@charonium/logger';
 import { ChangePasswordInput } from './dto/change-password.input';
 import { ConfigService } from '../config/config.service';
 @Injectable()
@@ -44,7 +45,7 @@ export class CustomerService {
     @Inject(forwardRef(() => AuthService))
     private authService: AuthService,
     private emailService: EmailService,
-    private logService: LogService,
+    private LoggerService: LoggerService,
     private referralCodeUtil: ReferralCodeUtil,
     private configService: ConfigService
   ) {
@@ -74,6 +75,7 @@ export class CustomerService {
     });
   }
 
+  @LogError
   async register(input: RegisterInput): Promise<PrismaCustomer> {
     // const validationErrors = await validate(input);
     // if (validationErrors.length > 0) {
@@ -104,8 +106,9 @@ export class CustomerService {
       }
     }
 
+    let customer: PrismaCustomer;
     try {
-      const customer = await this.prisma.customer.create({
+      customer = await this.prisma.customer.create({
         data: {
           name: input.name,
           email: input.email,
@@ -114,10 +117,6 @@ export class CustomerService {
           referralCode,
         },
       });
-
-      await this.emailService.sendEmailVerification(customer);
-
-      return customer;
     } catch (error) {
       if (
         error.code === PRISMA_ERROR_MESSAGES.CLIENT.UNIQUE_CONSTRAINT_FAILED
@@ -126,8 +125,13 @@ export class CustomerService {
       }
       throw error;
     }
+
+    if (customer) await this.emailService.sendEmailVerification(customer);
+
+    return customer;
   }
 
+  @LogError
   async resetPassword(input: ResetPasswordInput): Promise<boolean> {
     const payload = await this.authService.verifyEmailToken(input.token);
 
@@ -157,6 +161,7 @@ export class CustomerService {
     return false;
   }
 
+  @LogError
   async forgetPassword(email: string): Promise<boolean> {
     const customer = await this.findByEmail(email);
 
@@ -169,16 +174,6 @@ export class CustomerService {
 
     const maxAllowedAttempts = CONFIG.EMAIL_RESEND_MAX_ATTEMPTS || 3;
     if (forgetPasswordCount >= maxAllowedAttempts) {
-      this.logService.createLogEntry({
-        level: LogStatus.ERROR,
-        message: ERROR_MESSAGES.TOO_MANY_ATTEMPTS,
-        code: 'BAD_REQUEST',
-        statusCode: 400,
-        serviceName: this.constructor.name,
-        methodName: 'forgetPassword',
-        customerId: customer.customerId,
-        customerEmail: customer.email,
-      });
       throw new BadRequestException(ERROR_MESSAGES.TOO_MANY_ATTEMPTS);
     }
     // Send the password reset email
@@ -191,6 +186,7 @@ export class CustomerService {
     return true;
   }
 
+  @LogError
   async resendEmailVerification(email: string): Promise<boolean> {
     const customer = await this.findByEmail(email);
 
@@ -203,16 +199,6 @@ export class CustomerService {
 
     const maxAllowedAttempts = CONFIG.EMAIL_RESEND_MAX_ATTEMPTS || 3;
     if (resendCount >= maxAllowedAttempts) {
-      this.logService.createLogEntry({
-        level: LogStatus.ERROR,
-        message: ERROR_MESSAGES.TOO_MANY_ATTEMPTS,
-        code: 'BAD_REQUEST',
-        statusCode: 400,
-        serviceName: this.constructor.name,
-        methodName: 'resendEmailVerification',
-        customerId: customer.customerId,
-        customerEmail: customer.email,
-      });
       throw new BadRequestException(ERROR_MESSAGES.TOO_MANY_ATTEMPTS);
     }
 
@@ -226,6 +212,7 @@ export class CustomerService {
     return true;
   }
 
+  @LogError
   async resendAdminRegistrationEmail(): Promise<boolean> {
     const customer = await this.findByEmail(process.env.ADMIN_EMAIL);
 
@@ -238,16 +225,6 @@ export class CustomerService {
 
     const maxAllowedAttempts = CONFIG.EMAIL_RESEND_MAX_ATTEMPTS || 3;
     if (resendCount >= maxAllowedAttempts) {
-      this.logService.createLogEntry({
-        level: LogStatus.ERROR,
-        message: ERROR_MESSAGES.TOO_MANY_ATTEMPTS,
-        code: 'BAD_REQUEST',
-        statusCode: 400,
-        serviceName: this.constructor.name,
-        methodName: 'resendAdminRegistrationEmail',
-        customerId: customer.customerId,
-        customerEmail: customer.email,
-      });
       throw new BadRequestException(ERROR_MESSAGES.TOO_MANY_ATTEMPTS);
     }
 
@@ -261,6 +238,7 @@ export class CustomerService {
     return true;
   }
 
+  @LogError
   async createAdmin(email: string): Promise<PrismaCustomer> {
     const existingAdmin = await this.findByEmail(email);
     if (existingAdmin) return existingAdmin;
@@ -288,6 +266,7 @@ export class CustomerService {
     return admin;
   }
 
+  @LogError
   async registerAdmin(input: RegisterAdminInput): Promise<boolean> {
     const payload = await this.authService.verifyEmailToken(input.token);
 
@@ -316,6 +295,7 @@ export class CustomerService {
     return true;
   }
 
+  @LogError
   async changePassword(
     customerId: number,
     input: ChangePasswordInput
@@ -345,6 +325,7 @@ export class CustomerService {
     return true;
   }
 
+  @LogError
   async getCustomer(info: any, customerId: number) {
     const fields = graphqlFields(info);
     // console.log(fields);
@@ -401,6 +382,7 @@ export class CustomerService {
     return customer;
   }
 
+  @LogError
   async getCustomers(
     info: any,
     cursor?: number,
