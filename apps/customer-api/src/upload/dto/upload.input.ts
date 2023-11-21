@@ -5,11 +5,14 @@ import { ImageType as PrismaImageType } from '@prisma/client';
 
 @InputType()
 export class UploadInput {
-  @Field(() => ImageType)
+  @Field(() => ImageType, {
+    description:
+      'This will be folder path in S3 bucket. The `type` can be either "PACKAGE" or "CUSTOMER" as defined in `enum ImageType`',
+  })
   @IsEnum(ImageType, { message: ERROR_MESSAGES.VAL.INVALID_IMAGE_TYPE })
   type: (typeof PrismaImageType)[keyof typeof PrismaImageType];
 
-  @Field()
+  @Field({ description: 'Can be either "jpg", "jpeg", "png", "gif" or "webp"' })
   @Trim()
   @IsString({ message: ERROR_MESSAGES.VAL.IS_STRING })
   @IsNotEmpty({ message: ERROR_MESSAGES.VAL.IS_NOT_EMPTY })

@@ -2,7 +2,7 @@ import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import { CoinbaseService } from './coinbase.service';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { UseGuards } from '@nestjs/common';
-import { CurrentUser, IJwtPayload } from '@charonium/common';
+import { CurrentUser, DESCRIPTION, IJwtPayload } from '@charonium/common';
 // import { CreateChargeInput } from './dto/create-charge.input';
 import { PurchaseTokensInput } from './dto/purchase-tokens.input';
 
@@ -10,7 +10,7 @@ import { PurchaseTokensInput } from './dto/purchase-tokens.input';
 export class CoinbaseResolver {
   constructor(private coinbaseService: CoinbaseService) {}
 
-  @Mutation(() => String)
+  @Mutation(() => String, { description: DESCRIPTION.PURCHASE_TOKENS })
   @UseGuards(JwtAuthGuard)
   async purchaseTokens(
     @Args('input') input: PurchaseTokensInput,

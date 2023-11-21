@@ -7,6 +7,7 @@ import { UpdateWalletInput } from './dto/update-wallet.input';
 import {
   CurrentUser,
   CustomerRole,
+  DESCRIPTION,
   ERROR_MESSAGES,
   IJwtPayload,
 } from '@charonium/common';
@@ -44,7 +45,7 @@ export class WalletResolver {
     return this.walletService.getWalletByCustomerIdAndDefault(customerId);
   }
 
-  @Mutation(() => Wallet)
+  @Mutation(() => Wallet, { description: DESCRIPTION.CREATE_WALLET })
   @UseGuards(JwtAuthGuard)
   async createWallet(
     @CurrentUser() user: IJwtPayload,
@@ -57,7 +58,7 @@ export class WalletResolver {
     return this.walletService.createWallet(input);
   }
 
-  @Mutation(() => Wallet)
+  @Mutation(() => Wallet, { description: DESCRIPTION.UPDATE_WALLET })
   @UseGuards(JwtAuthGuard)
   async updateWallet(
     @CurrentUser() user: IJwtPayload,
@@ -70,7 +71,7 @@ export class WalletResolver {
     return this.walletService.updateWallet(input);
   }
 
-  @Mutation(() => Wallet)
+  @Mutation(() => Wallet, { description: DESCRIPTION.SET_DEFAULT_WALLET })
   @UseGuards(JwtAuthGuard)
   async setDefaultWallet(
     @CurrentUser() user: IJwtPayload,
@@ -86,7 +87,7 @@ export class WalletResolver {
     );
   }
 
-  @Mutation(() => Wallet)
+  @Mutation(() => Wallet, { description: DESCRIPTION.DELETE_WALLET })
   @UseGuards(JwtAuthGuard)
   async deleteWallet(
     @CurrentUser() user: IJwtPayload,

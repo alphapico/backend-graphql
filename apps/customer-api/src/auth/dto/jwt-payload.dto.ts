@@ -1,10 +1,10 @@
-import { ObjectType, Field } from '@nestjs/graphql';
+import { ObjectType, Field, Directive, Int } from '@nestjs/graphql';
 import { CustomerRole as PrismaCustomerRole } from '@prisma/client';
 import { CustomerRole } from '@charonium/common';
 
 @ObjectType()
 export class JwtPayload {
-  @Field()
+  @Field(() => Int)
   sub: number;
 
   @Field()
@@ -16,9 +16,9 @@ export class JwtPayload {
   @Field()
   name: string;
 
-  @Field({ nullable: true })
+  @Field(() => Int, { nullable: true })
   iat?: number;
 
-  @Field({ nullable: true })
+  @Field(() => Int, { nullable: true })
   exp?: number;
 }

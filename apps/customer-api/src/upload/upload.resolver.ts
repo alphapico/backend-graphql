@@ -2,7 +2,7 @@ import { Resolver, Mutation, Args } from '@nestjs/graphql';
 import { UploadService } from './upload.service';
 import { UseGuards } from '@nestjs/common';
 import { AdminGuard } from '../auth/admin.guard';
-import { CurrentUser, IJwtPayload } from '@charonium/common';
+import { CurrentUser, DESCRIPTION, IJwtPayload } from '@charonium/common';
 import { UploadInput } from './dto/upload.input';
 import { SaveImageInput } from './dto/save-image.input';
 import { Image } from './dto/image.dto';
@@ -23,7 +23,9 @@ export class UploadResolver {
     return this.uploadService.generatePresignedPost(uploadInput, user.sub);
   }
 
-  @Mutation(() => PresignedUrl)
+  @Mutation(() => PresignedUrl, {
+    description: DESCRIPTION.GENERATE_PRESIGNED_URL,
+  })
   @UseGuards(JwtAuthGuard)
   async generatePresignedUrl(
     @Args({ name: 'uploadInput', type: () => UploadInput })
@@ -43,7 +45,7 @@ export class UploadResolver {
     return this.uploadService.generatePresignedUrls(uploadInputs, user.sub);
   }
 
-  @Mutation(() => Image)
+  @Mutation(() => Image, { description: DESCRIPTION.SAVE_UPLOADED_IMAGE })
   @UseGuards(JwtAuthGuard)
   async saveUploadedImage(
     @Args('saveImageInput', { type: () => SaveImageInput })

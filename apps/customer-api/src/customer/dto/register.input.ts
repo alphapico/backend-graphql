@@ -13,7 +13,10 @@ import { ERROR_MESSAGES } from '@charonium/common';
 
 @InputType()
 export class RegisterInput {
-  @Field()
+  @Field({
+    description:
+      'The name must be a string with a length between 2 and 50 characters',
+  })
   @Trim()
   @IsString({ message: ERROR_MESSAGES.VAL.IS_STRING })
   @IsNotEmpty({ message: ERROR_MESSAGES.VAL.IS_NOT_EMPTY })
@@ -26,7 +29,10 @@ export class RegisterInput {
   @IsEmail({}, { message: ERROR_MESSAGES.VAL.IS_EMAIL })
   email: string;
 
-  @Field()
+  @Field({
+    description:
+      'The password must be a string with a length between 8 and 100 characters',
+  })
   @IsString({ message: ERROR_MESSAGES.VAL.IS_STRING })
   @IsNotEmpty({ message: ERROR_MESSAGES.VAL.IS_NOT_EMPTY })
   @MinLength(INPUT.MIN_PASSWORD_LENGTH, {
@@ -37,7 +43,7 @@ export class RegisterInput {
   })
   password: string;
 
-  @Field({ nullable: true })
+  @Field({ nullable: true, description: 'The referral code is optional' })
   @Trim()
   @IsOptional()
   referralCode?: string;
