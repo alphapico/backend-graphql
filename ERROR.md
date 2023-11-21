@@ -1047,7 +1047,6 @@ export enum ImageType {
 
 | Exception                    | Code                  | Status Code | Message                                                                 |
 | ---------------------------- | --------------------- | ----------- | ----------------------------------------------------------------------- |
-| ForbiddenException           | FORBIDDEN             | 403         | Forbidden Resource                                                      |
 | UnauthorizedException        | UNAUTHENTICATED       | 401         | Unauthorized                                                            |
 | BadRequestException          | BAD_REQUEST           | 400         | Invalid file extension                                                  |
 | InternalServerErrorException | INTERNAL_SERVER_ERROR | 500         | Failed to generate pre-signed URL                                       |
@@ -1527,6 +1526,17 @@ mutation PurchaseTokens($input: PurchaseTokensInput!) {
 //  }
 //}
 ```
+
+| Exception                    | Code                  | Status Code | Message                            |
+| ---------------------------- | --------------------- | ----------- | ---------------------------------- |
+| UnauthorizedException        | UNAUTHENTICATED       | 401         | Unauthorized                       |
+| InternalServerErrorException | INTERNAL_SERVER_ERROR | 500         | Unexpected charge object structure |
+| InternalServerErrorException | INTERNAL_SERVER_ERROR | 500         | Failed to create charge            |
+| InternalServerErrorException | INTERNAL_SERVER_ERROR | 500         | Failed recording new charge        |
+| NotFoundException            | INTERNAL_SERVER_ERROR | 404         | Token Package not found            |
+| NotFoundException            | INTERNAL_SERVER_ERROR | 404         | Token Price not found              |
+| NotFoundException            | INTERNAL_SERVER_ERROR | 404         | Quantity token not provided        |
+|                              | BAD_USER_INPUT        |             |                                    |
 
 <br />
 
@@ -2134,6 +2144,12 @@ query GetCharges($cursor: Int, $limit: Int, $customerId: Int, $code: String) {
   }
 }
 ```
+
+| Exception             | Code            | Status Code | Message            |
+| --------------------- | --------------- | ----------- | ------------------ |
+| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |
+| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |
+|                       | BAD_USER_INPUT  |             |                    |
 
 <br />
 

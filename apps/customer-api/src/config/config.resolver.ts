@@ -8,12 +8,15 @@ import { TokenPackage } from './dto/token-package.dto';
 import { TokenPackageCreateInput } from './dto/token-package-create.input';
 import { TokenPackageUpdateInput } from './dto/token-package-update.input';
 import { Config } from './dto/config.dto';
+import { DESCRIPTION } from '@charonium/common';
 
 @Resolver()
 export class ConfigResolver {
   constructor(private readonly configService: ConfigService) {}
 
-  @Mutation(() => TokenPrice)
+  @Mutation(() => TokenPrice, {
+    description: DESCRIPTION.SET_OR_EDIT_TOKEN_PRICE,
+  })
   @UseGuards(AdminGuard)
   async setOrEditTokenPrice(
     @Args('input') input: TokenPriceCreateInput
@@ -26,7 +29,9 @@ export class ConfigResolver {
     return this.configService.getTokenPrice();
   }
 
-  @Mutation(() => TokenPackage)
+  @Mutation(() => TokenPackage, {
+    description: DESCRIPTION.CREATE_TOKEN_PACKAGE,
+  })
   @UseGuards(AdminGuard)
   async createTokenPackage(
     @Args('input') input: TokenPackageCreateInput
@@ -34,7 +39,7 @@ export class ConfigResolver {
     return this.configService.createTokenPackage(input);
   }
 
-  @Mutation(() => TokenPackage)
+  @Mutation(() => TokenPackage, { description: DESCRIPTION.EDIT_TOKEN_PACKAGE })
   @UseGuards(AdminGuard)
   async editTokenPackage(
     @Args('packageId', { type: () => Int }) packageId: number,
@@ -43,7 +48,9 @@ export class ConfigResolver {
     return this.configService.editTokenPackage(packageId, input);
   }
 
-  @Mutation(() => TokenPackage)
+  @Mutation(() => TokenPackage, {
+    description: DESCRIPTION.DELETE_TOKEN_PACKAGE,
+  })
   @UseGuards(AdminGuard)
   async deleteTokenPackage(
     @Args('packageId', { type: () => Int }) packageId: number
@@ -51,7 +58,9 @@ export class ConfigResolver {
     return this.configService.deleteTokenPackage(packageId);
   }
 
-  @Mutation(() => TokenPackage)
+  @Mutation(() => TokenPackage, {
+    description: DESCRIPTION.TOGGLE_TOKEN_PACKAGE_STATUS,
+  })
   @UseGuards(AdminGuard)
   async toggleTokenPackageStatus(
     @Args('packageId', { type: () => Int }) packageId: number
@@ -59,7 +68,10 @@ export class ConfigResolver {
     return this.configService.toggleTokenPackageStatus(packageId);
   }
 
-  @Query(() => TokenPackage, { nullable: true })
+  @Query(() => TokenPackage, {
+    nullable: true,
+    description: DESCRIPTION.GET_TOKEN_PACKAGE,
+  })
   async getTokenPackage(
     @Args('packageId', { type: () => Int }) packageId: number
   ): Promise<TokenPackage | null> {
@@ -71,14 +83,17 @@ export class ConfigResolver {
     return this.configService.getAllTokenPackages();
   }
 
-  @Query(() => [TokenPackage], { nullable: 'items' })
+  @Query(() => [TokenPackage], {
+    nullable: 'items',
+    description: DESCRIPTION.GET_ALL_TOKEN_PACKAGES_BY_STATUS,
+  })
   async getAllTokenPackagesByStatus(
     @Args('isActive', { type: () => Boolean }) isActive: boolean
   ): Promise<TokenPackage[]> {
     return this.configService.getAllTokenPackagesByStatus(isActive);
   }
 
-  @Mutation(() => Config)
+  @Mutation(() => Config, { description: DESCRIPTION.SET_REFERRAL_VIEW_LEVEL })
   @UseGuards(AdminGuard)
   async setReferralViewLevel(
     @Args('depth', { type: () => Int }) depth: number
@@ -86,7 +101,9 @@ export class ConfigResolver {
     return this.configService.setReferralViewLevel(depth);
   }
 
-  @Mutation(() => Config)
+  @Mutation(() => Config, {
+    description: DESCRIPTION.SET_REFERRAL_CODE_ENABLED_STATUS,
+  })
   @UseGuards(AdminGuard)
   async setReferralCodeEnabledStatus(
     @Args('status', { type: () => Boolean }) status: boolean
@@ -94,7 +111,7 @@ export class ConfigResolver {
     return this.configService.setReferralCodeEnabledStatus(status);
   }
 
-  @Query(() => Config, { nullable: true })
+  @Query(() => Config, { nullable: true, description: DESCRIPTION.GET_CONFIG })
   @UseGuards(AdminGuard)
   async getConfig(): Promise<Config> {
     return this.configService.getConfig();

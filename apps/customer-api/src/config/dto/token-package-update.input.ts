@@ -31,13 +31,19 @@ export class TokenPackageUpdateInput {
   @IsNumber()
   tokenAmount?: number;
 
-  @Field({ nullable: true })
+  @Field({
+    nullable: true,
+    description: 'Price should be in the format of 100 , 100.0 or 100.00 ',
+  })
   @IsOptional()
   @IsNumber()
   @IsCurrencyFormat()
   price?: number;
 
-  @Field({ nullable: true })
+  @Field({
+    nullable: true,
+    description: 'Only "EUR", "USD" and "GBP" are supporting currencies',
+  })
   @IsOptional()
   @IsString({ message: ERROR_MESSAGES.VAL.IS_STRING })
   @IsSupportedCurrency()

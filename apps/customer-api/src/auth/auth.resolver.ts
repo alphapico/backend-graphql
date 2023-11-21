@@ -4,11 +4,11 @@ import { LoginInput } from './dto/login.input';
 import { Request, Response } from 'express';
 import {
   CurrentUser,
-  ERROR_MESSAGES,
+  DESCRIPTION,
   IJwtPayload,
   SUCCESS_MESSAGES,
 } from '@charonium/common';
-import { UnauthorizedException, UseGuards } from '@nestjs/common';
+import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { AdminGuard } from './admin.guard';
 import { JwtPayload } from './dto/jwt-payload.dto';
@@ -19,7 +19,9 @@ import { Customer } from '../customer/dto/customer.dto';
 export class AuthResolver {
   constructor(private readonly authService: AuthService) {}
 
-  @Mutation(() => String)
+  @Mutation(() => String, {
+    description: DESCRIPTION.LOGIN,
+  })
   async login(
     @Args('input') input: LoginInput,
     @Context('res') res: Response
@@ -33,7 +35,9 @@ export class AuthResolver {
     return SUCCESS_MESSAGES.LOGIN_SUCCESS;
   }
 
-  @Mutation(() => String)
+  @Mutation(() => String, {
+    description: DESCRIPTION.REFERSH_TOKEN,
+  })
   async refreshTokens(
     @Context('req') req: Request,
     @Context('res') res: Response
@@ -55,7 +59,7 @@ export class AuthResolver {
     return SUCCESS_MESSAGES.REFRESH_TOKEN_SUCCESS;
   }
 
-  @Mutation(() => Customer)
+  @Mutation(() => Customer, { description: DESCRIPTION.SUSPEND_CUSTOMER })
   @UseGuards(AdminGuard)
   async suspendCustomer(
     @Args('customerId', { type: () => Int }) customerId: number
@@ -70,7 +74,7 @@ export class AuthResolver {
     };
   }
 
-  @Mutation(() => Customer)
+  @Mutation(() => Customer, { description: DESCRIPTION.REINSTATE_CUSTOMER })
   @UseGuards(AdminGuard)
   async reinstateCustomer(
     @Args('customerId', { type: () => Int }) customerId: number
@@ -85,20 +89,26 @@ export class AuthResolver {
     };
   }
 
-  @Mutation(() => String)
+  @Mutation(() => String, {
+    description: DESCRIPTION.LOGOUT,
+  })
   @UseGuards(JwtAuthGuard)
   async logout(@Context('res') res: Response): Promise<string> {
     this.authService.logout(res);
     return SUCCESS_MESSAGES.LOGOUT_SUCCESS;
   }
 
-  @Query(() => JwtPayload)
+  @Query(() => JwtPayload, {
+    description: DESCRIPTION.TESTING_PROTECTED_METHOD,
+  })
   @UseGuards(JwtAuthGuard)
   async protectedMethod(@CurrentUser() user: IJwtPayload): Promise<JwtPayload> {
     return user;
   }
 
-  @Query(() => JwtPayload)
+  @Query(() => JwtPayload, {
+    description: DESCRIPTION.TESTING_ADMIN_PROTECTED_METHOD,
+  })
   @UseGuards(AdminGuard)
   async protectedAdminMethod(
     @CurrentUser() user: IJwtPayload
@@ -106,7 +116,9 @@ export class AuthResolver {
     return user;
   }
 
-  @Query(() => JwtPayload)
+  @Query(() => JwtPayload, {
+    description: DESCRIPTION.TESTING_FRESH_TOKEN_PROTECTED_METHOD,
+  })
   @UseGuards(FreshTokenGuard)
   async protectedFreshTokenMethod(
     @CurrentUser() user: IJwtPayload

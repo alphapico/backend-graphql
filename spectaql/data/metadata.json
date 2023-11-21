@@ -1,0 +1,20 @@
+{
+  "INPUT_OBJECT": {
+    "RegisterInput": {
+      "inputFields": {
+        "email": {
+          "documentation": { "example": "johndoe@gmail.com" }
+        },
+        "name": {
+          "documentation": { "example": "John Doe" }
+        },
+        "password": {
+          "documentation": { "example": "secured-password" }
+        },
+        "referralCode": {
+          "documentation": { "example": "JKMUJZEU" }
+        }
+      }
+    }
+  }
+}

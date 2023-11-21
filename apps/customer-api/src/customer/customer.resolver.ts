@@ -11,6 +11,7 @@ import {
   CurrentUser,
   CustomerRole,
   CustomerStatus,
+  DESCRIPTION,
   EmailStatus,
   IJwtPayload,
 } from '@charonium/common';
@@ -22,7 +23,9 @@ import { ChangePasswordInput } from './dto/change-password.input';
 export class CustomerResolver {
   constructor(private customerService: CustomerService) {}
 
-  @Mutation(() => Customer)
+  @Mutation(() => Customer, {
+    description: DESCRIPTION.REGISTER,
+  })
   async register(@Args('input') input: RegisterInput): Promise<Customer> {
     const customer = await this.customerService.register(input);
     return {
@@ -34,38 +37,46 @@ export class CustomerResolver {
     };
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => Boolean, { description: DESCRIPTION.REGISTER_ADMIN })
   async registerAdmin(
     @Args('input') input: RegisterAdminInput
   ): Promise<boolean> {
     return this.customerService.registerAdmin(input);
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => Boolean, {
+    description: DESCRIPTION.RESET_PASSWORD,
+  })
   async resetPassword(
     @Args('input') input: ResetPasswordInput
   ): Promise<boolean> {
     return this.customerService.resetPassword(input);
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => Boolean, {
+    description: DESCRIPTION.FORGET_PASSWORD,
+  })
   async forgetPassword(@Args('input') input: EmailInput): Promise<boolean> {
     return this.customerService.forgetPassword(input.email);
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => Boolean, {
+    description: DESCRIPTION.RESEND_EMAIL_VERIFICATION,
+  })
   async resendEmailVerification(
     @Args('input') input: EmailInput
   ): Promise<boolean> {
     return this.customerService.resendEmailVerification(input.email);
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => Boolean, {
+    description: DESCRIPTION.REGISTER_ADMIN_REGISTRATION_EMAIL,
+  })
   async resendAdminRegistrationEmail(): Promise<boolean> {
     return this.customerService.resendAdminRegistrationEmail();
   }
 
-  @Mutation(() => Boolean)
+  @Mutation(() => Boolean, { description: DESCRIPTION.CHANGE_PASSWORD })
   @UseGuards(FreshTokenGuard)
   async changePassword(
     @CurrentUser() user: IJwtPayload,
@@ -74,19 +85,47 @@ export class CustomerResolver {
     return this.customerService.changePassword(user.sub, input);
   }
 
-  @Query(() => CustomerResult)
+  @Query(() => CustomerResult, { description: DESCRIPTION.GET_CUSTOMERS })
   @UseGuards(AdminGuard)
   async getCustomers(
     @Info() info: any,
-    @Args('cursor', { type: () => Int, nullable: true }) cursor?: number,
-    @Args('limit', { type: () => Int, defaultValue: 10 }) limit?: number,
-    @Args('customerStatus', { type: () => CustomerStatus, nullable: true })
+    @Args('cursor', {
+      type: () => Int,
+      nullable: true,
+      description: 'Optional, ID from Cursor, sent `null` for the first time',
+    })
+    cursor?: number,
+    @Args('limit', {
+      type: () => Int,
+      defaultValue: 10,
+      description: 'Optional, how many data you want per fetch',
+    })
+    limit?: number,
+    @Args('customerStatus', {
+      type: () => CustomerStatus,
+      nullable: true,
+      description:
+        'Optional, `CustomerStatus` can be "ACTIVE", "INACTIVE", "PENDING" or "SUSPENDED"',
+    })
     customerStatus?: CustomerStatus,
-    @Args('emailStatus', { type: () => EmailStatus, nullable: true })
+    @Args('emailStatus', {
+      type: () => EmailStatus,
+      nullable: true,
+      description: 'Optional, `EmailStatus` can be "VERIFIED" or "UNVERIFIED"',
+    })
     emailStatus?: EmailStatus,
-    @Args('customerRole', { type: () => CustomerRole, nullable: true })
+    @Args('customerRole', {
+      type: () => CustomerRole,
+      nullable: true,
+      description:
+        'Optional, `CustomerRole` can be "ADMIN", "MODERATOR" or "USER"',
+    })
     customerRole?: CustomerRole,
-    @Args('customerId', { type: () => Int, nullable: true })
+    @Args('customerId', {
+      type: () => Int,
+      nullable: true,
+      description: 'Optional',
+    })
     customerId?: number
   ): Promise<CustomerResult> {
     return this.customerService.getCustomers(
@@ -100,7 +139,9 @@ export class CustomerResolver {
     );
   }
 
-  @Query(() => Customer)
+  @Query(() => Customer, {
+    description: DESCRIPTION.ME,
+  })
   @UseGuards(JwtAuthGuard)
   async me(
     @Info() info: any,

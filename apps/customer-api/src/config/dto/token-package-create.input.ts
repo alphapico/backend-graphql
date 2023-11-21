@@ -31,13 +31,18 @@ export class TokenPackageCreateInput {
   @IsNotEmpty({ message: ERROR_MESSAGES.VAL.IS_NOT_EMPTY })
   tokenAmount: number;
 
-  @Field()
+  @Field({
+    description:
+      'You can set price in the format of 100 , 100.0 or 100.00 . Set in the format of 100.000 will be invalid',
+  })
   @IsNumber()
   @IsNotEmpty({ message: ERROR_MESSAGES.VAL.IS_NOT_EMPTY })
   @IsCurrencyFormat()
   price: number;
 
-  @Field()
+  @Field({
+    description: 'Only "EUR", "USD" and "GBP" are supporting currencies',
+  })
   @IsString({ message: ERROR_MESSAGES.VAL.IS_STRING })
   @IsNotEmpty({ message: ERROR_MESSAGES.VAL.IS_NOT_EMPTY })
   @IsSupportedCurrency()
