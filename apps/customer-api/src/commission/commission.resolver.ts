@@ -242,6 +242,7 @@ export class CommissionResolver {
   }
 
   @Query(() => ChargeResult, { description: DESCRIPTION.GET_CHARGES })
+  @UseGuards(AdminGuard)
   async getCharges(
     @Info() info: any,
     @Args('cursor', {

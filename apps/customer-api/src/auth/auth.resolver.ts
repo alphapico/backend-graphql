@@ -50,6 +50,7 @@ export class AuthResolver {
     // writeDataToFile(`${this.constructor.name}/refresh-tokens.txt`, payload);
 
     delete payload.exp;
+    delete payload.iat;
 
     const newAccessToken = await this.authService.createAccessToken(payload);
     res.cookie('access_token', newAccessToken, {
@@ -92,7 +93,6 @@ export class AuthResolver {
   @Mutation(() => String, {
     description: DESCRIPTION.LOGOUT,
   })
-  @UseGuards(JwtAuthGuard)
   async logout(@Context('res') res: Response): Promise<string> {
     this.authService.logout(res);
     return SUCCESS_MESSAGES.LOGOUT_SUCCESS;
