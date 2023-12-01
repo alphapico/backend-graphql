@@ -16,10 +16,11 @@ async function bootstrap() {
   await prismaService.enableShutdownHooks(app);
 
   // app.use(cookieParser());
-  // app.enableCors({
-  //   origin: 'http://localhost:3333', // Replace this with your client-side domain
-  //   credentials: true,
-  // });
+
+  app.enableCors({
+    origin: process.env.FRONTEND_DOMAIN,
+    credentials: true, // To allow sending cookies and authorization headers
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({
