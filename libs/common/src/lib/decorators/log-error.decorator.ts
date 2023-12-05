@@ -13,6 +13,8 @@ export function LogError(
   propertyKey: string,
   descriptor: PropertyDescriptor
 ) {
+  if (process.env.TEST_TYPE === 'unit') return descriptor;
+
   const originalMethod = descriptor.value;
 
   descriptor.value = async function (...args: any[]) {

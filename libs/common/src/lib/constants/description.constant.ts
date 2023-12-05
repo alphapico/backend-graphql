@@ -40,10 +40,6 @@ If the Admin sets the \`isReferralCodeEnabled\` flag in the \`Config\` table, th
  \`\`\`
 `,
   LOGOUT: `
-#### \`Restricted to User and Admin\`
-
----
-
  \`\`\`json
  // Response with String!
  {"data": {"logout": "Logout successful"}}

@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CoinbaseService } from './coinbase.service';
 import { PrismaService } from '@charonium/prisma';
+import { LoggerService } from '@charonium/logger';
 import {
   BadRequestException,
   HttpException,
@@ -16,6 +17,7 @@ import { format } from 'date-fns';
 describe('CoinbaseService', () => {
   let service: CoinbaseService;
   let mockPrismaService: MockPrismaService;
+  let mockLoggerService: MockLoggerService;
 
   const resourceCreatedMockData: ExtChargeResource = {
     id: 'a5c42971-7635-4f4d-92f4-54f160bc64fc',
@@ -231,13 +233,21 @@ describe('CoinbaseService', () => {
     };
   }
 
+  class MockLoggerService {
+    error = jest.fn();
+    info = jest.fn();
+    // ... other methods as needed
+  }
+
   beforeEach(async () => {
     mockPrismaService = new MockPrismaService();
+    mockLoggerService = new MockLoggerService();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CoinbaseService,
         { provide: PrismaService, useValue: mockPrismaService },
+        { provide: LoggerService, useValue: mockLoggerService },
       ],
     }).compile();
 
