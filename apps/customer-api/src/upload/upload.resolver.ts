@@ -2,7 +2,7 @@ import { Resolver, Mutation, Args } from '@nestjs/graphql';
 import { UploadService } from './upload.service';
 import { UseGuards } from '@nestjs/common';
 import { AdminGuard } from '../auth/admin.guard';
-import { CurrentUser, DESCRIPTION, IJwtPayload } from '@charonium/common';
+import { CurrentUser, DESCRIPTION, IJwtPayload } from '@styx/common';
 import { UploadInput } from './dto/upload.input';
 import { SaveImageInput } from './dto/save-image.input';
 import { Image } from './dto/image.dto';

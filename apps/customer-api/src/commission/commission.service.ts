@@ -4,8 +4,8 @@ import {
   LogError,
   PurchaseActivityRecord,
   ReferrerResults,
-} from '@charonium/common';
-import { PrismaService } from '@charonium/prisma';
+} from '@styx/common';
+import { PrismaService } from '@styx/prisma';
 import {
   ConflictException,
   Injectable,

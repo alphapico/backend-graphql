@@ -10,14 +10,14 @@ import {
   CustomerRole,
   ERROR_MESSAGES,
   SUCCESS_MESSAGES,
-} from '@charonium/common';
-import { INPUT } from '@charonium/common';
+} from '@styx/common';
+import { INPUT } from '@styx/common';
 import {
   createAndVerifyAdmin,
   registerAndLogin,
 } from './utils/auth-test.utils';
 import { JwtModule, JwtService } from '@nestjs/jwt';
-import { PrismaModule, PrismaService } from '@charonium/prisma';
+import { PrismaModule, PrismaService } from '@styx/prisma';
 import { Test } from '@nestjs/testing';
 import { Customer } from './utils/interface.utils';
 

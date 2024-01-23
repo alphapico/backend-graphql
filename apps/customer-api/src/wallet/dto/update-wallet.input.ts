@@ -7,7 +7,7 @@ import {
   IsBoolean,
   IsNumber,
 } from 'class-validator';
-import { CryptoType, ERROR_MESSAGES } from '@charonium/common';
+import { CryptoType, ERROR_MESSAGES } from '@styx/common';
 
 @InputType()
 export class UpdateWalletInput {

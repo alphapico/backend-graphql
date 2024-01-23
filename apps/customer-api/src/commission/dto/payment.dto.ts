@@ -1,6 +1,6 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { Charge } from './charge.dto';
-import { PaymentStatus, UnresolvedReason } from '@charonium/common';
+import { PaymentStatus, UnresolvedReason } from '@styx/common';
 import {
   PaymentStatus as PrismaPaymentStatus,
   UnresolvedReason as PrismaUnresolvedReason,

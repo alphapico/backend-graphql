@@ -2,7 +2,7 @@ import { Args, Mutation, Resolver } from '@nestjs/graphql';
 import { CoinbaseService } from './coinbase.service';
 import { JwtAuthGuard } from '../../auth/jwt-auth.guard';
 import { UseGuards } from '@nestjs/common';
-import { CurrentUser, DESCRIPTION, IJwtPayload } from '@charonium/common';
+import { CurrentUser, DESCRIPTION, IJwtPayload } from '@styx/common';
 // import { CreateChargeInput } from './dto/create-charge.input';
 import { PurchaseTokensInput } from './dto/purchase-tokens.input';
 

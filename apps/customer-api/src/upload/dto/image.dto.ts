@@ -1,4 +1,4 @@
-import { ImageType } from '@charonium/common';
+import { ImageType } from '@styx/common';
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { ImageType as PrismaImageType } from '@prisma/client';
 

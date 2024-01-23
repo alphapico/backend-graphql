@@ -3,7 +3,7 @@ import {
   ERROR_MESSAGES,
   IsCurrencyFormat,
   IsSupportedCurrency,
-} from '@charonium/common';
+} from '@styx/common';
 import { Field, InputType } from '@nestjs/graphql';
 import {
   IsBoolean,

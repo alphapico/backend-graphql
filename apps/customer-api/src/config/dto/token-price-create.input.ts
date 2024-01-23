@@ -2,7 +2,7 @@ import {
   ERROR_MESSAGES,
   IsCurrencyFormat,
   IsSupportedCurrency,
-} from '@charonium/common';
+} from '@styx/common';
 import { InputType, Field } from '@nestjs/graphql';
 import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 

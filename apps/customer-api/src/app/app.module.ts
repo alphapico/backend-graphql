@@ -1,6 +1,6 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
-import { PrismaService } from '@charonium/prisma';
+import { PrismaService } from '@styx/prisma';
 import { CustomerModule } from '../customer/customer.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -20,7 +20,7 @@ import { WalletModule } from '../wallet/wallet.module';
   imports: [
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-      autoSchemaFile: 'charonium-schema.gql',
+      autoSchemaFile: 'styx-schema.gql',
       resolvers: { JSON: GraphQLJSON },
       context: ({ req, res }) => ({ req, res }),
       sortSchema: true, // disabled this in production, process.env.NODE_ENV !== 'production'

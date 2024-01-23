@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from './config.service';
-import { PrismaService } from '@charonium/prisma';
+import { PrismaService } from '@styx/prisma';
 
 describe('ConfigService', () => {
   let service: ConfigService;

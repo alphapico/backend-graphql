@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { WalletService } from './wallet.service';
-import { PrismaService } from '@charonium/prisma';
+import { PrismaService } from '@styx/prisma';
 
 describe('WalletService', () => {
   let service: WalletService;

@@ -1,6 +1,6 @@
 import { Field, InputType } from '@nestjs/graphql';
 import { IsString, IsNotEmpty, IsEnum } from 'class-validator';
-import { ERROR_MESSAGES, Trim, ImageType } from '@charonium/common';
+import { ERROR_MESSAGES, Trim, ImageType } from '@styx/common';
 import { ImageType as PrismaImageType } from '@prisma/client';
 
 @InputType()

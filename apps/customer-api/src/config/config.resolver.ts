@@ -8,7 +8,7 @@ import { TokenPackage } from './dto/token-package.dto';
 import { TokenPackageCreateInput } from './dto/token-package-create.input';
 import { TokenPackageUpdateInput } from './dto/token-package-update.input';
 import { Config } from './dto/config.dto';
-import { DESCRIPTION } from '@charonium/common';
+import { DESCRIPTION } from '@styx/common';
 
 @Resolver()
 export class ConfigResolver {

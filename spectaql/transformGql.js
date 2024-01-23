@@ -133,5 +133,5 @@ function transformSchema(schemaPath, fieldDirectives) {
   fs.writeFileSync(newSchemaPath, updatedSchema, 'utf8');
 }
 
-const schemaPath = path.resolve(__dirname, '../charonium-schema.gql');
+const schemaPath = path.resolve(__dirname, '../styx-schema.gql');
 transformSchema(schemaPath, fields);

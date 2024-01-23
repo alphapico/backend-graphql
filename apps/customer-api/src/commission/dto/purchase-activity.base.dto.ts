@@ -1,6 +1,6 @@
 import { Field, Float, Int, ObjectType } from '@nestjs/graphql';
 import { PaginationMixin } from './pagination.mixin';
-import { PaymentStatus } from '@charonium/common';
+import { PaymentStatus } from '@styx/common';
 import { PaymentStatus as PrismaPaymentStatus } from '@prisma/client';
 
 @ObjectType()

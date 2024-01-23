@@ -1,6 +1,6 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
-import { CustomerStatus } from '@charonium/common';
-import { EmailStatus } from '@charonium/common';
+import { CustomerStatus } from '@styx/common';
+import { EmailStatus } from '@styx/common';
 import {
   Customer as PrismaCustomer,
   CustomerStatus as PrismaCustomerStatus,

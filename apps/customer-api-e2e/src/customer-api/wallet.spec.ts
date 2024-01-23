@@ -10,8 +10,8 @@ import {
   registerAndLogin,
 } from './utils/auth-test.utils';
 import { JwtModule, JwtService } from '@nestjs/jwt';
-import { PrismaModule, PrismaService } from '@charonium/prisma';
-import { CONFIG, CryptoType, ERROR_MESSAGES } from '@charonium/common';
+import { PrismaModule, PrismaService } from '@styx/prisma';
+import { CONFIG, CryptoType, ERROR_MESSAGES } from '@styx/common';
 import { Test } from '@nestjs/testing';
 
 describe('WalletModule', () => {

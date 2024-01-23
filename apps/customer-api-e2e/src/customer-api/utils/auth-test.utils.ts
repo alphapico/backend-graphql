@@ -1,10 +1,10 @@
 import { GraphQLClient, gql } from 'graphql-request';
 import { Customer, CustomerRole } from '@prisma/client';
 import * as jwt from 'jsonwebtoken';
-import { CONFIG, IJwtPayload } from '@charonium/common';
+import { CONFIG, IJwtPayload } from '@styx/common';
 import { httpUrl } from '../../support/test-setup';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from '@charonium/prisma';
+import { PrismaService } from '@styx/prisma';
 
 export const registerMutation = gql`
   mutation Register($input: RegisterInput!) {

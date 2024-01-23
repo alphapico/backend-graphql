@@ -15,9 +15,9 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@charonium/common": ["libs/common/src/index.ts"],
-      "@charonium/logger": ["libs/logger/src/index.ts"],
-      "@charonium/prisma": ["libs/prisma/src/index.ts"]
+      "@styx/common": ["libs/common/src/index.ts"],
+      "@styx/logger": ["libs/logger/src/index.ts"],
+      "@styx/prisma": ["libs/prisma/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

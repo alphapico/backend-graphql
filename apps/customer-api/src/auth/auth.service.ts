@@ -15,7 +15,7 @@ import {
   IJwtPayload,
   JSONWEBTOKEN_ERROR_MESSAGES,
   LogError,
-} from '@charonium/common';
+} from '@styx/common';
 import * as argon2 from 'argon2';
 import { Response } from 'express';
 import { Customer, CustomerStatus, EmailStatus } from '@prisma/client';

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from './config.service';
-import { PrismaModule } from '@charonium/prisma';
+import { PrismaModule } from '@styx/prisma';
 import { ConfigResolver } from './config.resolver';
 
 @Module({

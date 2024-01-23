@@ -1,12 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CustomerService } from './customer.service';
 import { JwtModule, JwtService } from '@nestjs/jwt';
-import { PrismaModule, PrismaService } from '@charonium/prisma';
+import { PrismaModule, PrismaService } from '@styx/prisma';
 import {
   ERROR_MESSAGES,
   JSONWEBTOKEN_ERROR_MESSAGES,
   ReferralCodeUtil,
-} from '@charonium/common';
+} from '@styx/common';
 import { Customer } from './dto/customer.dto';
 import { CustomerStatus, EmailStatus } from '@prisma/client';
 import { BadRequestException, forwardRef } from '@nestjs/common';
@@ -14,7 +14,7 @@ import { EmailService } from '../email/email.service';
 import { AuthService } from '../auth/auth.service';
 import { EmailModule } from '../email/email.module';
 import { AuthModule } from '../auth/auth.module';
-import { LoggerService } from '@charonium/logger';
+import { LoggerService } from '@styx/logger';
 import { ConfigService } from '../config/config.service';
 
 describe('CustomerService', () => {

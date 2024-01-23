@@ -6,18 +6,18 @@ import {
   ExtChargeResource,
   INFO_CATEGORIES,
   writeDataToFile,
-} from '@charonium/common';
+} from '@styx/common';
 import {
   CustomerStatus,
   PaymentStatus,
   UnresolvedReason,
 } from '@prisma/client';
 import { EmailService } from '../../email/email.service';
-import { currencyPrecision } from '@charonium/common';
+import { currencyPrecision } from '@styx/common';
 import { CommissionService } from '../../commission/commission.service';
 import { StatusCodes } from 'http-status-codes';
 import { format } from 'date-fns';
-import { LoggerService } from '@charonium/logger';
+import { LoggerService } from '@styx/logger';
 import { ChargeResource } from 'coinbase-commerce-node';
 
 @Controller('coinbase')

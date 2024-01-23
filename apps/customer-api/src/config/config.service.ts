@@ -1,11 +1,11 @@
-import { PrismaService } from '@charonium/prisma';
+import { PrismaService } from '@styx/prisma';
 import { Injectable } from '@nestjs/common';
 import { TokenPriceCreateInput } from './dto/token-price-create.input';
 import { TokenPackage, TokenPrice } from '@prisma/client';
 import { TokenPackageCreateInput } from './dto/token-package-create.input';
 import { TokenPackageUpdateInput } from './dto/token-package-update.input';
 import { Config } from './dto/config.dto';
-import { LogError } from '@charonium/common';
+import { LogError } from '@styx/common';
 
 @Injectable()
 export class ConfigService {

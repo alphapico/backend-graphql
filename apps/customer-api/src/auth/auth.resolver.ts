@@ -7,7 +7,7 @@ import {
   DESCRIPTION,
   IJwtPayload,
   SUCCESS_MESSAGES,
-} from '@charonium/common';
+} from '@styx/common';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { AdminGuard } from './admin.guard';

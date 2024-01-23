@@ -1,6 +1,6 @@
 import { ObjectType, Field, Directive, Int } from '@nestjs/graphql';
 import { CustomerRole as PrismaCustomerRole } from '@prisma/client';
-import { CustomerRole } from '@charonium/common';
+import { CustomerRole } from '@styx/common';
 
 @ObjectType()
 export class JwtPayload {

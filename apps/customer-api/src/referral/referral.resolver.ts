@@ -4,7 +4,7 @@ import { ReferralMap } from './dto/referral.dto';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ReferralInput } from './dto/referral.input';
-import { DESCRIPTION } from '@charonium/common';
+import { DESCRIPTION } from '@styx/common';
 
 @Resolver()
 export class ReferralResolver {

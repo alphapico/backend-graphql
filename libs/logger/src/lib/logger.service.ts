@@ -1,4 +1,4 @@
-import { PrismaService } from '@charonium/prisma';
+import { PrismaService } from '@styx/prisma';
 import { Injectable } from '@nestjs/common';
 import { LogStatus } from '@prisma/client';
 import winston from 'winston';

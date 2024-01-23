@@ -5,7 +5,7 @@ import {
   connectToDatabase,
   disconnectFromDatabase,
 } from '../support/test-utils';
-import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@charonium/common';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@styx/common';
 import { createAndVerifyCustomer } from './utils/auth-test.utils';
 
 describe('Email Verification', () => {

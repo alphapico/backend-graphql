@@ -1,6 +1,6 @@
 import { InputType, Field, Int } from '@nestjs/graphql';
 import { IsNotEmpty, IsOptional, IsNumber } from 'class-validator';
-import { ERROR_MESSAGES } from '@charonium/common';
+import { ERROR_MESSAGES } from '@styx/common';
 
 @InputType()
 export class ReferralInput {

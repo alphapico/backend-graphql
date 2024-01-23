@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { UploadService } from './upload.service';
-import { PrismaModule } from '@charonium/prisma';
+import { PrismaModule } from '@styx/prisma';
 import { UploadResolver } from './upload.resolver';
 
 @Module({

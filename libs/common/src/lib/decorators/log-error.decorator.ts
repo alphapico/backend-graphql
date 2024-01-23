@@ -3,7 +3,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { LoggerService } from '@charonium/logger';
+import { LoggerService } from '@styx/logger';
 import { ModuleRef } from '@nestjs/core';
 import { appInstance } from '../global-ref';
 import { ERROR_MESSAGES } from '../constants';

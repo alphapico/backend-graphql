@@ -10,7 +10,7 @@ import {
   DESCRIPTION,
   IJwtPayload,
   PaymentStatus,
-} from '@charonium/common';
+} from '@styx/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ChargeResult } from './dto/charge.dto';
 import {

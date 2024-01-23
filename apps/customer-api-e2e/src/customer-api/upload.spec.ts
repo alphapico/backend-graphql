@@ -7,8 +7,8 @@ import {
 } from '../support/test-utils';
 import { Test } from '@nestjs/testing';
 import { JwtService, JwtModule } from '@nestjs/jwt';
-import { CONFIG, ImageType } from '@charonium/common';
-import { PrismaModule, PrismaService } from '@charonium/prisma';
+import { CONFIG, ImageType } from '@styx/common';
+import { PrismaModule, PrismaService } from '@styx/prisma';
 import { Customer, Image } from '@prisma/client';
 import fetch from 'node-fetch';
 import fs from 'fs';

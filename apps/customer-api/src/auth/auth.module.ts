@@ -4,7 +4,7 @@ import { CustomerModule } from '../customer/customer.module';
 import { AuthService } from './auth.service';
 import { AuthResolver } from './auth.resolver';
 import { JwtStrategy } from './jwt.strategy';
-import { CONFIG } from '@charonium/common';
+import { CONFIG } from '@styx/common';
 
 @Module({
   imports: [forwardRef(() => CustomerModule), JwtModule.register({})],

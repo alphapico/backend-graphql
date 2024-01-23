@@ -1,4 +1,4 @@
-import { ERROR_MESSAGES } from '@charonium/common';
+import { ERROR_MESSAGES } from '@styx/common';
 import { Field, Int, ObjectType, Float, InputType } from '@nestjs/graphql';
 import { IsInt, IsNotEmpty, IsNumber, Min, Max } from 'class-validator';
 

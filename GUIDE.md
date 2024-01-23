@@ -31,14 +31,14 @@
 
    POSTGRES_USER=<username>
    POSTGRES_PASSWORD=<password>
-   POSTGRES_DB=charonium
+   POSTGRES_DB=styx
    POSTGRES_PORT=<any port from 3000 and above>
 
    # when using local development, you can use the following
-   DATABASE_URL="postgresql://<POSTGRES_USER>:<POSTGRES_PASSWORD>@localhost:<POSTGRES_PORT>/charonium?schema=public"
+   DATABASE_URL="postgresql://<POSTGRES_USER>:<POSTGRES_PASSWORD>@localhost:<POSTGRES_PORT>/styx?schema=public"
 
    # when using docker-compose for both app and db, you can use the following
-   # DATABASE_URL="postgresql://<POSTGRES_USER>:<POSTGRES_PASSWORD>@dev_db:5432/charonium?schema=public"
+   # DATABASE_URL="postgresql://<POSTGRES_USER>:<POSTGRES_PASSWORD>@dev_db:5432/styx?schema=public"
 
    AWS_ACCESS_KEY_ID=<get access Id from your created IAM User>
    AWS_SECRET_ACCESS_KEY=<get secret key from your created IAM User>
@@ -54,7 +54,7 @@
    ADMIN_EMAIL=<admin-email@example.com>
    ADMIN_INITIAL_PASSWORD=<some-password>
 
-   BUCKET_NAME=dev-charonium
+   BUCKET_NAME=dev-styx
    COINBASE_API_KEY=<Coinbase API Key>
    COINBASE_WEBHOOK_SECRET=<Coinbase Webhook secret>
    ```
@@ -66,7 +66,7 @@
 
 ### Extra Config
 
-Configs that are not related with server and not data-sensitive will be put in `<common lib path>/constants/config.constant.ts` , where `<common lib path>` is `<root>/libs/common/src/lib`. You can import it with `import {CONFIG} from @charonium/common`
+Configs that are not related with server and not data-sensitive will be put in `<common lib path>/constants/config.constant.ts` , where `<common lib path>` is `<root>/libs/common/src/lib`. You can import it with `import {CONFIG} from @styx/common`
 
 ```tsx
 export const CONFIG = {
@@ -115,7 +115,7 @@ export const CONFIG = {
    ```bash
    nx serve customer-api
    ```
-   The GraphQL schema will be generated at `<root>/charonium-schema.gql`. Press `Ctrl + C` to quit
+   The GraphQL schema will be generated at `<root>/styx-schema.gql`. Press `Ctrl + C` to quit
 
 <br />
 
@@ -209,7 +209,7 @@ To create GraphQL endpoint, you would need to create `module`, `service` and `re
 5. The resulted files and folders may look like this
 
    ```bash
-   charonium/
+   styx/
            └── customer-api/
                └── src/
                    └── <module_name>/
@@ -229,12 +229,12 @@ To create GraphQL endpoint, you would need to create `module`, `service` and `re
 
 ### Managing common library
 
-All reusable code for modules is located inside the `<root>/libs/common/src/lib` folder. This library folder comprises `constants`, `decorators`, `enums`, `exceptions`, `interfaces`, `types`, and `utils` folders. These are useful for both development and end-to-end testing. You can create any relevant files inside these folders accordingly. They will be reflected with the path `@charonium/common` if you want to import the code into the module.
+All reusable code for modules is located inside the `<root>/libs/common/src/lib` folder. This library folder comprises `constants`, `decorators`, `enums`, `exceptions`, `interfaces`, `types`, and `utils` folders. These are useful for both development and end-to-end testing. You can create any relevant files inside these folders accordingly. They will be reflected with the path `@styx/common` if you want to import the code into the module.
 
 Example of usage:
 
 ```tsx
-import { ERROR_MESSAGES, IJwtPayload } from '@charonium/common';
+import { ERROR_MESSAGES, IJwtPayload } from '@styx/common';
 ```
 
 If you create file in folder `constants`, for example `constants/test.constant.ts`, do not forget to export the file in `constants/index.ts`:

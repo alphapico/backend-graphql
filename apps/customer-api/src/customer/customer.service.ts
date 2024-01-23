@@ -6,7 +6,7 @@ import {
   NotFoundException,
   forwardRef,
 } from '@nestjs/common';
-import { PrismaService } from '@charonium/prisma';
+import { PrismaService } from '@styx/prisma';
 import { RegisterInput } from './dto/register.input';
 
 import * as argon2 from 'argon2';
@@ -24,17 +24,17 @@ import {
   LogError,
   PRISMA_ERROR_MESSAGES,
   ReferralCodeUtil,
-} from '@charonium/common';
+} from '@styx/common';
 import graphqlFields from 'graphql-fields';
 // import { validate } from 'class-validator';
-// import { ClassValidationException } from '@charonium/common';
+// import { ClassValidationException } from '@styx/common';
 
 import { EmailStatus, CustomerStatus } from '@prisma/client';
 import { ResetPasswordInput } from './dto/reset-password.input';
 import { AuthService } from '../auth/auth.service';
 import { EmailService } from '../email/email.service';
 import { RegisterAdminInput } from './dto/register-admin.input';
-import { LoggerService } from '@charonium/logger';
+import { LoggerService } from '@styx/logger';
 import { ChangePasswordInput } from './dto/change-password.input';
 import { ConfigService } from '../config/config.service';
 @Injectable()

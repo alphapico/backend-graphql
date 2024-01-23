@@ -1,11 +1,7 @@
 import { Resolver, Mutation, Args } from '@nestjs/graphql';
 import { VerifyEmailResult } from './dto/verify-email-result.dto';
 import { EmailService } from './email.service';
-import {
-  DESCRIPTION,
-  ERROR_MESSAGES,
-  SUCCESS_MESSAGES,
-} from '@charonium/common';
+import { DESCRIPTION, ERROR_MESSAGES, SUCCESS_MESSAGES } from '@styx/common';
 
 @Resolver()
 export class EmailResolver {

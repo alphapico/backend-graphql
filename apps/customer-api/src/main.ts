@@ -4,9 +4,9 @@ import { ValidationPipe } from '@nestjs/common';
 // import cookieParser from 'cookie-parser';
 
 import { AppModule } from './app/app.module';
-import { PrismaService } from '@charonium/prisma';
+import { PrismaService } from '@styx/prisma';
 import { CustomerService } from './customer/customer.service';
-import { setAppInstance } from '@charonium/common';
+import { setAppInstance } from '@styx/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

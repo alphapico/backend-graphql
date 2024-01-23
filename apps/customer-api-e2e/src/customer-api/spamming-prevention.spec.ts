@@ -5,7 +5,7 @@ import {
   connectToDatabase,
   disconnectFromDatabase,
 } from '../support/test-utils';
-import { CONFIG, ERROR_MESSAGES } from '@charonium/common';
+import { CONFIG, ERROR_MESSAGES } from '@styx/common';
 
 describe('Spamming Prevention Tests', () => {
   beforeAll(async () => {

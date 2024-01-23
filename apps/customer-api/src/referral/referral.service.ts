@@ -4,7 +4,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '@charonium/prisma';
+import { PrismaService } from '@styx/prisma';
 import { ReferralMap, ReferralEntry } from './dto/referral.dto';
 import { Prisma } from '@prisma/client';
 import { Customer } from '../customer/dto/customer.dto';
@@ -14,9 +14,9 @@ import {
   LogError,
   PRISMA_ERROR_MESSAGES,
   ReferralResults,
-} from '@charonium/common';
+} from '@styx/common';
 // import * as fs from 'fs';
-import { writeDataToFile } from '@charonium/common';
+import { writeDataToFile } from '@styx/common';
 import { ConfigService } from '../config/config.service';
 
 @Injectable()

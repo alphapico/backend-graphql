@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
-import { ERROR_MESSAGES, IJwtPayload } from '@charonium/common';
+import { ERROR_MESSAGES, IJwtPayload } from '@styx/common';
 import { Request } from 'express';
 
 @Injectable()

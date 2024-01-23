@@ -1,4 +1,4 @@
-import { PrismaService } from '@charonium/prisma';
+import { PrismaService } from '@styx/prisma';
 import { Module } from '@nestjs/common';
 import { LoggerService } from './logger.service';
 

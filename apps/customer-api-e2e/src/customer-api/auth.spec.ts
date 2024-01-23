@@ -11,12 +11,12 @@ import {
   SUCCESS_MESSAGES,
   CONFIG,
   CustomerStatus,
-} from '@charonium/common';
+} from '@styx/common';
 import { JwtService, JwtModule } from '@nestjs/jwt';
 import { Test } from '@nestjs/testing';
 import * as jwt from 'jsonwebtoken';
 import { Customer, CustomerRole } from '@prisma/client';
-import { PrismaModule, PrismaService } from '@charonium/prisma';
+import { PrismaModule, PrismaService } from '@styx/prisma';
 import {
   createAndVerifyAdmin,
   createAndVerifyCustomer,

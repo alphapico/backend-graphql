@@ -3,7 +3,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { CONFIG, ERROR_MESSAGES, IJwtPayload } from '@charonium/common';
+import { CONFIG, ERROR_MESSAGES, IJwtPayload } from '@styx/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { AuthGuard } from '@nestjs/passport';
 

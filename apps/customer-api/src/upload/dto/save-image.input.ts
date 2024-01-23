@@ -6,7 +6,7 @@ import {
   IsOptional,
   IsEnum,
 } from 'class-validator';
-import { ERROR_MESSAGES, ImageType, Trim } from '@charonium/common';
+import { ERROR_MESSAGES, ImageType, Trim } from '@styx/common';
 import { ImageType as PrismaImageType } from '@prisma/client';
 
 @InputType()

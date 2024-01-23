@@ -4,7 +4,7 @@ import { SES, SendEmailCommandInput } from '@aws-sdk/client-ses';
 import * as Handlebars from 'handlebars';
 import * as fs from 'fs';
 import * as path from 'path';
-import { PrismaService } from '@charonium/prisma';
+import { PrismaService } from '@styx/prisma';
 import {
   ERROR_CATEGORIES,
   ERROR_MESSAGES,
@@ -13,7 +13,7 @@ import {
   INFO_CATEGORIES,
   LogError,
   SUCCESS_MESSAGES,
-} from '@charonium/common';
+} from '@styx/common';
 import {
   Customer,
   EmailStatus,
@@ -23,7 +23,7 @@ import {
 } from '@prisma/client';
 import { AuthService } from '../auth/auth.service';
 import * as backoff from 'backoff';
-import { LoggerService } from '@charonium/logger';
+import { LoggerService } from '@styx/logger';
 
 @Injectable()
 export class EmailService {

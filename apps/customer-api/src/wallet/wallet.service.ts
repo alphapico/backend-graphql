@@ -1,4 +1,4 @@
-import { PrismaService } from '@charonium/prisma';
+import { PrismaService } from '@styx/prisma';
 import {
   BadRequestException,
   Injectable,
@@ -7,7 +7,7 @@ import {
 import { CreateWalletInput } from './dto/create-wallet.input';
 import { UpdateWalletInput } from './dto/update-wallet.input';
 import { CryptoType } from '@prisma/client';
-import { ERROR_MESSAGES, LogError } from '@charonium/common';
+import { ERROR_MESSAGES, LogError } from '@styx/common';
 import { isAddress } from 'web3-validator';
 
 @Injectable()

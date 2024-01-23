@@ -6,7 +6,7 @@ import {
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { createPresignedPost } from '@aws-sdk/s3-presigned-post';
-import { PrismaService } from '@charonium/prisma';
+import { PrismaService } from '@styx/prisma';
 import crypto from 'crypto';
 import { v4 as uuid } from 'uuid';
 import {
@@ -15,7 +15,7 @@ import {
   ImageType,
   LogError,
   writeDataToFile,
-} from '@charonium/common';
+} from '@styx/common';
 import { UploadInput } from './dto/upload.input';
 import { SaveImageInput } from './dto/save-image.input';
 import { Image } from './dto/image.dto';

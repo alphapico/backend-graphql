@@ -108,7 +108,7 @@ introspection:
   #   - path/to/schema/part1.gql
   #   - path/to/schema/part2.gql
   # schemaFile: ./schema.gql
-  schemaFile: ./charonium-schema_transformed.gql
+  schemaFile: ./styx-schema_transformed.gql
 
   # File containing Introspection Query response in JS module export, or JSON format
   # introspectionFile: ./spectaql/data/metadata.json

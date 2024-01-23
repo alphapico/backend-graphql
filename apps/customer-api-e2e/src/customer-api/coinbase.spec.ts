@@ -10,9 +10,9 @@ import {
   registerAndLogin,
 } from './utils/auth-test.utils';
 import { JwtModule, JwtService } from '@nestjs/jwt';
-import { PrismaModule, PrismaService } from '@charonium/prisma';
+import { PrismaModule, PrismaService } from '@styx/prisma';
 import { Test } from '@nestjs/testing';
-import { CONFIG } from '@charonium/common';
+import { CONFIG } from '@styx/common';
 
 describe('Coinbase', () => {
   let jwtService: JwtService;

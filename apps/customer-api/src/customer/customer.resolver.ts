@@ -14,7 +14,7 @@ import {
   DESCRIPTION,
   EmailStatus,
   IJwtPayload,
-} from '@charonium/common';
+} from '@styx/common';
 import { AdminGuard } from '../auth/admin.guard';
 import { FreshTokenGuard } from '../auth/fresh-token.guard';
 import { ChangePasswordInput } from './dto/change-password.input';

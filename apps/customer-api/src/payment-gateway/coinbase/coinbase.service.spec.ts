@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CoinbaseService } from './coinbase.service';
-import { PrismaService } from '@charonium/prisma';
-import { LoggerService } from '@charonium/logger';
+import { PrismaService } from '@styx/prisma';
+import { LoggerService } from '@styx/logger';
 import {
   BadRequestException,
   HttpException,
@@ -9,7 +9,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { ERROR_MESSAGES, ExtChargeResource } from '@charonium/common';
+import { ERROR_MESSAGES, ExtChargeResource } from '@styx/common';
 import { resources } from 'coinbase-commerce-node';
 import { Payment, PaymentStatus, UnresolvedReason } from '@prisma/client';
 import { format } from 'date-fns';

@@ -1,5 +1,5 @@
 // change-password.input.ts
-import { ERROR_MESSAGES, INPUT } from '@charonium/common';
+import { ERROR_MESSAGES, INPUT } from '@styx/common';
 import { Field, InputType } from '@nestjs/graphql';
 import { IsNotEmpty, IsString, MaxLength, MinLength } from 'class-validator';
 

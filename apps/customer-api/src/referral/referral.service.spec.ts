@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ReferralService } from './referral.service';
-import { PrismaService } from '@charonium/prisma';
+import { PrismaService } from '@styx/prisma';
 import { ConfigService } from '../config/config.service';
 
 describe('ReferralService', () => {

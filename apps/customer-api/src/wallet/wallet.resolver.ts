@@ -10,7 +10,7 @@ import {
   DESCRIPTION,
   ERROR_MESSAGES,
   IJwtPayload,
-} from '@charonium/common';
+} from '@styx/common';
 import { BadRequestException, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { DeleteWalletInput } from './dto/delete-wallet.input';

@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt';
 import { CustomerService } from '../customer/customer.service';
-import { PrismaService } from '@charonium/prisma';
+import { PrismaService } from '@styx/prisma';
 
 describe('AuthService', () => {
   let service: AuthService;

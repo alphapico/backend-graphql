@@ -1,6 +1,6 @@
 // referrer-result.dto.ts
 import { Field, ObjectType, Int } from '@nestjs/graphql';
-import { CustomerStatus } from '@charonium/common';
+import { CustomerStatus } from '@styx/common';
 import { CustomerStatus as PrismaCustomerStatus } from '@prisma/client';
 
 @ObjectType()

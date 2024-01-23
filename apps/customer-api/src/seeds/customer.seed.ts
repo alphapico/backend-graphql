@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from '../app/app.module';
-import { PrismaService } from '@charonium/prisma';
+import { PrismaService } from '@styx/prisma';
 import dotenv from 'dotenv';
 dotenv.config({ path: '.serve.env' });
 async function seedCustomers(prisma: PrismaService) {

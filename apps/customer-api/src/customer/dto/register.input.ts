@@ -7,9 +7,9 @@ import {
   IsString,
   IsOptional,
 } from 'class-validator';
-import { Trim } from '@charonium/common';
-import { INPUT } from '@charonium/common';
-import { ERROR_MESSAGES } from '@charonium/common';
+import { Trim } from '@styx/common';
+import { INPUT } from '@styx/common';
+import { ERROR_MESSAGES } from '@styx/common';
 
 @InputType()
 export class RegisterInput {

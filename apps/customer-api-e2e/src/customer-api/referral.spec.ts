@@ -9,7 +9,7 @@ import {
   createAndVerifyCustomer,
   registerAndLogin,
 } from './utils/auth-test.utils';
-import { ERROR_MESSAGES } from '@charonium/common';
+import { ERROR_MESSAGES } from '@styx/common';
 
 describe('Referral', () => {
   //   console.log('Running Referral tests');

@@ -1,4 +1,4 @@
-import { CryptoType, ERROR_MESSAGES } from '@charonium/common';
+import { CryptoType, ERROR_MESSAGES } from '@styx/common';
 import { InputType, Field, Int } from '@nestjs/graphql';
 import {
   IsNotEmpty,

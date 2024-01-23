@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EmailService } from './email.service';
-import { PrismaService } from '@charonium/prisma';
-import { LoggerService } from '@charonium/logger';
+import { PrismaService } from '@styx/prisma';
+import { LoggerService } from '@styx/logger';
 import { AuthService } from '../auth/auth.service';
 
 describe('EmailService', () => {

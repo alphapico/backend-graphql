@@ -1,7 +1,7 @@
 import { InputType, Field } from '@nestjs/graphql';
 import { IsString, MinLength, IsNotEmpty, MaxLength } from 'class-validator';
-import { INPUT } from '@charonium/common';
-import { ERROR_MESSAGES } from '@charonium/common';
+import { INPUT } from '@styx/common';
+import { ERROR_MESSAGES } from '@styx/common';
 
 @InputType()
 export class ResetPasswordInput {

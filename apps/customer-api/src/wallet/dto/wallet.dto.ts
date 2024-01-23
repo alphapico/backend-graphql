@@ -1,4 +1,4 @@
-import { CryptoType } from '@charonium/common';
+import { CryptoType } from '@styx/common';
 import { CryptoType as PrismaCryptoType } from '@prisma/client';
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 

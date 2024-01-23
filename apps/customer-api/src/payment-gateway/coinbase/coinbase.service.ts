@@ -5,9 +5,9 @@ import {
   ExtChargeResource,
   LogError,
   writeDataToFile,
-} from '@charonium/common';
-import { LoggerService } from '@charonium/logger';
-import { PrismaService } from '@charonium/prisma';
+} from '@styx/common';
+import { LoggerService } from '@styx/logger';
+import { PrismaService } from '@styx/prisma';
 import {
   BadRequestException,
   Injectable,
