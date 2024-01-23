@@ -47,3 +47,5 @@ apps/customer-api-e2e/debugs
 # Logs folder
 logs
 *-audit.json
+
+.nx
