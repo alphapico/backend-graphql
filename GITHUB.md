@@ -70,6 +70,12 @@ Our team follows a simple and effective branching strategy consisting of two mai
 - Limit the `first line` of the commit message to `50 characters or fewer`.
 - If needed, provide a more detailed description `after a blank line`.
 
+Add all untracked files to staging:
+
+```bash
+git add .
+```
+
 Example of a good commit message:
 
 ```bash
@@ -125,7 +131,7 @@ Conflicts may arise when multiple developers are working on the same files or se
 
 1. Update your local `dev` branch with the latest changes from the remote repository.
    ```bash
-   git checkout dev
+   git switch dev
    git pull
    ```
 2. Switch to your `short-lived branch` and merge the updated `dev` branch into it.

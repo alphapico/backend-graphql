@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body
+    style="
+      font-family: Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      color: #333333;
+      margin: 0;
+    "
+  >
+    <div
+      style="
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 40px;
+        background-color: #ffffff;
+        box-sizing: border-box;
+      "
+    >
+      <div style="text-align: center; margin-bottom: 20px">
+        <img
+          src="https://your-company-logo-url.com"
+          alt="Your Company"
+          style="width: 150px"
+        />
+      </div>
+      <div style="text-align: center; margin-bottom: 30px">
+        <h1 style="font-size: 24px; color: #333333; margin-bottom: 20px">
+          Styx Tokens Pre-Sale Confirmation
+        </h1>
+        <p>Dear {{{customerName}}},</p>
+        <p>Thank you for participating in our STYX tokens pre-sale!</p>
+        <p>We are pleased to confirm your purchase.</p>
+        <p><strong>Order Details:</strong></p>
+        <table
+          style="width: 100%; border-collapse: collapse; margin-bottom: 20px"
+        >
+          <tr style="background-color: #f8f8f8">
+            <th style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              Detail
+            </th>
+            <th style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              Value
+            </th>
+          </tr>
+          <tr>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              Purchase Code
+            </td>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              {{{purchaseCode}}}
+            </td>
+          </tr>
+          <tr>
+            {{#if packageName}}
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              Package
+            </td>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              {{{packageName}}}
+            </td>
+            {{else}}
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              Unit Price
+            </td>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              {{{tokenPrice}}}
+            </td>
+            {{/if}}
+          </tr>
+
+          <tr>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              Token Amount
+            </td>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              {{{tokenAmount}}}
+            </td>
+          </tr>
+          <tr>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              Total Amount
+            </td>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              {{{totalAmount}}} {{{currency}}}
+            </td>
+          </tr>
+          <tr>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              Date of Purchase
+            </td>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              {{{dateOfPurchase}}}
+            </td>
+          </tr>
+        </table>
+        <p>
+          Please note that the tokens will not be available immediately. We will
+          notify you once the tokens are ready for transfer to your Ethereum
+          wallet.
+        </p>
+        <p>
+          Ensure you have set up your Ethereum wallet in your profile settings.
+          This will allow the STYX tokens to be transferred to your wallet when
+          they are ready.
+        </p>
+        <p>Thank you for your trust and support!</p>
+      </div>
+      <div style="text-align: center; font-size: 14px; color: #999999">
+        <p>&copy; 2023 Your Company. All rights reserved.</p>
+      </div>
+    </div>
+  </body>
+</html>

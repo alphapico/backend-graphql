@@ -16,8 +16,8 @@
     "baseUrl": ".",
     "paths": {
       "@charonium/common": ["libs/common/src/index.ts"],
-      "@charonium/common/*": ["libs/common/src/lib/*"],
-      "@charonium/customer-api/*": ["apps/customer-api/src/*"]
+      "@charonium/logger": ["libs/logger/src/index.ts"],
+      "@charonium/prisma": ["libs/prisma/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

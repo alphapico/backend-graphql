@@ -10,27 +10,244 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum CustomerStatus{
+enum CustomerStatus {
   PENDING
   ACTIVE
   INACTIVE
   SUSPENDED
 }
 
-model Customer{
-  customerId Int @id @default(autoincrement())
-  name String
-  email String @unique
-  password String
-  emailVerified Boolean @default(false)
-  customerStatus CustomerStatus @default(PENDING)
-  referralCode String? @unique
-  referralCustomerId Int? @unique
-  referrer Customer? @relation("CustomerReferral", fields: [referralCustomerId], references: [customerId])
-  referree Customer? @relation("CustomerReferral")
-  tokenVersion Int @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime? @updatedAt
+enum EmailStatus {
+  UNVERIFIED
+  VERIFIED
 }
 
+enum LogStatus {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+  FATAL
+}
 
+enum CustomerRole {
+  ADMIN
+  MODERATOR
+  USER
+}
+
+enum PaymentStatus {
+  NEW
+  PENDING
+  COMPLETED
+  UNRESOLVED
+  RESOLVED
+  EXPIRED
+  CANCELED
+  MANUALLY_ACCEPTED
+  MANUALLY_UNACCEPTED
+}
+
+enum UnresolvedReason {
+  UNDERPAID
+  OVERPAID
+  DELAYED
+  MULTIPLE
+  OTHER
+}
+
+enum ImageType {
+  CUSTOMER
+  PACKAGE
+}
+
+enum CryptoType {
+  DAI //Dai
+  USDC // USD Coin
+  PUSDC // USDC on Polygon
+  PWETH // Wrapped Ether on Polygon
+  USDT // Tether
+  APE // ApeCoin
+  BTC // Bitcoin
+  PMATIC // MATIC on Polygon
+  DOGE // Dogecoin
+  ETH // Ethereum
+  LTC // Litecoin
+  SHIB // Shiba Inu
+  BCH // Bitcoin Cash
+}
+
+model Customer {
+  customerId         Int            @id @default(autoincrement())
+  name               String
+  email              String         @unique
+  password           String
+  emailStatus        EmailStatus    @default(UNVERIFIED)
+  customerStatus     CustomerStatus @default(PENDING)
+  customerRole       CustomerRole   @default(USER)
+  referralCode       String?        @unique
+  referralCustomerId Int?
+  referrer           Customer?      @relation("CustomerReferral", fields: [referralCustomerId], references: [customerId])
+  referees           Customer[]     @relation("CustomerReferral")
+  tokenVersion       Int            @default(0)
+  purchaseActivities PurchaseActivity[]  
+  charges            Charge[]  
+  commissions        Commission[]
+  wallets            Wallet[]       
+  image              Image?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime?      @updatedAt
+}
+
+model Wallet {
+  walletId       Int          @id @default(autoincrement())
+  customerId     Int
+  customer       Customer     @relation(fields: [customerId], references: [customerId], onDelete: Cascade)
+  address        String       // Wallet address
+  cryptoType     CryptoType    @default(ETH) // Type of cryptocurrency (e.g., BTC, ETH)
+  isDefault      Boolean       @default(false) // Field to track if this wallet is the default one
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime?     @updatedAt
+}
+
+model Config {
+  configId              Int       @id @default(autoincrement())
+  referralViewLevel     Int       @default(3)
+  isReferralCodeEnabled Boolean   @default(true)
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime? @updatedAt
+}
+
+model Log {
+  logId         Int         @id @default(autoincrement())
+  level         LogStatus
+  code          String?
+  statusCode    Int?
+  message       String 
+  details       Json?
+  serviceName   String?
+  methodName    String?
+  requestId     Int?
+  customerId    Int?
+  customerEmail String?
+  createdAt     DateTime    @default(now())
+}
+
+model Image {
+  imageId       Int           @id @default(autoincrement())
+  path          String
+  type          ImageType
+  customerId    Int?          @unique
+  customer      Customer?     @relation(fields: [customerId], references: [customerId])
+  packageId     Int?          @unique
+  tokenPackage  TokenPackage? @relation(fields: [packageId], references: [packageId])
+  createdAt     DateTime      @default(now())
+}
+
+model Charge {
+  chargeId                Int         @id @default(autoincrement())
+  customerId              Int?
+	customer                Customer?   @relation(fields: [customerId], references: [customerId], onDelete: SetNull)
+  code                    String      @unique
+  name                    String
+  description             String?
+  pricingType             String
+  addresses               Json?
+  pricing                 Json
+  exchangeRates           Json?
+  localExchangeRates      Json?
+  hostedUrl               String
+  cancelUrl               String?
+  redirectUrl             String?
+  feeRate                 Float
+  expiresAt               DateTime
+  paymentThreshold        Json?
+  payments                Payment[]
+  commissions             Commission[]
+  purchaseActivity        PurchaseActivity?
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime?   @updatedAt
+}
+
+model Payment {
+  paymentId           Int                @id @default(autoincrement())
+  chargeId            Int?
+  charge              Charge?            @relation(fields: [chargeId], references: [chargeId], onDelete: SetNull)
+  network             String?
+  transaction         String?
+  value               Json?
+  type                String?
+  status              String?
+  paymentStatus       PaymentStatus
+  unresolvedReason    UnresolvedReason?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime?          @updatedAt
+}
+
+model CommissionTier {
+  commissionTierId     Int        @id @default(autoincrement())
+  tier                 Int        @unique
+  commissionRate       Decimal    @db.Decimal(4,4) //allow value from 0.0000 to 0.9999 (0% to 99.99%) 
+  createdAt            DateTime   @default(now())
+  updatedAt            DateTime?  @updatedAt
+}
+
+model Commission {
+  commissionId       Int             @id @default(autoincrement())
+  customerId         Int?
+  customer           Customer?       @relation(fields: [customerId], references: [customerId], onDelete: SetNull)
+  chargeId           Int?             
+  charge             Charge?         @relation(fields: [chargeId], references: [chargeId], onDelete: SetNull)
+  tier               Int             // Tier at the time of calculation
+  commissionRate     Float           // Commission rate at the time of calculation
+  amount             Int             // Calculated commission amount
+  currency           String          // Currency code (e.g., "USD", "BTC")
+  isTransferred      Boolean         @default(false) // To track if commission has been transferred to user's wallet
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime?       @updatedAt
+}
+
+model TokenPrice {
+  tokenPriceId      Int      @id @default(autoincrement())
+  currency          String   // Currency code (e.g., "USD", "BTC")
+  price             Int    // Price of one ECR-20 token in the specified currency
+  purchaseActivity  PurchaseActivity[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime? @updatedAt
+}
+
+model TokenPackage {
+  packageId         Int       @id @default(autoincrement())
+  name              String    // Name of the package (e.g., "Gold", "Silver")
+  description       String?   // Description of the package
+  tokenAmount       Float     // Amount of ECR-20 tokens included in the package
+  price             Int     // Price of the package in a specific currency (e.g., USD)
+  currency          String    // Currency code (e.g., "USD", "BTC")
+  isActive          Boolean   // Whether the package is currently available for purchase
+  purchaseActivity  PurchaseActivity[]
+  image             Image?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime? @updatedAt
+  deletedAt         DateTime?
+}
+
+model PurchaseActivity {
+  purchaseActivityId    Int           @id @default(autoincrement())
+  purchaseCode          String        @unique
+  chargeId              Int?          @unique
+  charge                Charge?       @relation(fields: [chargeId], references: [chargeId], onDelete: SetNull)
+  customerId            Int?
+  customer              Customer?     @relation(fields: [customerId], references: [customerId], onDelete: SetNull)
+  packageId             Int?          
+  package               TokenPackage? @relation(fields: [packageId], references: [packageId], onDelete: SetNull)
+  tokenPriceId          Int?          
+  tokenPrice            TokenPrice?   @relation(fields: [tokenPriceId], references: [tokenPriceId], onDelete: SetNull)
+	price                 Int           // Price per unit or per package     
+  tokenAmount           Float
+  amount                Int
+  currency              String    // Currency code (e.g., "USD", "BTC")
+  purchaseConfirmed     Boolean       @default(false) // Field to track purchase confirmation
+  paymentStatus         PaymentStatus
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime?     @updatedAt
+}

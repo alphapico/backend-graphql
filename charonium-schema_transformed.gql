@@ -1,0 +1,865 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+input ChangePasswordInput {
+  newPassword: String! @spectaql(options: [{ key: "example", value: "\"new-secured-password\"" }])
+  oldPassword: String! @spectaql(options: [{ key: "example", value: "\"old-secured-password\"" }])
+}
+
+type Charge {
+  addresses: JSON @spectaql(options: [{ key: "example", value: "{\n  \"dai\": \"0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f\",\n  \"usdc\": \"0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f\",\n  \"pusdc\": \"0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f\",\n  \"pweth\": \"0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f\",\n  \"tether\": \"0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f\",\n  \"apecoin\": \"0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f\",\n  \"bitcoin\": \"34URso9pwmaWXXXsGjwiUdy3g9j23qg5TW\",\n  \"polygon\": \"0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f\",\n  \"dogecoin\": \"DB5kPE4VY6TFaopwphBaHpWkqDAxsbDhic\",\n  \"ethereum\": \"0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f\",\n  \"litecoin\": \"MUndhhRBZffhd7nXhnQ7mTMgKd2LBeyEHE\",\n  \"shibainu\": \"0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f\",\n  \"bitcoincash\": \"qzqyjeskkq2wxy3t8k0rctmgpsc59wdv4g6epkd8u5\"\n}" }])
+  cancelUrl: String @spectaql(options: [{ key: "example", value: "\"https://<FRONTEND_URL>/payment-cancelled\"" }])
+  chargeId: Int!
+  code: String! @spectaql(options: [{ key: "example", value: "\"WH3PHAJT\"" }])
+  commissions: [Commission]!
+  createdAt: DateTime!
+  customer: Customer
+  customerId: Int
+  description: String @spectaql(options: [{ key: "example", value: "\"Purchase of 20 tokens at 25.00 EUR\"" }])
+  exchangeRates: JSON @spectaql(options: [{ key: "example", value: "{\n  \"APE-USD\": \"1.4775\",\n  \"BCH-USD\": \"187.03\",\n  \"BTC-USD\": \"25810.785\",\n  \"DAI-USD\": \"0.99985\",\n  \"ETH-USD\": \"1635.665\",\n  \"LTC-USD\": \"64.08\",\n  \"DOGE-USD\": \"0.062855\",\n  \"SHIB-USD\": \"0.000008135\",\n  \"USDC-USD\": \"1.0\",\n  \"USDT-USD\": \"0.999385\",\n  \"PUSDC-USD\": \"1.0\",\n  \"PWETH-USD\": \"1635.835\",\n  \"PMATIC-USD\": \"0.54525\"\n}" }])
+  expiresAt: DateTime!
+  feeRate: Float! @spectaql(options: [{ key: "example", value: "0.01" }])
+  hostedUrl: String! @spectaql(options: [{ key: "example", value: "\"https://commerce.coinbase.com/charges/WH3PHAJT\"" }])
+  localExchangeRates: JSON @spectaql(options: [{ key: "example", value: "{\n  \"APE-EUR\": \"1.37\",\n  \"BCH-EUR\": \"172.90\",\n  \"BTC-EUR\": \"23860.84\",\n  \"DAI-EUR\": \"0.92\",\n  \"ETH-EUR\": \"1512.09\",\n  \"LTC-EUR\": \"59.24\",\n  \"DOGE-EUR\": \"0.06\",\n  \"SHIB-EUR\": \"0.00\",\n  \"USDC-EUR\": \"0.92\",\n  \"USDT-EUR\": \"0.92\",\n  \"PUSDC-EUR\": \"0.92\",\n  \"PWETH-EUR\": \"1512.25\",\n  \"PMATIC-EUR\": \"0.50\"\n}" }])
+  name: String! @spectaql(options: [{ key: "example", value: "\"John Smith\"" }])
+  paymentThreshold: JSON @spectaql(options: [{ key: "example", value: "{\n  \"overpayment_absolute_threshold\": {\n    \"amount\": \"5.00\",\n    \"currency\": \"USD\"\n  },\n  \"overpayment_relative_threshold\": \"0.045\",\n  \"underpayment_absolute_threshold\": {\n    \"amount\": \"5.00\",\n    \"currency\": \"USD\"\n  },\n  \"underpayment_relative_threshold\": \"0.005\"\n}" }])
+  payments: [Payment]!
+  pricing: JSON! @spectaql(options: [{ key: "example", value: "{\n  \"dai\": {\n    \"amount\": \"27.047099993858618793\",\n    \"currency\": \"DAI\"\n  },\n  \"usdc\": {\n    \"amount\": \"27.043043\",\n    \"currency\": \"USDC\"\n  },\n  \"local\": {\n    \"amount\": \"25.00\",\n    \"currency\": \"EUR\"\n  },\n  \"pusdc\": {\n    \"amount\": \"27.043043\",\n    \"currency\": \"PUSDC\"\n  },\n  \"pweth\": {\n    \"amount\": \"0.016531644651728041\",\n    \"currency\": \"PWETH\"\n  },\n  \"tether\": {\n    \"amount\": \"27.059685\",\n    \"currency\": \"USDT\"\n  },\n  \"apecoin\": {\n    \"amount\": \"18.303243945082598985\",\n    \"currency\": \"APE\"\n  },\n  \"bitcoin\": {\n    \"amount\": \"0.00104774\",\n    \"currency\": \"BTC\"\n  },\n  \"polygon\": {\n    \"amount\": \"49.597511000\",\n    \"currency\": \"PMATIC\"\n  },\n  \"dogecoin\": {\n    \"amount\": \"430.24489585\",\n    \"currency\": \"DOGE\"\n  },\n  \"ethereum\": {\n    \"amount\": \"0.016533000\",\n    \"currency\": \"ETH\"\n  },\n  \"litecoin\": {\n    \"amount\": \"0.42202002\",\n    \"currency\": \"LTC\"\n  },\n  \"shibainu\": {\n    \"amount\": \"3324283.088980889981561156\",\n    \"currency\": \"SHIB\"\n  },\n  \"bitcoincash\": {\n    \"amount\": \"0.14459201\",\n    \"currency\": \"BCH\"\n  }\n}" }])
+  pricingType: String! @spectaql(options: [{ key: "example", value: "\"fixed_price\"" }])
+  purchaseActivity: PurchaseActivity
+  redirectUrl: String @spectaql(options: [{ key: "example", value: "\"https://<FRONTEND_URL>/payment-success\"" }])
+  updatedAt: DateTime
+}
+
+type ChargeBase {
+  addresses: JSON @spectaql(options: [{ key: "example", value: "{\n  \"dai\": \"0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f\",\n  \"usdc\": \"0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f\",\n  \"pusdc\": \"0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f\",\n  \"pweth\": \"0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f\",\n  \"tether\": \"0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f\",\n  \"apecoin\": \"0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f\",\n  \"bitcoin\": \"34URso9pwmaWXXXsGjwiUdy3g9j23qg5TW\",\n  \"polygon\": \"0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f\",\n  \"dogecoin\": \"DB5kPE4VY6TFaopwphBaHpWkqDAxsbDhic\",\n  \"ethereum\": \"0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f\",\n  \"litecoin\": \"MUndhhRBZffhd7nXhnQ7mTMgKd2LBeyEHE\",\n  \"shibainu\": \"0x4acc48c6aca0f9e4ac74abd0447429424c8a4a7f\",\n  \"bitcoincash\": \"qzqyjeskkq2wxy3t8k0rctmgpsc59wdv4g6epkd8u5\"\n}" }])
+  cancelUrl: String @spectaql(options: [{ key: "example", value: "\"https://<FRONTEND_URL>/payment-cancelled\"" }])
+  chargeId: Int!
+  code: String! @spectaql(options: [{ key: "example", value: "\"WH3PHAJT\"" }])
+  createdAt: DateTime!
+  customerId: Int
+  description: String @spectaql(options: [{ key: "example", value: "\"Purchase of 20 tokens at 25.00 EUR\"" }])
+  exchangeRates: JSON @spectaql(options: [{ key: "example", value: "{\n  \"APE-USD\": \"1.4775\",\n  \"BCH-USD\": \"187.03\",\n  \"BTC-USD\": \"25810.785\",\n  \"DAI-USD\": \"0.99985\",\n  \"ETH-USD\": \"1635.665\",\n  \"LTC-USD\": \"64.08\",\n  \"DOGE-USD\": \"0.062855\",\n  \"SHIB-USD\": \"0.000008135\",\n  \"USDC-USD\": \"1.0\",\n  \"USDT-USD\": \"0.999385\",\n  \"PUSDC-USD\": \"1.0\",\n  \"PWETH-USD\": \"1635.835\",\n  \"PMATIC-USD\": \"0.54525\"\n}" }])
+  expiresAt: DateTime!
+  feeRate: Float! @spectaql(options: [{ key: "example", value: "0.01" }])
+  hostedUrl: String! @spectaql(options: [{ key: "example", value: "\"https://commerce.coinbase.com/charges/WH3PHAJT\"" }])
+  localExchangeRates: JSON @spectaql(options: [{ key: "example", value: "{\n  \"APE-EUR\": \"1.37\",\n  \"BCH-EUR\": \"172.90\",\n  \"BTC-EUR\": \"23860.84\",\n  \"DAI-EUR\": \"0.92\",\n  \"ETH-EUR\": \"1512.09\",\n  \"LTC-EUR\": \"59.24\",\n  \"DOGE-EUR\": \"0.06\",\n  \"SHIB-EUR\": \"0.00\",\n  \"USDC-EUR\": \"0.92\",\n  \"USDT-EUR\": \"0.92\",\n  \"PUSDC-EUR\": \"0.92\",\n  \"PWETH-EUR\": \"1512.25\",\n  \"PMATIC-EUR\": \"0.50\"\n}" }])
+  name: String! @spectaql(options: [{ key: "example", value: "\"John Smith\"" }])
+  paymentThreshold: JSON @spectaql(options: [{ key: "example", value: "{\n  \"overpayment_absolute_threshold\": {\n    \"amount\": \"5.00\",\n    \"currency\": \"USD\"\n  },\n  \"overpayment_relative_threshold\": \"0.045\",\n  \"underpayment_absolute_threshold\": {\n    \"amount\": \"5.00\",\n    \"currency\": \"USD\"\n  },\n  \"underpayment_relative_threshold\": \"0.005\"\n}" }])
+  pricing: JSON! @spectaql(options: [{ key: "example", value: "{\n  \"dai\": {\n    \"amount\": \"27.047099993858618793\",\n    \"currency\": \"DAI\"\n  },\n  \"usdc\": {\n    \"amount\": \"27.043043\",\n    \"currency\": \"USDC\"\n  },\n  \"local\": {\n    \"amount\": \"25.00\",\n    \"currency\": \"EUR\"\n  },\n  \"pusdc\": {\n    \"amount\": \"27.043043\",\n    \"currency\": \"PUSDC\"\n  },\n  \"pweth\": {\n    \"amount\": \"0.016531644651728041\",\n    \"currency\": \"PWETH\"\n  },\n  \"tether\": {\n    \"amount\": \"27.059685\",\n    \"currency\": \"USDT\"\n  },\n  \"apecoin\": {\n    \"amount\": \"18.303243945082598985\",\n    \"currency\": \"APE\"\n  },\n  \"bitcoin\": {\n    \"amount\": \"0.00104774\",\n    \"currency\": \"BTC\"\n  },\n  \"polygon\": {\n    \"amount\": \"49.597511000\",\n    \"currency\": \"PMATIC\"\n  },\n  \"dogecoin\": {\n    \"amount\": \"430.24489585\",\n    \"currency\": \"DOGE\"\n  },\n  \"ethereum\": {\n    \"amount\": \"0.016533000\",\n    \"currency\": \"ETH\"\n  },\n  \"litecoin\": {\n    \"amount\": \"0.42202002\",\n    \"currency\": \"LTC\"\n  },\n  \"shibainu\": {\n    \"amount\": \"3324283.088980889981561156\",\n    \"currency\": \"SHIB\"\n  },\n  \"bitcoincash\": {\n    \"amount\": \"0.14459201\",\n    \"currency\": \"BCH\"\n  }\n}" }])
+  pricingType: String! @spectaql(options: [{ key: "example", value: "\"fixed_price\"" }])
+  redirectUrl: String @spectaql(options: [{ key: "example", value: "\"https://<FRONTEND_URL>/payment-success\"" }])
+  updatedAt: DateTime
+}
+
+type ChargeResult {
+  data: [Charge]!
+  nextPageCursor: Int
+}
+
+type Commission {
+  amount: Float!
+  charge: Charge
+  chargeId: Int
+  commissionId: Int!
+  commissionRate: Float!
+  createdAt: DateTime!
+  currency: String!
+  customer: Customer
+  customerId: Int
+  isTransferred: Boolean!
+  tier: Int!
+  updatedAt: DateTime
+}
+
+type CommissionBase {
+  amount: Float!
+  chargeId: Int
+  commissionId: Int!
+  commissionRate: Float! @spectaql(options: [{ key: "example", value: "0.02" }])
+  createdAt: DateTime!
+  currency: String! @spectaql(options: [{ key: "example", value: "\"EUR\"" }])
+  customerId: Int
+  isTransferred: Boolean!
+  tier: Int! @spectaql(options: [{ key: "example", value: "1" }])
+  updatedAt: DateTime
+}
+
+type CommissionRate {
+  """
+  The commission rate is a decimal value ranging from 0.0 to 1.0 (or 0% to 100%), representing the commission percentage assigned to a particular tier in the referral hierarchy. This rate determines the percentage of commission a user at a specific tier receives for a referral. For instance, a commission rate of 0.1 corresponds to a 10% commission rate, whereas a commission rate of 0.9999 corresponds to a 99.99% commission rate. In the database, this field is represented as a Decimal with a precision of 4 decimal places, ensuring accurate commission rate calculations down to the hundredth of a percent.
+  """
+  commissionRate: Float!
+
+  """
+  The tier represents the level in the referral hierarchy. A tier of 1 indicates a direct referral, while higher tier numbers indicate referrals further up the hierarchy. For instance, in a scenario where User A refers User B, and User B refers User C, User B is at tier 1 for User C, and User A is at tier 2 for User C.
+  """
+  tier: Int!
+}
+
+type CommissionResult {
+  data: [Commission]!
+  nextPageCursor: Int
+}
+
+type CommissionTier {
+  """
+  The commission rate is a decimal value ranging from 0.0 to 1.0 (or 0% to 100%), representing the commission percentage assigned to a particular tier in the referral hierarchy. This rate determines the percentage of commission a user at a specific tier receives for a referral. For instance, a commission rate of 0.1 corresponds to a 10% commission rate, whereas a commission rate of 0.9999 corresponds to a 99.99% commission rate. In the database, this field is represented as a Decimal with a precision of 4 decimal places, ensuring accurate commission rate calculations down to the hundredth of a percent.
+  """
+  commissionRate: Float! @spectaql(options: [{ key: "example", value: "0.1" }])
+  commissionTierId: Int!
+  createdAt: DateTime!
+
+  """
+  The tier represents the level in the referral hierarchy. A tier of 1 indicates a direct referral, while higher tier numbers indicate referrals further up the hierarchy. For instance, in a scenario where User A refers User B, and User B refers User C, User B is at tier 1 for User C, and User A is at tier 2 for User C.
+  """
+  tier: Int! @spectaql(options: [{ key: "example", value: "1" }])
+  updatedAt: DateTime
+}
+
+type Config {
+  configId: Int!
+  createdAt: DateTime!
+  isReferralCodeEnabled: Boolean!
+  referralViewLevel: Int!
+  updatedAt: DateTime
+}
+
+input CreateCommissionTierInput {
+  """
+  The commission rate is a decimal value ranging from 0.0 to 1.0 (or 0% to 100%), representing the commission percentage assigned to a particular tier in the referral hierarchy. This rate determines the percentage of commission a user at a specific tier receives for a referral. For instance, a commission rate of 0.1 corresponds to a 10% commission rate, whereas a commission rate of 0.9999 corresponds to a 99.99% commission rate. In the database, this field is represented as a Decimal with a precision of 4 decimal places, ensuring accurate commission rate calculations down to the hundredth of a percent.
+  """
+  commissionRate: Float! @spectaql(options: [{ key: "example", value: "0.1" }])
+
+  """
+  The tier represents the level in the referral hierarchy. A tier of 1 indicates a direct referral, while higher tier numbers indicate referrals further up the hierarchy. For instance, in a scenario where User A refers User B, and User B refers User C, User B is at tier 1 for User C, and User A is at tier 2 for User C.
+  """
+  tier: Int! @spectaql(options: [{ key: "example", value: "1" }])
+}
+
+input CreateWalletInput {
+  """
+  The blockchain address for the wallet. This should be a valid string that represents the wallet's address on the blockchain.
+  """
+  address: String! @spectaql(options: [{ key: "example", value: "\"0x742d35Cc6634C0532925a3b844Bc454e4438f44e\"" }])
+
+  """
+  The type of cryptocurrency that the wallet will hold. Valid options are defined by the `CryptoType` enum, such as 'DAI', 'USDC', 'ETH', etc. This field must match one of the predefined cryptocurrency types.
+  """
+  cryptoType: CryptoType! @spectaql(options: [{ key: "example", value: "\"ETH\"" }])
+
+  """
+  The unique identifier of the customer to whom the wallet belongs. This field must be populated with an existing customer's ID.
+  """
+  customerId: Int!
+
+  """
+  An optional boolean flag indicating whether this wallet should be set as the default wallet for the associated customer. If `true`, this wallet is considered the primary wallet for transactions. If omitted, the wallet is not set as the default by default.
+  """
+  isDefault: Boolean
+}
+
+enum CryptoType {
+  APE
+  BCH
+  BTC
+  DAI
+  DOGE
+  ETH
+  LTC
+  PMATIC
+  PUSDC
+  PWETH
+  SHIB
+  USDC
+  USDT
+}
+
+type Customer {
+  charges: [Charge]!
+  commissions: [Commission]!
+  createdAt: DateTime
+  customerId: Int!
+  customerStatus: CustomerStatus! @spectaql(options: [{ key: "example", value: "\"ACTIVE\"" }])
+  email: String! @spectaql(options: [{ key: "example", value: "\"johndoe@gmail.com\"" }])
+  emailStatus: EmailStatus! @spectaql(options: [{ key: "example", value: "\"VERIFIED\"" }])
+  image: Image
+  name: String!
+  purchaseActivities: [PurchaseActivity]!
+  referees: [Customer!]
+  referralCode: String
+  referralCustomerId: Int
+  referrer: Customer
+  updatedAt: DateTime
+  wallets: [Wallet]!
+}
+
+type CustomerResult {
+  data: [Customer]!
+  nextPageCursor: Int
+}
+
+enum CustomerRole {
+  ADMIN
+  MODERATOR
+  USER
+}
+
+enum CustomerStatus {
+  ACTIVE
+  INACTIVE
+  PENDING
+  SUSPENDED
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+input DeleteWalletInput {
+  """
+  The identifier of the customer who owns the wallet. This field ensures that the deletion operation is scoped to wallets under the ownership of the specified customer.
+  """
+  customerId: Int!
+
+  """
+  The unique identifier of the wallet to be deleted. This ID must correspond to an existing wallet associated with the customer specified by the `customerId` field.
+  """
+  walletId: Int!
+}
+
+input EmailInput {
+  email: String! @spectaql(options: [{ key: "example", value: "\"johndoe@gmail.com\"" }])
+}
+
+enum EmailStatus {
+  UNVERIFIED
+  VERIFIED
+}
+
+type FieldRecord {
+  key: String!
+  value: String!
+}
+
+type Image {
+  createdAt: DateTime!
+  customerId: Int
+  imageId: Int!
+  packageId: Int
+  path: String!
+  type: ImageType!
+}
+
+enum ImageType {
+  CUSTOMER
+  PACKAGE
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+
+type JwtPayload {
+  email: String! @spectaql(options: [{ key: "example", value: "\"johndoe@gmail.com\"" }])
+  exp: Int @spectaql(options: [{ key: "example", value: "1697779177" }])
+  iat: Int @spectaql(options: [{ key: "example", value: "1697778277" }])
+  name: String!
+  role: CustomerRole!
+  sub: Int!
+}
+
+input LoginInput {
+  email: String! @spectaql(options: [{ key: "example", value: "\"johndoe@gmail.com\"" }])
+  password: String! @spectaql(options: [{ key: "example", value: "\"secured-password\"" }])
+}
+
+type Mutation {
+  calculateCommission(chargeCode: String!): Int!
+
+  "\n#### `Restricted to User and Admin. Fresh Access Token is required`\n\nFor enhanced security, certain actions require a fresh authentication token. If you've been logged in for more than 10 minutes, you'll need to re-login to proceed with these specific actions.\n\n| Exception             | Code            | Status Code | Message                                                                                                                                                                                        |\n| --------------------- | --------------- | ----------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |\n| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized                                                                                                                                                                                   |\n| BadRequestException   | BAD_REQUEST     | 400         | [\"oldPassword must be a string\", \"oldPassword should not be empty\", \"oldPassword must be longer than or equal to 8 characters\", \"oldPassword must be shorter than or equal to 100 characters\"] |\n| BadRequestException   | BAD_REQUEST     | 400         | [\"newPassword must be a string\", \"newPassword should not be empty\", \"newPassword must be longer than or equal to 8 characters\", \"newPassword must be shorter than or equal to 100 characters\"] |\n| BadRequestException   | BAD_REQUEST     | 400         | Customer not found                                                                                                                                                                             |\n| BadRequestException   | BAD_REQUEST     | 400         | Invalid old password                                                                                                                                                                           |\n|                       | BAD_USER_INPUT  |             |                                                                                                                                                                                                |\n"
+  changePassword(input: ChangePasswordInput!): Boolean!
+
+  "\n#### `Restricted to Admin only`\n\n| Exception             | Code                  | Status Code | Message                        |\n| --------------------- | --------------------- | ----------- | ------------------------------ |\n| UnauthorizedException | UNAUTHENTICATED       | 401         | Unauthorized                   |\n| ForbiddenException    | FORBIDDEN             | 403         | Forbidden Resource             |\n| ConflictException     | INTERNAL_SERVER_ERROR | 409         | Commission Tier already exists |\n|                       | BAD_USER_INPUT        |             |                                |\n"
+  createCommissionTier(input: CreateCommissionTierInput!): CommissionTier!
+
+  "\n#### `Restricted to Admin only`\n\n| Exception             | Code            | Status Code | Message                                                                                                                 |\n| --------------------- | --------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------- |\n| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource                                                                                                      |\n| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized                                                                                                            |\n| BadRequestException   | BAD_REQUEST     | 400         | [\"name must be a string\", \"name should not be empty\"]                                                                   |\n| BadRequestException   | BAD_REQUEST     | 400         | [\"description must be a string\"]                                                                                        |\n| BadRequestException   | BAD_REQUEST     | 400         | [\"tokenAmount must be a number\", \"tokenAmount should not be empty\"]                                                     |\n| BadRequestException   | BAD_REQUEST     | 400         | [\"price must be a number\", \"price should not be empty\", \"price must be a valid currency format\"]                        |\n| BadRequestException   | BAD_REQUEST     | 400         | [\"currency must be a string\", \"currency should not be empty\", \"currency must be one of the following: USD, GBP or EUR\"] |\n| BadRequestException   | BAD_REQUEST     | 400         | [\"isActive must be a boolean\", \"isActive should not be empty\"]                                                          |\n|                       | BAD_USER_INPUT  |             |                                                                                                                         |\n"
+  createTokenPackage(input: TokenPackageCreateInput!): TokenPackage!
+
+  "\n#### `Restricted to User and Admin`\n\n| Exception             | Code            | Status Code | Message                                                       |\n| --------------------- | --------------- | ----------- | ------------------------------------------------------------- |\n| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized                                                  |\n| BadRequestException   | BAD_REQUEST     | 400         | [ \"customerId should not be empty\" ]                          |\n| BadRequestException   | BAD_REQUEST     | 400         | [ \"address should not be empty\", \"address must be a string\" ] |\n| BadRequestException   | BAD_REQUEST     | 400         | [ \"type must be a valid CryptoType\" ]                         |\n| BadRequestException   | BAD_REQUEST     | 400         | Operation not allowed                                         |\n| BadRequestException   | BAD_REQUEST     | 400         | You must have at least one ETH wallet                         |\n| BadRequestException   | BAD_REQUEST     | 400         | Invalid ETH address                                           |\n|                       | BAD_USER_INPUT  |             |                                                               |\n"
+  createWallet(input: CreateWalletInput!): Wallet!
+
+  "\n#### `Restricted to Admin only`\n\n| Exception             | Code                  | Status Code | Message                   |\n| --------------------- | --------------------- | ----------- | ------------------------- |\n| UnauthorizedException | UNAUTHENTICATED       | 401         | Unauthorized              |\n| ForbiddenException    | FORBIDDEN             | 403         | Forbidden Resource        |\n| NotFoundException     | INTERNAL_SERVER_ERROR | 404         | Commission Tier not found |\n|                       | BAD_USER_INPUT        |             |                           |\n"
+  deleteCommissionTier(tier: Int!): CommissionTier!
+
+  "\n#### `Restricted to Admin only`\n\n| Exception             | Code            | Status Code | Message            |\n| --------------------- | --------------- | ----------- | ------------------ |\n| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |\n| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |\n|                       | BAD_USER_INPUT  |             |                    |\n"
+  deleteTokenPackage(packageId: Int!): TokenPackage!
+
+  "\n#### `Restricted to User and Admin`\n\n| Exception             | Code                  | Status Code | Message                               |\n| --------------------- | --------------------- | ----------- | ------------------------------------- |\n| UnauthorizedException | UNAUTHENTICATED       | 401         | Unauthorized                          |\n| BadRequestException   | BAD_REQUEST           | 400         | [ \"customerId should not be empty\" ]  |\n| BadRequestException   | BAD_REQUEST           | 400         | [ \"walletId should not be empty\" ]    |\n| BadRequestException   | BAD_REQUEST           | 400         | Operation not allowed                 |\n| NotFoundException     | INTERNAL_SERVER_ERROR | 404         | Wallet not found                      |\n| BadRequestException   | BAD_REQUEST           | 400         | You must have at least one ETH wallet |\n|                       | BAD_USER_INPUT        |             |\n"
+  deleteWallet(input: DeleteWalletInput!): Wallet!
+
+  "\n#### `Restricted to Admin only`\n\n| Exception             | Code            | Status Code | Message                                                                                 |\n| --------------------- | --------------- | ----------- | --------------------------------------------------------------------------------------- |\n| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource                                                                      |\n| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized                                                                            |\n| BadRequestException   | BAD_REQUEST     | 400         | [\"name must be a string\"]                                                               |\n| BadRequestException   | BAD_REQUEST     | 400         | [\"description must be a string\"]                                                        |\n| BadRequestException   | BAD_REQUEST     | 400         | [\"tokenAmount must be a number\"]                                                        |\n| BadRequestException   | BAD_REQUEST     | 400         | [\"price must be a number\", \"price must be a valid currency format\"]                     |\n| BadRequestException   | BAD_REQUEST     | 400         | [\"currency must be a string\", \"currency must be one of the following: USD, GBP or EUR\"] |\n| BadRequestException   | BAD_REQUEST     | 400         | [\"isActive must be a boolean\"]                                                          |\n|                       | BAD_USER_INPUT  |             |                                                                                         |\n"
+  editTokenPackage(input: TokenPackageUpdateInput!, packageId: Int!): TokenPackage!
+
+  "\n| Exception           | Code                  | Status Code | Message                                            |\n| ------------------- | --------------------- | ----------- | -------------------------------------------------- |\n| NotFoundException   | INTERNAL_SERVER_ERROR | 404         | Customer associated with this email does not exist |\n| BadRequestException | BAD_REQUEST           | 400         | [ \"email must be an email\" ]                       |\n|                     | BAD_USER_INPUT        |             |                                                    |\n| BadRequestException | BAD_REQUEST           | 400         | Too many attempts                                  |\n"
+  forgetPassword(input: EmailInput!): Boolean!
+  generatePresignedPost(uploadInput: UploadInput!): PresignedPost! @spectaql(options: [{ key: "undocumented", value: "true" }])
+
+  "\n#### `Restricted to User and Admin`\n\n| Exception                    | Code                  | Status Code | Message                                                                 |\n| ---------------------------- | --------------------- | ----------- | ----------------------------------------------------------------------- |\n| UnauthorizedException        | UNAUTHENTICATED       | 401         | Unauthorized                                                            |\n| BadRequestException          | BAD_REQUEST           | 400         | Invalid file extension                                                  |\n| InternalServerErrorException | INTERNAL_SERVER_ERROR | 500         | Failed to generate pre-signed URL                                       |\n| BadRequestException          | BAD_REQUEST           | 400         | [\"type must be a valid ImageType\"]                                      |\n| BadRequestException          | BAD_REQUEST           | 400         | [\"fileExtension must be a string\", \"fileExtension should not be empty\"] |\n|                              | BAD_USER_INPUT        |             |                                                                         |\n  "
+  generatePresignedUrl(uploadInput: UploadInput!): PresignedUrl!
+  generatePresignedUrls(uploadInputs: [UploadInput!]!): [PresignedUrl!]! @spectaql(options: [{ key: "undocumented", value: "true" }])
+
+  "\n| Exception           | Code                  | Status Code | Message                                                                                                                 |\n| ------------------- | --------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------- |\n| NotFoundException   | INTERNAL_SERVER_ERROR | 404         | Customer associated with this email does not exist                                                                      |\n| BadRequestException | BAD_REQUEST           | 400         | Incorrect password                                                                                                      |\n| BadRequestException | BAD_REQUEST           | 400         | Customer not verified                                                                                                   |\n| BadRequestException | BAD_REQUEST           | 400         | Customer is suspended                                                                                                   |\n|                     | BAD_USER_INPUT        |             |                                                                                                                         |\n| BadRequestException | BAD_REQUEST           | 400         | [ \"email must be an email\" ]                                                                                            |\n| BadRequestException | BAD_REQUEST           | 400         | [ \"password must be longer than or equal to 8 characters\", \"password must be shorter than or equal to 100 characters\" ] |\n\n---\n\n ```json\n // Response with String!\n {\"data\": {\"login\": \"Login successful\"}}\n ```\n"
+  login(input: LoginInput!): String!
+
+  "\n ```json\n // Response with String!\n {\"data\": {\"logout\": \"Logout successful\"}}\n ```\n"
+  logout: String!
+
+  "\n#### `Restricted to User and Admin`\n\n| Exception                    | Code                  | Status Code | Message                            |\n|------------------------------|-----------------------|-------------|------------------------------------|\n| UnauthorizedException        | UNAUTHENTICATED       | 401         | Unauthorized                       |\n| InternalServerErrorException | INTERNAL_SERVER_ERROR | 500         | Unexpected charge object structure |\n| InternalServerErrorException | INTERNAL_SERVER_ERROR | 500         | Failed to create charge            |\n| InternalServerErrorException | INTERNAL_SERVER_ERROR | 500         | Failed recording new charge        |\n| NotFoundException            | INTERNAL_SERVER_ERROR | 404         | Token Package not found            |\n| NotFoundException            | INTERNAL_SERVER_ERROR | 404         | Token Price not found              |\n| NotFoundException            | INTERNAL_SERVER_ERROR | 404         | Quantity token not provided        |\n|                              | BAD_USER_INPUT        |             |                                    |\n"
+  purchaseTokens(input: PurchaseTokensInput!): String!
+
+  "\n| Exception             | Code            | Status Code | Message               |\n| --------------------- | --------------- | ----------- | --------------------- |\n| UnauthorizedException | UNAUTHENTICATED | 401         | Invalid refresh token |\n| UnauthorizedException | UNAUTHENTICATED | 401         | Customer not found    |\n| UnauthorizedException | UNAUTHENTICATED | 401         | Customer is suspended |\n\n---\n\n ```json\n // Response with String!\n {\"data\": {\"refreshTokens\": \"Refresh token successful\"}}\n ```\n  "
+  refreshTokens: String!
+
+  "\nIf the Admin sets the `isReferralCodeEnabled` flag in the `Config` table, the error message \"Referral code is required\" will appear if the Customer does not provide the `referralCode` during registration. `referralCode` is optional if Admin unsets the `isReferralCodeEnabled` flag.\n\n| Exception           | Code                  | Status Code | Message                                                                                                   |\n| ------------------- | --------------------- | ----------- | --------------------------------------------------------------------------------------------------------- |\n| BadRequestException | BAD_REQUEST           | 400         | [\"name must be longer than or equal to 2 characters\", \"name must be a string\"]                             |\n| BadRequestException | BAD_REQUEST           | 400         | [\"email must be an email\"]                                                                                |\n| BadRequestException | BAD_REQUEST           | 400         | [\"password must be longer than or equal to 8 characters\", \"password must be shorter than or equal to 100 characters\"] |\n|                     | BAD_USER_INPUT        |             |                                                                                                           |\n| BadRequestException | BAD_REQUEST           | 400         | Referral code is required                                                                                 |\n| BadRequestException | BAD_REQUEST           | 400         | Invalid referral code                                                                                     |\n| ConflictException   | INTERNAL_SERVER_ERROR | 409         | Email already exists                                                                                      |\n"
+  register(input: RegisterInput!): Customer!
+
+  "\n| Exception           | Code                  | Status Code | Message                        |\n| ------------------- | --------------------- | ----------- | ------------------------------ |\n| BadRequestException | BAD_REQUEST           | 400         | Verification token has expired |\n| BadRequestException | BAD_REQUEST           | 400         | Verification token is invalid  |\n|                     | BAD_USER_INPUT        |             |                                |\n| NotFoundException   | INTERNAL_SERVER_ERROR | 404         | Customer not found             |\n"
+  registerAdmin(input: RegisterAdminInput!): Boolean!
+
+  "\n#### `Restricted to Admin only`\n\n| Exception             | Code            | Status Code | Message            |\n| --------------------- | --------------- | ----------- | ------------------ |\n| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |\n| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |\n| BadRequestException   | BAD_REQUEST     | 400         | Customer not found |\n|                       | BAD_USER_INPUT  |             |                    |\n"
+  reinstateCustomer(customerId: Int!): Customer!
+
+  "\nThis method can be used together with `registerAdmin mutation` if token expired/invalid or admin forget password.\n\n| Exception           | Code                  | Status Code | Message                                            |\n| ------------------- | --------------------- | ----------- | -------------------------------------------------- |\n| BadRequestException | BAD_REQUEST           | 400         | Too many attempts                                  |\n| NotFoundException   | INTERNAL_SERVER_ERROR | 404         | Customer associated with this email does not exist |\n"
+  resendAdminRegistrationEmail: Boolean!
+
+  "\nThis method can be used with `mutation verifyEmail` if verification token is invalid (like link expired).\n\n| Exception           | Code                  | Status Code | Message                                            |\n| ------------------- | --------------------- | ----------- | -------------------------------------------------- |\n| NotFoundException   | INTERNAL_SERVER_ERROR | 404         | Customer associated with this email does not exist |\n| BadRequestException | BAD_REQUEST           | 400         | Too many attempts                                  |\n|                     | BAD_USER_INPUT        |             |                                                    |\n"
+  resendEmailVerification(input: EmailInput!): Boolean!
+
+  "\n| Exception           | Code                  | Status Code | Message                                                                                                                 |\n| ------------------- | --------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------- |\n| NotFoundException   | INTERNAL_SERVER_ERROR | 404         | Customer associated with this email does not exist                                                                      |\n| BadRequestException | BAD_REQUEST           | 400         | [ \"token must be a string\", \"token should not be empty\" ]                                                               |\n| BadRequestException | BAD_REQUEST           | 400         | [ \"password must be longer than or equal to 8 characters\", \"password must be shorter than or equal to 100 characters\" ] |\n| BadRequestException | BAD_REQUEST           | 400         | Customer not found                                                                                                      |\n|                     | BAD_USER_INPUT        |             |                                                                                                                         |\n"
+  resetPassword(input: ResetPasswordInput!): Boolean!
+
+  "\n#### `Restricted to Admin only`\n\nAfter Frontend uploading image to S3 bucket, save the path using the following format `https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${key-from-generatePresignedUrl-mutation}` . You can find an example in the `upload.spec.ts` file located in the end-to-end test folder.\n  \n| Exception             | Code            | Status Code | Message                                               |\n| --------------------- | --------------- | ----------- | ----------------------------------------------------- |\n| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource                                    |\n| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized                                          |\n| BadRequestException   | BAD_REQUEST     | 400         | [\"path must be a string\", \"path should not be empty\"] |\n| BadRequestException   | BAD_REQUEST     | 400         | [\"type must be a valid ImageType\"]                    |\n| BadRequestException   | BAD_REQUEST     | 400         | [\"customerId must be an integer\"]                     |\n| BadRequestException   | BAD_REQUEST     | 400         | [\"packageId must be an integer\"]                      |\n|                       | BAD_USER_INPUT  |             |                                                       |\n\n"
+  saveUploadedImage(saveImageInput: SaveImageInput!): Image!
+
+  "\n#### `Restricted to User and Admin`\n\n| Exception             | Code                  | Status Code | Message                              |\n| --------------------- | --------------------- | ----------- | ------------------------------------ |\n| UnauthorizedException | UNAUTHENTICATED       | 401         | Unauthorized                         |\n| BadRequestException   | BAD_REQUEST           | 400         | [ \"customerId should not be empty\" ] |\n| BadRequestException   | BAD_REQUEST           | 400         | [ \"walletId should not be empty\" ]   |\n| BadRequestException   | BAD_REQUEST           | 400         | Operation not allowed                |\n| NotFoundException     | INTERNAL_SERVER_ERROR | 404         | Wallet not found                     |\n|                       | BAD_USER_INPUT        |             |     \n"
+  setDefaultWallet(input: SetDefaultWalletInput!): Wallet!
+
+  "\n#### `Restricted to Admin only`\n\n| Exception             | Code            | Status Code | Message                                                                                                                 |\n| --------------------- | --------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------- |\n| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource                                                                                                      |\n| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized                                                                                                            |\n| BadRequestException   | BAD_REQUEST     | 400         | [\"price must be a number\", \"price should not be empty\", \"price must be a valid currency format\"]                        |\n| BadRequestException   | BAD_REQUEST     | 400         | [\"currency must be a string\", \"currency should not be empty\", \"currency must be one of the following: USD, GBP or EUR\"] |\n|                       | BAD_USER_INPUT  |             |                                                                                                                         |\n"
+  setOrEditTokenPrice(input: TokenPriceCreateInput!): TokenPrice!
+
+  "\n#### `Restricted to Admin only`\n\n| Exception             | Code            | Status Code | Message            |\n| --------------------- | --------------- | ----------- | ------------------ |\n| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |\n| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |\n"
+  setReferralCodeEnabledStatus(status: Boolean!): Config!
+
+  "\n#### `Restricted to Admin only`\n\n| Exception             | Code            | Status Code | Message            |\n| --------------------- | --------------- | ----------- | ------------------ |\n| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |\n| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |\n"
+  setReferralViewLevel(depth: Int!): Config!
+
+  "\n#### `Restricted to Admin only`\n\n| Exception             | Code            | Status Code | Message            |\n| --------------------- | --------------- | ----------- | ------------------ |\n| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |\n| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |\n| BadRequestException   | BAD_REQUEST     | 400         | Customer not found |\n|                       | BAD_USER_INPUT  |             |                    |\n"
+  suspendCustomer(customerId: Int!): Customer!
+
+  "\n#### `Restricted to Admin only`\n\n| Exception             | Code            | Status Code | Message            |\n| --------------------- | --------------- | ----------- | ------------------ |\n| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |\n| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |\n|                       | BAD_USER_INPUT  |             |                    |\n"
+  toggleTokenPackageStatus(packageId: Int!): TokenPackage!
+
+  "\n#### `Restricted to Admin only`\n\n| Exception             | Code                  | Status Code | Message                   |\n| --------------------- | --------------------- | ----------- | ------------------------- |\n| UnauthorizedException | UNAUTHENTICATED       | 401         | Unauthorized              |\n| ForbiddenException    | FORBIDDEN             | 403         | Forbidden Resource        |\n| NotFoundException     | INTERNAL_SERVER_ERROR | 404         | Commission Tier not found |\n|                       | BAD_USER_INPUT        |             |                           |\n"
+  updateCommissionTier(input: UpdateCommissionTierInput!): CommissionTier!
+
+  "\n#### `Restricted to Admin only`\n\n| Exception             | Code            | Status Code | Message            |\n| --------------------- | --------------- | ----------- | ------------------ |\n| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |\n| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |\n|                       | BAD_USER_INPUT  |             |                    |\n"
+  updateCommissionTransferStatus(commissionId: Int!): CommissionBase!
+
+  "\n#### `Restricted to User and Admin`\n\n| Exception             | Code                  | Status Code | Message                               |\n| --------------------- | --------------------- | ----------- | ------------------------------------- |\n| UnauthorizedException | UNAUTHENTICATED       | 401         | Unauthorized                          |\n| BadRequestException   | BAD_REQUEST           | 400         | [ \"customerId should not be empty\" ]  |\n| BadRequestException   | BAD_REQUEST           | 400         | [ \"walletId should not be empty\" ]    |\n| BadRequestException   | BAD_REQUEST           | 400         | [ \"address must be a string\" ]        |\n| BadRequestException   | BAD_REQUEST           | 400         | [ \"type must be a valid CryptoType\" ] |\n| BadRequestException   | BAD_REQUEST           | 400         | Operation not allowed                 |\n| NotFoundException     | INTERNAL_SERVER_ERROR | 404         | Wallet not found                      |\n| BadRequestException   | BAD_REQUEST           | 400         | You must have at least one ETH wallet |\n| BadRequestException   | BAD_REQUEST           | 400         | Invalid ETH address                   |\n|                       | BAD_USER_INPUT        |             | \n"
+  updateWallet(input: UpdateWalletInput!): Wallet!
+
+  "\n`All response messages`\n\n| Success | Message                           |\n| ------- | --------------------------------- |\n| true    | Customer is successfully verified |\n| false   | Customer is suspended             |\n| false   | Verification token is invalid     |\n"
+  verifyEmail(token: String! @spectaql(options: [{ key: "example", value: "\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpX...\"" }])): VerifyEmailResult!
+}
+
+type Payment {
+  charge: Charge
+  chargeId: Int
+  createdAt: DateTime!
+  network: String
+  paymentId: Int!
+  paymentStatus: PaymentStatus!
+  status: String
+  transaction: String
+  type: String
+  unresolvedReason: UnresolvedReason
+  updatedAt: DateTime
+  value: JSON
+}
+
+enum PaymentStatus {
+  CANCELED
+  COMPLETED
+  EXPIRED
+  MANUALLY_ACCEPTED
+  MANUALLY_UNACCEPTED
+  NEW
+  PENDING
+  RESOLVED
+  UNRESOLVED
+}
+
+type PresignedPost {
+  fields: [FieldRecord!]!
+  url: String!
+}
+
+type PresignedUrl {
+  """Basically a file path in S3 bucket"""
+  key: String!
+
+  """Temporary URL for frontend to use upload to S3 bucket"""
+  presignedUrl: String!
+}
+
+type PurchaseActivity {
+  amount: Float!
+  charge: Charge
+  chargeId: Int
+  createdAt: DateTime!
+  currency: String!
+  customerId: Int
+  package: TokenPackage
+  packageId: Int
+  paymentStatus: PaymentStatus!
+  price: Float!
+  purchaseActivityId: Int!
+  purchaseCode: String!
+  purchaseConfirmed: Boolean!
+  tokenAmount: Float
+  tokenPrice: TokenPrice
+  tokenPriceId: Int
+  updatedAt: DateTime
+}
+
+type PurchaseActivityBase {
+  amount: Float!
+  chargeId: Int
+  createdAt: DateTime!
+  currency: String!
+  customerId: Int
+  packageId: Int
+  paymentStatus: PaymentStatus!
+  price: Float!
+  purchaseActivityId: Int!
+  purchaseCode: String!
+  purchaseConfirmed: Boolean!
+  tokenAmount: Float
+  tokenPriceId: Int
+  updatedAt: DateTime
+}
+
+type PurchaseActivityResult {
+  data: [PurchaseActivity]!
+  nextPageCursor: Int
+}
+
+input PurchaseTokensInput {
+  """
+  The URL to which users will be redirected after a cancelled payment action. It must be a live URL; localhost URLs are not accepted. One workaround for local development is to use a service like ngrok to expose your local server to the internet. For example, you could register and install ngrok, then run the command `ngrok http <FRONTEND_PORT>` to obtain a real URL that can be used here.
+  """
+  cancel_url: String! @spectaql(options: [{ key: "example", value: "\"https://<FRONTEND_URL>/payment-cancelled\"" }])
+
+  """
+  An optional field used to specify a pre-defined package of tokens for purchase. If provided, the price, currency, and token amount will be determined based on the identified package. If not provided, the `quantity` field must be specified to determine the purchase details.
+  """
+  packageId: Int
+
+  """
+  An optional field used to specify the number of tokens to purchase when a `packageId` is not provided. The total amount will be calculated based on the latest token price. If `packageId` is provided, this field will be ignored.
+  """
+  quantity: Int
+
+  """
+  The URL to which users will be redirected after a succesful payment action. It must be a live URL; localhost URLs are not accepted. One workaround for local development is to use a service like ngrok to expose your local server to the internet. For example, you could register and install ngrok, then run the command `ngrok http <FRONTEND_PORT>` to obtain a real URL that can be used here.
+  """
+  redirect_url: String! @spectaql(options: [{ key: "example", value: "\"https://<FRONTEND_URL>/payment-success\"" }])
+}
+
+type Query {
+  "\n#### `Restricted to User and Admin`\n\n| Exception             | Code            | Status Code | Message      |\n| --------------------- | --------------- | ----------- | ------------ |\n| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized |\n"
+  getAllCommissionRates: [CommissionRate!]!
+  getAllReferrers(referralCustomerId: Int, tier: Int!): [ReferrerResult!]!
+  getAllTokenPackages: [TokenPackage]!
+
+  "\n\n| Exception | Code           | Status Code | Message |\n| --------- | -------------- | ----------- | ------- |\n|           | BAD_USER_INPUT |             |         |\n"
+  getAllTokenPackagesByStatus(isActive: Boolean!): [TokenPackage]!
+
+  "\n#### `Restricted to Admin only`\n\n Exception             | Code            | Status Code | Message            |\n| --------------------- | --------------- | ----------- | ------------------ |\n| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |\n| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |\n|                       | BAD_USER_INPUT  |             |                    |\n"
+  getCharges(
+    """An optional argument to filter the results based on the Charge Code."""
+    code: String
+
+    """
+    An optional argument representing the ID of the last fetched item from a previous query. This helps in paginating results by picking up from where the last query left off. If it is the first query, set cursor to `null`.
+    """
+    cursor: Int
+
+    """An optional argument to filter the results based on the Customer ID."""
+    customerId: Int
+
+    """Specifies the maximum number of items to fetch in the query."""
+    limit: Int! = 10
+  ): ChargeResult!
+
+  "\n#### `Restricted to Admin only`\n\n| Exception             | Code            | Status Code | Message            |\n| --------------------- | --------------- | ----------- | ------------------ |\n| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |\n| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |\n|                       | BAD_USER_INPUT  |             |                    |\n"
+  getCommissions(
+    """
+    An optional argument representing the ID of the last fetched item from a previous query. This helps in paginating results by picking up from where the last query left off. If it is the first query, set cursor to `null`.
+    """
+    cursor: Int
+
+    """An optional argument to filter the results based on the Customer ID."""
+    customerId: Int
+
+    """
+    An optional filter to include only records where the funds have either been transferred to the wallet (when set to `true`), are pending transfer (when set to `false`), or neither (when not provided), returning all records regardless of transfer status.
+    """
+    isTransferred: Boolean
+
+    """Specifies the maximum number of items to fetch in the query."""
+    limit: Int
+  ): CommissionResult!
+
+  "\n#### `Restricted to User and Admin`\n\n| Exception             | Code            | Status Code | Message      |\n| --------------------- | --------------- | ----------- | ------------ |\n| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized |\n|                       | BAD_USER_INPUT  |             |              |\n"
+  getCommissionsForCustomer(
+    """
+    An optional argument representing the ID of the last fetched item from a previous query. This helps in paginating results by picking up from where the last query left off. If it is the first query, set cursor to `null`.
+    """
+    cursor: Int
+
+    """
+    An optional filter to include only records where the funds have either been transferred to the wallet (when set to `true`), are pending transfer (when set to `false`), or neither (when not provided), returning all records regardless of transfer status.
+    """
+    isTransferred: Boolean
+
+    """Specifies the maximum number of items to fetch in the query."""
+    limit: Int
+  ): CommissionResult!
+
+  "\n#### `Restricted to Admin only`\n\n| Exception             | Code            | Status Code | Message            |\n| --------------------- | --------------- | ----------- | ------------------ |\n| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |\n| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |\n  "
+  getConfig: Config
+
+  "\n#### `Restricted to Admin only`\n\n| Exception             | Code            | Status Code | Message            |\n| --------------------- | --------------- | ----------- | ------------------ |\n| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |\n| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |\n  "
+  getCustomers(
+    """Optional, ID from Cursor, sent `null` for the first time"""
+    cursor: Int
+
+    """Optional"""
+    customerId: Int
+
+    """
+    Optional, `CustomerRole` can be "ADMIN", "MODERATOR" or "USER"
+    """
+    customerRole: CustomerRole
+
+    """
+    Optional, `CustomerStatus` can be "ACTIVE", "INACTIVE", "PENDING" or "SUSPENDED"
+    """
+    customerStatus: CustomerStatus
+
+    """
+    Optional, `EmailStatus` can be "VERIFIED" or "UNVERIFIED"
+    """
+    emailStatus: EmailStatus
+
+    """Optional, how many data you want per fetch"""
+    limit: Int! = 10
+  ): CustomerResult!
+
+  "\n#### `Restricted to Admin only`\n\n| Exception             | Code            | Status Code | Message            |\n| --------------------- | --------------- | ----------- | ------------------ |\n| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |\n| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |\n|                       | BAD_USER_INPUT  |             |                    |\n"
+  getPurchaseActivities(
+    """
+    An optional argument representing the ID of the last fetched item from a previous query. This helps in paginating results by picking up from where the last query left off. If it is the first query, set cursor to `null`.
+    """
+    cursor: Int
+
+    """An optional argument to filter the results based on the Customer ID."""
+    customerId: Int
+
+    """Specifies the maximum number of items to fetch in the query."""
+    limit: Int! = 10
+
+    """
+    An optional argument to filter the results based on their payment status.
+    """
+    paymentStatus: PaymentStatus
+
+    """
+    An optional argument to filter the results based on whether the purchase has been confirmed.
+    """
+    purchaseConfirmed: Boolean
+  ): PurchaseActivityResult!
+
+  "\n#### `Restricted to User and Admin`\n\n| Exception             | Code            | Status Code | Message      |\n| --------------------- | --------------- | ----------- | ------------ |\n| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized |\n|                       | BAD_USER_INPUT  |             |              |\n"
+  getPurchaseActivitiesForCustomer(
+    """
+    An optional argument representing the ID of the last fetched item from a previous query. This helps in paginating results by picking up from where the last query left off. If it is the first query, set cursor to `null`.
+    """
+    cursor: Int
+
+    """Specifies the maximum number of items to fetch in the query."""
+    limit: Int! = 10
+
+    """
+    An optional argument to filter the results based on their payment status.
+    """
+    paymentStatus: PaymentStatus
+
+    """
+    An optional argument to filter the results based on whether the purchase has been confirmed.
+    """
+    purchaseConfirmed: Boolean
+  ): PurchaseActivityResult!
+
+  "\n#### `Restricted to User and Admin`\n\nThe depth of the referral map view is determined by the `referralViewLevel` setting configured by the admin\n\n| Exception             | Code                  | Status Code | Message                                                           |\n| --------------------- | --------------------- | ----------- | ----------------------------------------------------------------- |\n| UnauthorizedException | UNAUTHENTICATED       | 401         | Unauthorized                                                      |\n| BadRequestException   | BAD_REQUEST           | 400         | [\"referrerId must be a number\", \"referrerId should not be empty\"] |\n| BadRequestException   | BAD_REQUEST           | 400         | [\"startLevel must be a number\"]                                   |\n| NotFoundException     | INTERNAL_SERVER_ERROR | 404         | Customer not found                                                |\n| BadRequestException   | BAD_REQUEST           | 400         | Start level must be non-negative                                  |\n| BadRequestException   | BAD_REQUEST           | 400         | Raw query failed                                                  |\n| BadRequestException   | BAD_REQUEST           | 400         | Client request error                                              |\n| HttpException         | INTERNAL_SERVER_ERROR | 500         | An unexpected error occurred                                      |\n|                       | BAD_USER_INPUT        |             |                                                                   |\n"
+  getReferralMap(input: ReferralInput!): [ReferralMap!]!
+
+  "\n\n| Exception | Code           | Status Code | Message |\n| --------- | -------------- | ----------- | ------- |\n|           | BAD_USER_INPUT |             |         |\n"
+  getTokenPackage(packageId: Int!): TokenPackage
+  getTokenPrice: TokenPrice
+  getWalletByCustomerIdAndDefault(customerId: Int!): Wallet
+  getWalletsByCustomerId(customerId: Int!): [Wallet!]!
+  hello: String!
+
+  "\n#### `Restricted to Admin only`\n\n| Exception             | Code            | Status Code | Message            |\n| --------------------- | --------------- | ----------- | ------------------ |\n| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |\n| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |\n|                       | BAD_USER_INPUT  |             |                    |\n"
+  isCommissionTransferred(commissionId: Int!): Boolean!
+
+  "\n#### `Restricted to User and Admin`\n\nA user can query their own data\n| Exception             | Code                  | Status Code | Message            |\n| --------------------- | --------------------- | ----------- | ------------------ |\n| UnauthorizedException | UNAUTHENTICATED       | 401         | Unauthorized       |\n| NotFoundException     | INTERNAL_SERVER_ERROR | 404         | Customer not found |\n"
+  me: Customer!
+
+  "\n#### `Restricted to Admin only`\n\nJust for testing.\n\n| Exception             | Code            | Status Code | Message            |\n| --------------------- | --------------- | ----------- | ------------------ |\n| ForbiddenException    | FORBIDDEN       | 403         | Forbidden Resource |\n| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized       |\n"
+  protectedAdminMethod: JwtPayload!
+
+  "\n#### `Restricted to User and Admin. Fresh Access Token is required`\n\nFor enhanced security, certain actions require a fresh authentication token. If you've been logged in for more than 10 minutes, you'll need to re-login to proceed with these specific actions.\n\n| Exception             | Code            | Status Code | Message      |\n| --------------------- | --------------- | ----------- | ------------ |\n| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized |\n"
+  protectedFreshTokenMethod: JwtPayload!
+
+  "\n#### `Restricted to User and Admin`\n\nJust for testing. You need to login to access this protected method.\n\n| Exception             | Code            | Status Code | Message      |\n| --------------------- | --------------- | ----------- | ------------ |\n| UnauthorizedException | UNAUTHENTICATED | 401         | Unauthorized |\n"
+  protectedMethod: JwtPayload!
+}
+
+type ReferralEntry {
+  referees: [Customer!]!
+  referrer: Customer!
+}
+
+input ReferralInput {
+  """
+  The unique identifier (`customerId`) of the referrer at the top level of the referral hierarchy.
+  """
+  referrerId: Int!
+
+  """
+  The starting level for the referral hierarchy naming scheme. Providing a value of 0 will name the levels as `level0`, `level1`, `level2`, and so on, incrementing the level number as the hierarchy descends. You can start at any number, and the naming scheme will increment accordingly.
+  """
+  startLevel: Int @spectaql(options: [{ key: "example", value: "0" }])
+}
+
+type ReferralMap {
+  level: String! @spectaql(options: [{ key: "example", value: "\"level0\"" }])
+  referralEntries: [ReferralEntry!]!
+}
+
+type ReferrerResult {
+  customerId: Int!
+  customerStatus: CustomerStatus!
+  name: String
+  referralCustomerId: Int
+  tier: Int!
+}
+
+input RegisterAdminInput {
+  newName: String! @spectaql(options: [{ key: "example", value: "\"Admin John Doe\"" }])
+  newPassword: String! @spectaql(options: [{ key: "example", value: "\"new-secured-password\"" }])
+  token: String! @spectaql(options: [{ key: "example", value: "\"some-long-token-string\"" }])
+}
+
+input RegisterInput {
+  email: String! @spectaql(options: [{ key: "example", value: "\"johndoe@gmail.com\"" }])
+
+  """The name must be a string with a length between 2 and 50 characters"""
+  name: String! @spectaql(options: [{ key: "example", value: "\"John Doe\"" }])
+
+  """
+  The password must be a string with a length between 8 and 100 characters
+  """
+  password: String! @spectaql(options: [{ key: "example", value: "\"secured-password\"" }])
+
+  """The referral code is optional"""
+  referralCode: String @spectaql(options: [{ key: "example", value: "\"JKMUJZEU\"" }])
+}
+
+input ResetPasswordInput {
+  newPassword: String! @spectaql(options: [{ key: "example", value: "\"new-secured-password\"" }])
+  token: String! @spectaql(options: [{ key: "example", value: "\"some-long-token-string\"" }])
+}
+
+input SaveImageInput {
+  """
+  Optional. You must include either `packageId` or `customerId` dependng on the `type`
+  """
+  customerId: Int
+
+  """
+  Optional. You must include either `packageId` or `customerId` dependng on the `type`
+  """
+  packageId: Int
+
+  """
+  Send a full path like this: `https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${key-from-generatePresignedUrl}`
+  """
+  path: String! @spectaql(options: [{ key: "example", value: "\"https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${key-from-generatePresignedUrl}\"" }])
+
+  """
+  Can be either "PACKAGE" or "CUSTOMER"
+  """
+  type: ImageType! @spectaql(options: [{ key: "example", value: "\"PACKAGE\"" }])
+}
+
+input SetDefaultWalletInput {
+  """
+  The identifier of the customer who owns the wallet. This ensures that the default wallet is set within the context of the correct customer account.
+  """
+  customerId: Int!
+
+  """
+  The unique identifier of the wallet that is to be set as the default. This ID must be that of an existing wallet owned by the customer.
+  """
+  walletId: Int!
+}
+
+type TokenPackage {
+  createdAt: DateTime!
+  currency: String! @spectaql(options: [{ key: "example", value: "\"USD\"" }])
+  deletedAt: DateTime
+  description: String
+  image: Image
+  isActive: Boolean!
+  name: String!
+  packageId: Int!
+  price: Float!
+  tokenAmount: Float!
+  updatedAt: DateTime
+}
+
+input TokenPackageCreateInput {
+  """Only "EUR", "USD" and "GBP" are supporting currencies"""
+  currency: String! @spectaql(options: [{ key: "example", value: "\"USD\"" }])
+  description: String
+  isActive: Boolean!
+  name: String!
+
+  """
+  You can set price in the format of 100 , 100.0 or 100.00 . Set in the format of 100.000 will be invalid
+  """
+  price: Float!
+  tokenAmount: Float!
+}
+
+input TokenPackageUpdateInput {
+  """Only "EUR", "USD" and "GBP" are supporting currencies"""
+  currency: String @spectaql(options: [{ key: "example", value: "\"USD\"" }])
+  description: String
+  isActive: Boolean
+  name: String
+
+  """Price should be in the format of 100 , 100.0 or 100.00 """
+  price: Float
+  tokenAmount: Float
+}
+
+type TokenPrice {
+  createdAt: DateTime
+  currency: String! @spectaql(options: [{ key: "example", value: "\"EUR\"" }])
+  price: Float!
+  tokenPriceId: Int!
+  updatedAt: DateTime
+}
+
+input TokenPriceCreateInput {
+  """Only "EUR", "USD" and "GBP" are supporting currencies"""
+  currency: String! @spectaql(options: [{ key: "example", value: "\"EUR\"" }])
+
+  """
+  You can set price in the format of 2 , 2.0 or 2.00 . Set in the format of 2.000 will be invalid
+  """
+  price: Float!
+}
+
+enum UnresolvedReason {
+  DELAYED
+  MULTIPLE
+  OTHER
+  OVERPAID
+  UNDERPAID
+}
+
+input UpdateCommissionTierInput {
+  """
+  Optional field. The commission rate is a decimal value ranging from 0.0 to 1.0 (or 0% to 100%), representing the commission percentage assigned to a particular tier in the referral hierarchy. This rate determines the percentage of commission a user at a specific tier receives for a referral. For instance, a commission rate of 0.1 corresponds to a 10% commission rate, whereas a commission rate of 0.9999 corresponds to a 99.99% commission rate. In the database, this field is represented as a Decimal with a precision of 4 decimal places, ensuring accurate commission rate calculations down to the hundredth of a percent.
+  """
+  commissionRate: Float @spectaql(options: [{ key: "example", value: "0.105" }])
+
+  """
+  The tier represents the level in the referral hierarchy. A tier of 1 indicates a direct referral, while higher tier numbers indicate referrals further up the hierarchy. For instance, in a scenario where User A refers User B, and User B refers User C, User B is at tier 1 for User C, and User A is at tier 2 for User C.
+  """
+  tier: Int @spectaql(options: [{ key: "example", value: "1" }])
+}
+
+input UpdateWalletInput {
+  """
+  An optional new blockchain address to update the wallet with. If provided, it should be a valid blockchain address string.
+  """
+  address: String
+
+  """
+  An optional cryptocurrency type to update the wallet with. If provided, it must be one of the types defined in the `CryptoType` enum.
+  """
+  cryptoType: CryptoType
+
+  """
+  The customer identifier for whom the wallet is being updated. Must correspond to the ID of an existing customer in the system.
+  """
+  customerId: Int!
+
+  """
+  An optional boolean indicating if the wallet should be set as the default wallet. If `true`, this wallet will be marked as the primary wallet for the customer. If `false` or omitted, the wallet will not be affected in terms of default status.
+  """
+  isDefault: Boolean
+
+  """
+  The unique identifier of the wallet to be updated. This ID must refer to an existing wallet associated with the customer.
+  """
+  walletId: Int!
+}
+
+input UploadInput {
+  """
+  Can be either "jpg", "jpeg", "png", "gif" or "webp"
+  """
+  fileExtension: String! @spectaql(options: [{ key: "example", value: "\"jpg\"" }])
+
+  """
+  This will be folder path in S3 bucket. The `type` can be either "PACKAGE" or "CUSTOMER" as defined in `enum ImageType`
+  """
+  type: ImageType! @spectaql(options: [{ key: "example", value: "\"PACKAGE\"" }])
+}
+
+type VerifyEmailResult {
+  message: String @spectaql(options: [{ key: "example", value: "\"Customer is successfully verified\"" }])
+  success: Boolean @spectaql(options: [{ key: "example", value: "true" }])
+}
+
+type Wallet {
+  address: String! @spectaql(options: [{ key: "example", value: "\"0x742d35Cc6634C0532925a3b844Bc454e4438f44e\"" }])
+  createdAt: DateTime!
+  cryptoType: CryptoType! @spectaql(options: [{ key: "example", value: "\"ETH\"" }])
+  customerId: Int!
+  isDefault: Boolean! @spectaql(options: [{ key: "example", value: "true" }])
+  updatedAt: DateTime
+  walletId: Int!
+}

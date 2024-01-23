@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE "Charge" ALTER COLUMN "cancelUrl" DROP NOT NULL,
+ALTER COLUMN "exchangeRates" DROP NOT NULL,
+ALTER COLUMN "localExchangeRates" DROP NOT NULL,
+ALTER COLUMN "paymentThreshold" DROP NOT NULL,
+ALTER COLUMN "redirectUrl" DROP NOT NULL;

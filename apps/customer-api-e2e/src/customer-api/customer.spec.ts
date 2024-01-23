@@ -1,22 +1,51 @@
-import { graphQLClient } from '../support/test-setup';
+import { clearCookies, graphQLClient } from '../support/test-setup';
 import { gql } from 'graphql-request';
 import {
   clearDatabase,
   connectToDatabase,
   disconnectFromDatabase,
 } from '../support/test-utils';
-import { ERROR_MESSAGES } from '@charonium/common/constants/error-messages.constant';
-import { INPUT } from '@charonium/common/constants/input.constant';
+import {
+  CONFIG,
+  CustomerRole,
+  ERROR_MESSAGES,
+  SUCCESS_MESSAGES,
+} from '@charonium/common';
+import { INPUT } from '@charonium/common';
+import {
+  createAndVerifyAdmin,
+  registerAndLogin,
+} from './utils/auth-test.utils';
+import { JwtModule, JwtService } from '@nestjs/jwt';
+import { PrismaModule, PrismaService } from '@charonium/prisma';
+import { Test } from '@nestjs/testing';
+import { Customer } from './utils/interface.utils';
 
 describe('Customer', () => {
-  console.log('Running Customer tests');
+  let jwtService: JwtService;
+  let prismaService: PrismaService;
 
   beforeAll(async () => {
     await connectToDatabase();
+
+    const moduleRef = await Test.createTestingModule({
+      imports: [
+        JwtModule.register({
+          secret: process.env.JWT_SECRET,
+          signOptions: { expiresIn: CONFIG.ACCESS_TOKEN_EXPIRATION },
+        }),
+        PrismaModule,
+      ],
+    }).compile();
+
+    jwtService = moduleRef.get<JwtService>(JwtService);
+    prismaService = moduleRef.get<PrismaService>(PrismaService);
   });
 
   beforeEach(async () => {
     await clearDatabase();
+    // Clear cookies before running the test
+    clearCookies();
   });
 
   afterAll(async () => {
@@ -43,6 +72,212 @@ describe('Customer', () => {
       }
     }
   `;
+
+  const loginMutation = gql`
+    mutation Login($input: LoginInput!) {
+      login(input: $input)
+    }
+  `;
+
+  const changePasswordMutation = gql`
+    mutation ChangePassword($input: ChangePasswordInput!) {
+      changePassword(input: $input)
+    }
+  `;
+
+  const getCustomersQuery = gql`
+    query GetCustomers(
+      $cursor: Int
+      $limit: Int
+      $customerStatus: CustomerStatus
+      $emailStatus: EmailStatus
+      $customerRole: CustomerRole
+    ) {
+      getCustomers(
+        cursor: $cursor
+        limit: $limit
+        customerStatus: $customerStatus
+        emailStatus: $emailStatus
+        customerRole: $customerRole
+      ) {
+        data {
+          customerId
+          name
+          email
+          emailStatus
+          customerStatus
+          referralCode
+          referralCustomerId
+          referrer {
+            customerId
+            name
+            email
+            emailStatus
+            customerStatus
+            referralCode
+            referralCustomerId
+          }
+          referees {
+            customerId
+            name
+            email
+            emailStatus
+            customerStatus
+            referralCode
+            referralCustomerId
+          }
+          charges {
+            chargeId
+            code
+            name
+            description
+            pricingType
+            addresses
+            pricing
+            exchangeRates
+            localExchangeRates
+            hostedUrl
+            cancelUrl
+            redirectUrl
+            feeRate
+            expiresAt
+            paymentThreshold
+            createdAt
+            updatedAt
+          }
+          commissions {
+            commissionId
+            customerId
+            chargeId
+            tier
+            commissionRate
+            amount
+            currency
+            isTransferred
+            createdAt
+            updatedAt
+          }
+          wallets {
+            walletId
+            customerId
+            address
+            cryptoType
+            isDefault
+          }
+          image {
+            imageId
+            path
+            type
+            customerId
+            packageId
+            createdAt
+          }
+          createdAt
+          updatedAt
+        }
+        nextPageCursor
+      }
+    }
+  `;
+
+  const meQuery = gql`
+    query Me {
+      me {
+        customerId
+        name
+        email
+        emailStatus
+        customerStatus
+        referralCode
+        referralCustomerId
+        referrer {
+          customerId
+          name
+          email
+          emailStatus
+          customerStatus
+          referralCode
+          referralCustomerId
+        }
+        referees {
+          customerId
+          name
+          email
+          emailStatus
+          customerStatus
+          referralCode
+          referralCustomerId
+        }
+        charges {
+          chargeId
+          code
+          name
+          description
+          pricingType
+          addresses
+          pricing
+          exchangeRates
+          localExchangeRates
+          hostedUrl
+          cancelUrl
+          redirectUrl
+          feeRate
+          expiresAt
+          paymentThreshold
+          createdAt
+          updatedAt
+        }
+        commissions {
+          commissionId
+          customerId
+          chargeId
+          tier
+          commissionRate
+          amount
+          currency
+          isTransferred
+          createdAt
+          updatedAt
+        }
+        wallets {
+          walletId
+          customerId
+          address
+          cryptoType
+          isDefault
+        }
+        image {
+          imageId
+          path
+          type
+          customerId
+          packageId
+          createdAt
+        }
+        createdAt
+        updatedAt
+      }
+    }
+  `;
+
+  interface GetCustomersResponse {
+    getCustomers: {
+      data: Customer[];
+      nextPageCursor: string;
+    };
+  }
+
+  interface MeResponse {
+    me: Customer;
+  }
+
+  interface ChangePasswordResponse {
+    changePassword: boolean;
+  }
+
+  interface LoginResponse {
+    login: boolean;
+  }
 
   it('should register a new customer without referral code', async () => {
     const input = {
@@ -297,4 +532,161 @@ describe('Customer', () => {
       );
     }
   });
+
+  it('user should be able to fetch their own data', async () => {
+    const user = {
+      name: 'Jane Smith Suise',
+      email: 'jane.smith.suise@gmail.com',
+      password: 'password67890',
+    };
+
+    // User login and get GraphQL client with user access token
+    const { graphQLClientWithAccessToken } = await registerAndLogin(
+      graphQLClient,
+      user
+    );
+
+    const meResponse = await graphQLClientWithAccessToken.request<MeResponse>(
+      meQuery
+    );
+
+    // Assertions based on the expected response
+    expect(meResponse).toHaveProperty('me');
+    expect(meResponse.me.name).toBe(user.name);
+    expect(meResponse.me.email).toBe(user.email);
+  });
+
+  it('admin should be able to fetch customers', async () => {
+    const user = {
+      name: 'John Doe',
+      email: 'john.doe@gmail.com',
+      password: 'password12345',
+    };
+
+    await registerAndLogin(graphQLClient, user);
+
+    // Admin login and get GraphQL client with admin access token
+    const { graphQLClientWithAdminAccessToken } = await createAndVerifyAdmin(
+      graphQLClient,
+      jwtService,
+      prismaService
+    );
+
+    const getCustomersResponse =
+      await graphQLClientWithAdminAccessToken.request<GetCustomersResponse>(
+        getCustomersQuery,
+        {
+          customerRole: CustomerRole.USER,
+        }
+      );
+
+    // Assertions based on the expected response
+    expect(getCustomersResponse).toHaveProperty('getCustomers');
+    expect(getCustomersResponse.getCustomers.data).toBeInstanceOf(Array);
+    // Length only 1 since we filter by customerRole
+    expect(getCustomersResponse.getCustomers.data.length).toBe(1);
+  });
+
+  it('should allow a customer to change their password', async () => {
+    // 1. Register a new customer
+    const registerInput = {
+      name: 'Jane ChangePass',
+      email: 'jane.changepass@gmail.com',
+      password: 'initialPassword123',
+    };
+
+    const { graphQLClientWithAccessToken } = await registerAndLogin(
+      graphQLClient,
+      registerInput
+    );
+
+    // 3. Use the access token to change the password
+    const changePasswordInput = {
+      oldPassword: 'initialPassword123',
+      newPassword: 'newPassword456',
+    };
+
+    const changePasswordResponse: ChangePasswordResponse =
+      await graphQLClientWithAccessToken.request(changePasswordMutation, {
+        input: changePasswordInput,
+      });
+
+    expect(changePasswordResponse.changePassword).toBe(true);
+
+    // 4. Attempt to login with the old password (this should fail)
+    try {
+      await graphQLClient.request(loginMutation, {
+        input: {
+          email: 'jane.changepass@gmail.com',
+          password: 'initialPassword123',
+        },
+      });
+    } catch (error) {
+      expect(error.response.errors[0].message).toBe(
+        ERROR_MESSAGES.INVALID_INPUT_PASSWORD
+      );
+    }
+
+    // 5. Login with the new password (this should succeed)
+    const newLoginResponse: LoginResponse = await graphQLClient.request(
+      loginMutation,
+      {
+        input: {
+          email: 'jane.changepass@gmail.com',
+          password: 'newPassword456',
+        },
+      }
+    );
+
+    expect(newLoginResponse.login).toEqual(SUCCESS_MESSAGES.LOGIN_SUCCESS);
+  });
+
+  // it('should allow an admin to change their password', async () => {
+  //   // 1. Create and verify an admin
+  //   const { graphQLClientWithAdminAccessToken } = await createAndVerifyAdmin(
+  //     graphQLClient,
+  //     jwtService,
+  //     prismaService
+  //   );
+
+  //   // 2. Use the access token to change the password
+  //   const changePasswordInput = {
+  //     oldPassword: 'admin_password12345', // Assuming this is the initial password set during admin creation
+  //     newPassword: 'newAdminPassword456',
+  //   };
+
+  //   const changePasswordResponse: ChangePasswordResponse =
+  //     await graphQLClientWithAdminAccessToken.request(changePasswordMutation, {
+  //       input: changePasswordInput,
+  //     });
+
+  //   expect(changePasswordResponse.changePassword).toBe(true);
+
+  //   // 3. Attempt to login with the old password (this should fail)
+  //   try {
+  //     await graphQLClient.request(loginMutation, {
+  //       input: {
+  //         email: process.env.ADMIN_EMAIL, // Assuming this is the email set during admin creation
+  //         password: 'admin_password12345',
+  //       },
+  //     });
+  //   } catch (error) {
+  //     expect(error.response.errors[0].message).toBe(
+  //       ERROR_MESSAGES.INVALID_INPUT_PASSWORD
+  //     );
+  //   }
+
+  //   // 4. Login with the new password (this should succeed)
+  //   const newLoginResponse: LoginResponse = await graphQLClient.request(
+  //     loginMutation,
+  //     {
+  //       input: {
+  //         email: process.env.ADMIN_EMAIL,
+  //         password: 'newAdminPassword456',
+  //       },
+  //     }
+  //   );
+
+  //   expect(newLoginResponse.login).toEqual(SUCCESS_MESSAGES.LOGIN_SUCCESS);
+  // });
 });

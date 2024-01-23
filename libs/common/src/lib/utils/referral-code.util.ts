@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@charonium/customer-api/prisma/prisma.service';
+import { PrismaService } from '@charonium/prisma';
 import { Customer } from '@prisma/client';
 
 @Injectable()
@@ -30,7 +30,7 @@ export class ReferralCodeUtil {
 
   generateRandomString(length: number): string {
     let result = '';
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     const charactersLength = characters.length;
     for (let i = 0; i < length; i++) {
       result += characters.charAt(Math.floor(Math.random() * charactersLength));

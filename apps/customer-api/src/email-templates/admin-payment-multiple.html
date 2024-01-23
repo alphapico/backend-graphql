@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body
+    style="
+      font-family: Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      color: #333333;
+      margin: 0;
+    "
+  >
+    <div
+      style="
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 40px;
+        background-color: #ffffff;
+        box-sizing: border-box;
+      "
+    >
+      <div style="text-align: center; margin-bottom: 20px">
+        <img
+          src="https://charonium-media.s3.eu-central-1.amazonaws.com/store_b40de351e3.png"
+          alt="Charonium"
+          style="width: 150px"
+        />
+      </div>
+      <div style="text-align: center; margin-bottom: 30px">
+        <h1 style="font-size: 24px; color: #333333; margin-bottom: 20px">
+          Multiple Payments Detected
+        </h1>
+        <p style="color: #333333">Dear Admin,</p>
+        <p style="color: #333333">
+          The customer, {{{customerName}}}, with the email address
+          {{{customerEmail}}}, has made multiple payments for their purchase of
+          STYX tokens.
+        </p>
+        <p style="color: #333333">
+          <strong>Transaction Details:</strong>
+        </p>
+        <table
+          style="width: 100%; border-collapse: collapse; margin-bottom: 20px"
+        >
+          <tr style="background-color: #f8f8f8">
+            <th style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              Detail
+            </th>
+            <th style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              Value
+            </th>
+          </tr>
+          <tr>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              Customer Name
+            </td>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              {{{customerName}}}
+            </td>
+          </tr>
+          <tr>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              Customer Email
+            </td>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              {{{customerEmail}}}
+            </td>
+          </tr>
+          <tr>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              Charge Code
+            </td>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              {{{chargeCode}}}
+            </td>
+          </tr>
+          <tr>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              Total Amount Paid
+            </td>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              {{{amountPaid}}} {{{currency}}}
+            </td>
+          </tr>
+          <tr>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              Amount Required
+            </td>
+            <td style="text-align: left; padding: 10px; border: 1px solid #ddd">
+              {{{requiredAmount}}} {{{currency}}}
+            </td>
+          </tr>
+        </table>
+
+        <p style="color: #333333">
+          Please review the transactions, arrange for a refund of the excess
+          amount to the customer's account and resolve manually.
+        </p>
+        <p style="color: #333333">
+          Thank you for your prompt attention to this matter.
+        </p>
+      </div>
+      <div style="text-align: center; font-size: 14px; color: #999999">
+        <p>&copy; 2023 Your Company. All rights reserved.</p>
+      </div>
+    </div>
+  </body>
+</html>

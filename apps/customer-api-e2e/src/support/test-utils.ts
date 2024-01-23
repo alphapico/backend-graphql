@@ -1,7 +1,9 @@
-import { PrismaClient } from '@prisma/client';
+import { CustomerRole, PrismaClient } from '@prisma/client';
 import axios from 'axios';
 import { execSync } from 'child_process';
 import { healthUrl } from './test-setup';
+import fs from 'fs-extra';
+import path from 'path';
 
 export const prisma = new PrismaClient();
 const RETRIES = 5;
@@ -22,6 +24,12 @@ export async function clearDatabase() {
     if (prisma[tableName]) {
       const deleteMany = prisma[tableName].deleteMany;
       if (typeof deleteMany === 'function') {
+        // Only delete non-admin customers
+        if (tableName === 'customer') {
+          return deleteMany.call(prisma[tableName], {
+            where: { customerRole: { not: CustomerRole.ADMIN } },
+          });
+        }
         return deleteMany.call(prisma[tableName]);
       }
     }
@@ -108,3 +116,20 @@ export function execAndWait(cmd, options = {}) {
     }
   });
 }
+
+export const clearDebugsFolder = async () => {
+  const debugsFolderPath = path.join(
+    __dirname,
+    '..',
+    '..',
+    '..',
+    'customer-api-e2e',
+    'debugs'
+  );
+  try {
+    await fs.emptyDir(debugsFolderPath);
+    console.log('Cleared debugs folder:', debugsFolderPath);
+  } catch (err) {
+    console.error('Error while clearing debugs folder:', err);
+  }
+};
